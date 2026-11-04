@@ -50,10 +50,10 @@ function fail(e: unknown): string {
         return map[errorKey(e)] ?? t('errors.server');
     }
     if (e instanceof CryptoError) {
-        const map: Record<string, string> = { DecryptFailed: t('errors.decryptFailed'), InsecureContext: t('errors.insecure.body'), InvalidPassword: t('errors.passwordTooShort') };
-        return map[e.code] ?? t('errors.server');
+        const map: Record<string, string> = { DecryptFailed: t('errors.decryptFailed'), InsecureContext: t('errors.insecure.body'), InvalidPassword: t('errors.passwordTooShort'), KdfFailed: t('errors.kdfFailed') };
+        return map[e.code] ?? t('errors.unknown');
     }
-    return t('errors.server');
+    return t('errors.unknown');
 }
 
 async function submit(): Promise<void> {

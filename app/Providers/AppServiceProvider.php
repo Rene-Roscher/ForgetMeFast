@@ -30,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
         // einen parallel laufenden `composer dev` nicht, und er muss public/hot weder lesen noch löschen.
         if ($this->app->environment('testing')) {
             Vite::useHotFile(storage_path('framework/testing/no-vite-hot'));
+        } elseif (env('VITE_HOT_FILE')) {
+            Vite::useHotFile((string) env('VITE_HOT_FILE')); // isolierter Dev-E2E-Lauf, siehe playwright.config.ts
         }
 
         // Gelöschte Seiten werden überschrieben (docs/SPEC.md: SQLite mit secure_delete). Löschen heißt nicht

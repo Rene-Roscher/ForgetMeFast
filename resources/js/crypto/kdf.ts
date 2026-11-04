@@ -70,12 +70,19 @@ export const deriveOnMainThread: Deriver = async (password, salt, params) => {
 
 /** Im Browser läuft die Ableitung im Worker (hält die Seite flüssig), sonst im Hauptthread. */
 export const defaultDeriver: Deriver = async (password, salt, params) => {
-    if (typeof Worker === 'undefined') {
+    // Im Dev-Betrieb liegt die Worker-Datei auf dem Vite-Server (anderer Port, anderer Ursprung): ein Worker muss aber vom
+    // Ursprung der Seite kommen. Dort und ohne Worker-Unterstützung läuft Argon2id im Hauptthread.
+    if (typeof Worker === 'undefined' || import.meta.env.DEV) {
         return deriveOnMainThread(password, salt, params);
     }
     /* v8 ignore start -- Worker-Pfad, nur im Browser; abgedeckt durch e2e/ (Playwright) */
-    const { workerDeriver } = await import('./kdf-worker-client');
-    return workerDeriver()(password, salt, params);
+    try {
+        const { workerDeriver } = await import('./kdf-worker-client');
+        return await workerDeriver()(password, salt, params);
+    } catch {
+        // Worker nicht startbar (Richtlinie, Browser): lieber etwas langsamer als gar nicht.
+        return deriveOnMainThread(password, salt, params);
+    }
     /* v8 ignore stop */
 };
 

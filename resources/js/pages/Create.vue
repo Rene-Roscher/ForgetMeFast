@@ -80,8 +80,9 @@ function message(e: unknown): string {
             InvalidPassword: t('errors.passwordTooShort'),
             EmptySecret: t('errors.secretEmpty'),
             SecretTooLarge: t('errors.secretTooLarge', { max: number.format(MAX_PLAINTEXT_BYTES) }),
+            KdfFailed: t('errors.kdfFailed'),
         };
-        return map[e.code] ?? t('errors.server');
+        return map[e.code] ?? t('errors.unknown');
     }
     if (e instanceof ApiError) {
         const map: Record<string, string> = {
@@ -89,7 +90,7 @@ function message(e: unknown): string {
         };
         return map[errorKey(e)] ?? t('errors.server');
     }
-    return t('errors.server');
+    return t('errors.unknown');
 }
 
 async function send(p: CreatedSecret): Promise<void> {

@@ -245,8 +245,13 @@ test('Argon2id läuft in einem Worker unter der strikten CSP und die Zeit ist im
     await expect(page.getByTestId('result')).toBeVisible({ timeout: 15_000 });
     const ms = Date.now() - t0;
     console.log(`Erstellen inklusive Argon2id (m=19456, t=2, p=1), Worker, Netzwerk: ${ms} ms (Chromium, Desktop)`);
-    expect(workers.length).toBeGreaterThan(0);
-    expect(workers.every((u) => u.startsWith('http://127.0.0.1') && !u.startsWith('blob:'))).toBe(true);
+    if (process.env.E2E_DEV === '1') {
+        // Im Dev-Betrieb liegt die Worker-Datei auf dem Vite-Server (anderer Ursprung); dort rechnet der Hauptthread.
+        expect(workers).toEqual([]);
+    } else {
+        expect(workers.length).toBeGreaterThan(0);
+        expect(workers.every((u) => u.startsWith('http://127.0.0.1') && !u.startsWith('blob:'))).toBe(true);
+    }
     expect(violations).toEqual([]);
     expect(ms).toBeLessThan(5000);
     rememberNeedles('zeit', 'mindestens-zehn-zeichen');

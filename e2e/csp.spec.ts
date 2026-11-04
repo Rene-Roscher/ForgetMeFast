@@ -21,7 +21,7 @@ test('home page boots Inertia under the strict CSP without violations', async ({
     expect(await page.locator('script:not([src]):not([type="application/json"])').count()).toBe(0);
     if (process.env.E2E_DEV === '1') {
         // Proves the dev run really loads scripts from the Vite dev server and not from public/build.
-        expect(await page.locator('script[src*=":5173"]').count()).toBeGreaterThan(0);
+        expect(await page.locator('script[src*=":5183"]').count()).toBeGreaterThan(0);
     }
     expect(problems).toEqual([]);
 });

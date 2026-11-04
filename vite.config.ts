@@ -14,6 +14,8 @@ export default defineConfig({
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.ts'],
             refresh: true,
+            // Für einen isolierten Dev-E2E-Lauf neben einem laufenden `composer dev` (npm run e2e:dev).
+            ...(process.env.VITE_HOT_FILE ? { hotFile: process.env.VITE_HOT_FILE } : {}),
         }),
         inertia({ ssr: false }),
         vue(),
@@ -31,7 +33,7 @@ export default defineConfig({
     server: {
         // IPv4 on purpose: the CSP cannot name an IPv6 host (see SecurityHeaders).
         host: '127.0.0.1',
-        port: 5173,
+        port: Number(process.env.VITE_PORT ?? 5173),
         strictPort: true,
         watch: {
             ignored: ['**/storage/framework/views/**'],
