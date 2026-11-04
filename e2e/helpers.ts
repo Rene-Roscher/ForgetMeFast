@@ -28,6 +28,11 @@ export async function create(page: Page, opts: { secret: string; password?: stri
     // Das Passwort ist beim Laden schon erzeugt; nur wer ein eigenes will, tippt es.
     if (opts.password) await page.locator('#password').fill(opts.password);
     const password = await page.locator('#password').inputValue();
+    // "Einmalig" ist die Voreinstellung; mehr als ein Abruf braucht den Schalter aus und die Zahl.
+    if (opts.views !== undefined && opts.views > 1) {
+        await page.getByTestId('onetime-toggle').click();
+        await expect(page.getByTestId('onetime-toggle')).toHaveAttribute('aria-pressed', 'false');
+    }
     for (const [label, want, base] of [['Abrufe', opts.views, 1], ['Fehlversuche', opts.attempts, 3]] as const) {
         for (let i = base; want !== undefined && i < want; i++) {
             await page.getByRole('button', { name: `${label}: Mehr` }).click();

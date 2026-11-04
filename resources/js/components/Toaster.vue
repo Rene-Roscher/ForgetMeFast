@@ -1,40 +1,29 @@
 <script setup lang="ts">
-// Meldungen oben mittig (Reka UI Toast). Fehler sind "foreground" (werden sofort vorgelesen), Erfolg und Hinweis "background".
-// Aufbau wie bei modernen Apps: kleine Karte, Icon in einer Marke, Titel, Text, dezentes Schließen.
-import { ToastClose, ToastDescription, ToastProvider, ToastRoot, ToastTitle, ToastViewport } from 'reka-ui';
+// Meldungen oben mittig mit vue-sonner (MIT). Ohne eigene Optik von der Bibliothek ("unstyled"), gestaltet mit unseren
+// Tokens, damit Hell und Dunkel automatisch stimmen. Stapeln, Wischen zum Schließen und Pausieren beim Überfahren
+// kommen von der Bibliothek.
+import { Toaster } from 'vue-sonner';
 import { useI18n } from 'vue-i18n';
 import Icon from '@/components/Icon.vue';
-import { useToasts } from '@/toast';
 
 const { t } = useI18n();
-const { items, remove } = useToasts();
-const icons = { error: 'alert', success: 'check-circle', info: 'shield' } as const;
-const tone = {
-    error: 'bg-destructive/15 text-destructive',
-    success: 'bg-brand/15 text-brand',
-    info: 'bg-accent text-foreground',
-} as const;
+const classes = {
+    toast: 'pointer-events-auto flex w-[22.5rem] max-w-[calc(100vw-1.5rem)] items-start gap-3 rounded-xl border border-border bg-card p-3.5 text-foreground shadow-[0_8px_30px_rgb(0_0_0/0.16)]',
+    content: 'flex min-w-0 flex-1 flex-col gap-0.5',
+    title: 'text-sm leading-5 font-medium',
+    description: 'text-[0.8125rem] leading-snug text-muted-foreground',
+    icon: 'mt-px flex size-6 shrink-0 items-center justify-center rounded-md',
+    closeButton: '!top-2 !right-2 !left-auto !size-7 !transform-none !border-border !bg-card !text-muted-foreground hover:!bg-accent',
+    error: '[&_[data-icon]]:bg-destructive/15 [&_[data-icon]]:text-destructive',
+    success: '[&_[data-icon]]:bg-brand/15 [&_[data-icon]]:text-brand',
+    info: '[&_[data-icon]]:bg-accent [&_[data-icon]]:text-foreground',
+};
 </script>
 
 <template>
-    <ToastProvider :label="t('toast.label')" swipe-direction="up" :duration="5000">
-        <ToastRoot
-            v-for="item in items"
-            :key="item.id"
-            :open="item.open"
-            :type="item.kind === 'error' ? 'foreground' : 'background'"
-            :duration="item.kind === 'error' ? 8000 : 3500"
-            :data-testid="`toast-${item.kind}`"
-            class="toast pointer-events-auto flex items-start gap-3 rounded-lg border border-border-strong bg-card p-3 pr-2.5 text-foreground shadow-[0_8px_30px_rgb(0_0_0/0.14)]"
-            @update:open="(open: boolean) => { if (!open) remove(item.id); }"
-        >
-            <span class="mt-px flex size-6 shrink-0 items-center justify-center rounded-md" :class="tone[item.kind]"><Icon :name="icons[item.kind]" /></span>
-            <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-                <ToastTitle class="text-sm leading-5 font-medium">{{ t(`toast.titles.${item.kind}`) }}</ToastTitle>
-                <ToastDescription class="text-[0.8125rem] leading-snug text-muted-foreground">{{ item.message }}</ToastDescription>
-            </div>
-            <ToastClose class="icon-btn size-7 shrink-0 text-muted-foreground" :aria-label="t('toast.close')"><Icon name="close" /></ToastClose>
-        </ToastRoot>
-        <ToastViewport class="pointer-events-none fixed top-4 left-1/2 z-[60] flex w-[calc(100vw-1.5rem)] max-w-[22.5rem] -translate-x-1/2 list-none flex-col gap-2 p-0" />
-    </ToastProvider>
+    <Toaster position="top-center" close-button close-button-position="top-right" :offset="16" :visible-toasts="4" :gap="8" :aria-label="t('toast.label')" :toast-options="{ unstyled: true, classes, closeButtonAriaLabel: t('toast.close') }">
+        <template #success-icon><Icon name="check-circle" /></template>
+        <template #error-icon><Icon name="alert" /></template>
+        <template #info-icon><Icon name="shield" /></template>
+    </Toaster>
 </template>

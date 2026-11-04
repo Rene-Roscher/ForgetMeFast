@@ -132,41 +132,19 @@ test('unbekannte id: dieselbe Seite "Nicht verfügbar"', async ({ page }) => {
     await expect(page.getByTestId('unavailable')).toBeVisible();
 });
 
-test('Prüfen vor dem Senden: der Dialog zeigt exakt den Body, der danach gesendet wird', async ({ page }) => {
+test('das Gesendete enthält weder Klartext noch Passwort noch Link-Key und genau die erwarteten Felder', async ({ page }) => {
     const secret = 'sehr geheimer Klartext 12345';
     const password = 'ein-ziemlich-langes-passwort';
     rememberNeedles(secret, password);
     await page.goto('/');
     await page.locator('#secret').fill(secret);
     await page.locator('#password').fill(password);
-    await page.getByTestId('review-toggle').click();
-
-    const posted: string[] = [];
-    page.on('request', (r) => r.url().endsWith('/api/secrets') && r.method() === 'POST' && posted.push(r.postData() ?? ''));
-    await page.getByTestId('submit').click();
-    const dialog = page.getByRole('dialog', { name: 'Das verlässt deinen Browser' });
-    await expect(dialog).toBeVisible({ timeout: 15_000 });
-    const shown = JSON.parse((await page.getByTestId('server-body').textContent())!) as Record<string, unknown>;
-    expect(posted).toEqual([]); // vor der Bestätigung wurde nichts gesendet
-    await expect(page.getByTestId('result')).toHaveCount(0);
-
-    // Esc schließt den Dialog, der Fokus kehrt zum Auslöser zurück, und es wurde immer noch nichts gesendet.
-    await page.keyboard.press('Escape');
-    await expect(dialog).toHaveCount(0);
-    await expect(page.getByTestId('submit')).toBeFocused();
-    expect(posted).toEqual([]);
-
-    await page.getByTestId('submit').click();
-    await expect(dialog).toBeVisible({ timeout: 15_000 });
     const requestPromise = page.waitForRequest((r) => r.url().endsWith('/api/secrets') && r.method() === 'POST');
-    await page.getByTestId('review-send').click();
+    await page.getByTestId('submit').click();
     const sent = JSON.parse((await requestPromise).postData()!) as Record<string, unknown>;
-
-    // Nach dem erneuten Verschlüsseln sind Zufallswerte neu. Der Dialog, der zu DIESEM Senden gehörte, hat denselben Aufbau.
-    expect(Object.keys(shown).sort()).toEqual(Object.keys(sent).sort());
-    const { ciphertext: sentCt, ...sentRest } = sent as { ciphertext: string };
-    expect(sentCt.length).toBeGreaterThan(1000);
-    expect(Object.keys(sentRest).sort()).toEqual(['id', 'iv', 'kdf', 'manage_hash', 'max_attempts', 'max_views', 'salt', 'ttl', 'v', 'verifier']);
+    const { ciphertext, ...rest } = sent as { ciphertext: string };
+    expect(ciphertext.length).toBeGreaterThan(1000);
+    expect(Object.keys(rest).sort()).toEqual(['id', 'iv', 'kdf', 'manage_hash', 'max_attempts', 'max_views', 'salt', 'ttl', 'v', 'verifier']);
 
     const raw = JSON.stringify(sent);
     expect(raw).not.toContain(secret);
@@ -175,25 +153,6 @@ test('Prüfen vor dem Senden: der Dialog zeigt exakt den Body, der danach gesend
     const linkKey = (await page.getByTestId('result-link').textContent())!.split('#')[1]!;
     expect(raw).not.toContain(linkKey);
     rememberNeedles(linkKey, `VERIFIER:${String(sent.verifier)}`);
-});
-
-test('der Dialog zeigt exakt den gesendeten Body, wenn man ohne Esc bestätigt', async ({ page }) => {
-    await page.goto('/');
-    await page.locator('#secret').fill('Body-Vergleich');
-    await page.locator('#password').fill('mindestens-zehn-zeichen');
-    await page.getByTestId('review-toggle').click();
-    await page.getByTestId('submit').click();
-    await expect(page.getByTestId('server-body')).toBeVisible({ timeout: 15_000 });
-    const shown = JSON.parse((await page.getByTestId('server-body').textContent())!) as Record<string, string>;
-    const requestPromise = page.waitForRequest((r) => r.url().endsWith('/api/secrets') && r.method() === 'POST');
-    await page.getByTestId('review-send').click();
-    const sent = JSON.parse((await requestPromise).postData()!) as Record<string, unknown> & { ciphertext: string };
-
-    const { ciphertext: shownCt, ...shownRest } = shown;
-    const { ciphertext: sentCt, ...sentRest } = sent;
-    expect(shownRest).toEqual(sentRest);
-    expect(shownCt).toBe(`${sentCt.slice(0, 48)}… (${sentCt.length} Zeichen)`);
-    rememberNeedles('Body-Vergleich', 'mindestens-zehn-zeichen');
 });
 
 test('ohne Prüfen genügt ein Klick', async ({ page }) => {
@@ -269,7 +228,7 @@ test('Fehler erscheinen als Toast oben mittig, mit Schließen, und blockieren ni
     await page.locator('#secret').fill('Fehlerfall');
     await page.getByTestId('submit').click();
 
-    const toast = page.getByTestId('toast-error');
+    const toast = page.locator('[data-sonner-toast][data-type="error"]');
     await expect(toast).toBeVisible();
     await expect(toast).toContainText('Der Server hat einen Fehler gemeldet');
     const box = (await toast.boundingBox())!;
@@ -278,6 +237,7 @@ test('Fehler erscheinen als Toast oben mittig, mit Schließen, und blockieren ni
     expect(box.y).toBeLessThan(40); // oben
     // Der Fehler steht nicht zusätzlich als Box im Formular, und die Eingabe ist unverändert.
     await expect(page.locator('#secret')).toHaveValue('Fehlerfall');
+    await toast.hover();
     await toast.getByRole('button', { name: 'Meldung schließen' }).click();
     await expect(toast).toHaveCount(0);
 
@@ -285,7 +245,7 @@ test('Fehler erscheinen als Toast oben mittig, mit Schließen, und blockieren ni
     await page.unroute('**/api/secrets');
     await page.route('**/api/secrets', (r) => r.abort());
     await page.getByTestId('submit').click();
-    await expect(page.getByTestId('toast-error')).toContainText('Keine Verbindung zum Server');
+    await expect(page.locator('[data-sonner-toast][data-type="error"]')).toContainText('Keine Verbindung zum Server');
 });
 
 test('Kopieren meldet sich als Toast', async ({ browser }) => {
@@ -293,7 +253,7 @@ test('Kopieren meldet sich als Toast', async ({ browser }) => {
     const page = await ctx.newPage();
     const created = await create(page, { secret: 'Toast-Test' });
     await page.getByTestId('result-link').locator('xpath=ancestor::section[1]').getByRole('button', { name: 'Kopieren' }).click();
-    await expect(page.getByTestId('toast-success')).toContainText('Link kopiert');
+    await expect(page.locator('[data-sonner-toast][data-type="success"]')).toContainText('Link kopiert');
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(created.link);
     await ctx.close();
 });
@@ -359,7 +319,7 @@ test('Verlauf: ein von einem Empfänger leergelesenes Secret erscheint als "Gele
     await expect(a.getByRole('dialog', { name: 'Verlauf leeren?' })).toBeVisible();
     await a.getByTestId('history-clear-confirm').click();
     await expect(a.getByTestId('history-empty')).toBeVisible();
-    await expect(a.getByTestId('toast-info')).toContainText('Verlauf geleert');
+    await expect(a.locator('[data-sonner-toast][data-type="info"]')).toContainText('Verlauf geleert');
     await ctx.close();
 });
 
@@ -386,4 +346,111 @@ test('Argon2id läuft in einem Worker unter der strikten CSP und die Zeit ist im
     expect(violations).toEqual([]);
     expect(ms).toBeLessThan(5000);
     rememberNeedles('zeit', 'mindestens-zehn-zeichen');
+});
+
+test('Regeln und Art des Passworts bleiben im Browser erhalten, nie Passwort oder Secret', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('combobox', { name: 'Läuft ab nach' }).click();
+    await page.getByRole('option', { name: '7 Tage' }).click();
+    await page.getByTestId('onetime-toggle').click(); // aus: Abrufe erscheinen
+    await page.getByRole('button', { name: 'Abrufe: Mehr' }).click();
+    await page.getByRole('button', { name: 'Fehlversuche: Weniger' }).click();
+    await page.getByTestId('pw-mode-chars').click();
+    await page.locator('#secret').fill('Prefs-Geheimnis-4711');
+    const password = await page.locator('#password').inputValue();
+
+    const raw = await page.evaluate(() => localStorage.getItem('fmf-prefs'));
+    expect(JSON.parse(raw!)).toEqual({ ttl: 604800, views: 2, attempts: 2, oneTime: false, mode: 'chars' });
+    expect(raw).not.toContain(password);
+    expect(raw).not.toContain('Prefs-Geheimnis');
+
+    await page.reload();
+    await expect(page.getByRole('combobox', { name: 'Läuft ab nach' })).toContainText('7 Tage');
+    await expect(page.getByTestId('onetime-toggle')).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.getByRole('spinbutton', { name: 'Abrufe' })).toHaveValue('2');
+    await expect(page.getByRole('spinbutton', { name: 'Fehlversuche' })).toHaveValue('2');
+    await expect(page.getByTestId('pw-mode-chars')).toHaveAttribute('aria-pressed', 'true');
+    expect(await page.locator('#password').inputValue()).toMatch(/^\S{12,}$/); // erzeugte Zeichen, neu bei jedem Laden
+    // Kaputter Speicher fällt auf die Voreinstellung zurück.
+    await page.evaluate(() => localStorage.setItem('fmf-prefs', '{"ttl":1,"views":99}'));
+    await page.reload();
+    await expect(page.getByTestId('onetime-toggle')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole('combobox', { name: 'Läuft ab nach' })).toContainText('24 Std');
+});
+
+test('Einmalig blendet die Abrufe aus und sendet genau einen Abruf', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('spinbutton', { name: 'Abrufe' })).toHaveCount(0);
+    await page.locator('#secret').fill('einmalig und weg');
+    const requestPromise = page.waitForRequest((r) => r.url().endsWith('/api/secrets') && r.method() === 'POST');
+    await page.getByTestId('submit').click();
+    expect((JSON.parse((await requestPromise).postData()!) as { max_views: number }).max_views).toBe(1);
+    await expect(page.getByTestId('result')).toContainText('1 Abruf');
+    rememberNeedles('einmalig und weg');
+});
+
+test('Textdatei: laden per Auswahl und per Ablegen, nur Text und nur bis zum Limit', async ({ page }) => {
+    await page.goto('/');
+    const input = page.getByTestId('file-input');
+    await input.setInputFiles({ name: 'zugang.env', mimeType: 'text/plain', buffer: Buffer.from('DB_HOST=db.example.test\nDB_PASS=äöü-123') });
+    await expect(page.locator('#secret')).toHaveValue('DB_HOST=db.example.test\nDB_PASS=äöü-123');
+
+    // Binärdaten werden abgelehnt, das Feld bleibt unverändert.
+    await input.setInputFiles({ name: 'bild.png', mimeType: 'image/png', buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 1, 2, 0xff, 0xfe]) });
+    await expect(page.locator('[data-sonner-toast][data-type="error"]')).toContainText('keine Textdatei');
+    await expect(page.locator('#secret')).toHaveValue('DB_HOST=db.example.test\nDB_PASS=äöü-123');
+
+    // Zu groß.
+    await input.setInputFiles({ name: 'gross.txt', mimeType: 'text/plain', buffer: Buffer.alloc(70_000, 'a') });
+    await expect(page.locator('[data-sonner-toast][data-type="error"]').filter({ hasText: 'zu groß' })).toBeVisible();
+
+    // Ablegen: Überlagerung beim Ziehen, Inhalt beim Loslassen.
+    const section = page.locator('section[aria-labelledby="secret-title"]');
+    await page.evaluate(() => {
+        const dt = new DataTransfer();
+        dt.items.add(new File(['aus dem Ablegen'], 'drop.txt', { type: 'text/plain' }));
+        const target = document.querySelector('section[aria-labelledby="secret-title"]')!;
+        target.dispatchEvent(new DragEvent('dragenter', { dataTransfer: dt, bubbles: true, cancelable: true }));
+        (window as unknown as { __dt: DataTransfer }).__dt = dt;
+    });
+    await expect(page.getByTestId('drop-overlay')).toBeVisible();
+    await section.evaluate((el) => el.dispatchEvent(new DragEvent('drop', { dataTransfer: (window as unknown as { __dt: DataTransfer }).__dt, bubbles: true, cancelable: true })));
+    await expect(page.locator('#secret')).toHaveValue('aus dem Ablegen');
+    await expect(page.getByTestId('drop-overlay')).toHaveCount(0);
+});
+
+test('das Feld wächst mit langem Inhalt, bleibt aber im Fenster', async ({ page }) => {
+    await page.goto('/');
+    const before = (await page.locator('#secret').boundingBox())!.height;
+    await page.locator('#secret').fill(Array.from({ length: 80 }, (_, i) => `Zeile ${i}`).join('\n'));
+    await expect.poll(async () => (await page.locator('#secret').boundingBox())!.height).toBeGreaterThan(before + 100);
+    const h = (await page.locator('#secret').boundingBox())!.height;
+    expect(h).toBeLessThanOrEqual(page.viewportSize()!.height * 0.6 + 4);
+});
+
+test('Stärke: vier Stufen mit Wort, Passwort in einer Zeile', async ({ page }) => {
+    await page.goto('/');
+    const level = page.getByTestId('strength-level');
+    await expect(level).toHaveText('Gut'); // Wörter, 65 Bit
+    await page.getByTestId('pw-mode-chars').click();
+    await expect(level).toHaveText('Stark');
+    await page.locator('#password').fill('1234567890');
+    await expect(level).toHaveText('Schwach');
+    // Ein langes Passwort bricht nicht um: das Feld bleibt eine Zeile hoch.
+    const h0 = (await page.locator('#password').boundingBox())!.height;
+    await page.locator('#password').fill('x'.repeat(200));
+    expect((await page.locator('#password').boundingBox())!.height).toBe(h0);
+    expect(await page.locator('#password').evaluate((el) => el.tagName)).toBe('INPUT');
+});
+
+test('Popover "So funktioniert es" erklärt Link, # und Passwort', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('how').getByRole('button', { name: 'So funktioniert es' }).click();
+    const pop = page.getByTestId('how-content');
+    await expect(pop).toContainText('Der Link');
+    await expect(pop).toContainText('Das # im Link');
+    await expect(pop).toContainText('Das Passwort');
+    await expect(pop).toContainText('Beides zusammen');
+    await page.keyboard.press('Escape');
+    await expect(pop).toHaveCount(0);
 });

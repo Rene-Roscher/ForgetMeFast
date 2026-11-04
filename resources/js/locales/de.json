@@ -19,7 +19,7 @@
         "trust": {
             "encrypted": {
                 "title": "Im Browser verschlüsselt",
-                "body": "AES-256 sperrt dein Secret, bevor etwas gesendet wird."
+                "body": "Dein Secret wird auf deinem Gerät mit AES-256 verschlüsselt, bevor es irgendwohin geht."
             },
             "zeroKnowledge": {
                 "title": "Zero Knowledge",
@@ -40,13 +40,33 @@
         },
         "coverage": {
             "title": "Wie weit reicht der Schutz?",
-            "protects": "Das schützt:",
             "protectsBody": "Vor neugierigen Betreibern, Datenbank-Leaks und jedem, der nur den Link hat.",
-            "limits": "Das schützt nicht:",
-            "limitsBody": "Vor einem gehackten Server, der dir manipulierten Code schickt. Das ist das Grundproblem jeder verschlüsselten Webseite. Chat-Anbieter sehen den ganzen Link, schick das Passwort deshalb auf einem anderen Weg."
+            "limitsBody": "Vor einem gehackten Server, der dir manipulierten Code schickt. Das ist das Grundproblem jeder verschlüsselten Webseite. Chat-Anbieter sehen den ganzen Link, schick das Passwort deshalb auf einem anderen Weg.",
+            "yes": "Das schützt",
+            "no": "Das schützt nicht"
         },
         "secure": "Sichere Verbindung",
-        "insecure": "Verbindung nicht sicher"
+        "insecure": "Verbindung nicht sicher",
+        "how": {
+            "title": "So funktioniert es",
+            "lead": "Dein Secret braucht zwei Dinge, um sich zu öffnen. Du gibst sie getrennt weiter.",
+            "link": {
+                "title": "Der Link",
+                "body": "Er führt zu deinem verschlüsselten Secret. Hinter dem # steckt der Schlüssel dazu."
+            },
+            "fragment": {
+                "title": "Das # im Link",
+                "body": "Alles hinter dem # bleibt im Browser. Es wird nie an einen Server gesendet, auch nicht an unseren."
+            },
+            "password": {
+                "title": "Das Passwort",
+                "body": "Es öffnet das Secret zusammen mit dem Schlüssel. Schick es auf einem anderen Weg, nie im selben Chat."
+            },
+            "result": {
+                "title": "Beides zusammen",
+                "body": "Wer nur den Link hat, liest nichts. Wer nur das Passwort hat, auch nicht."
+            }
+        }
     },
     "expiry": {
         "300": "5 Minuten",
@@ -75,10 +95,15 @@
         "lead": "Schreib es auf, wähle unten die Regeln und teile danach nur den Link.",
         "secret": {
             "title": "Dein Secret",
-            "placeholder": "Passwort, API-Key, Zugangsdaten …",
+            "placeholder": "Passwort, API-Key, Zugangsdaten … oder eine Textdatei hineinziehen",
             "badge": "Im Browser verschlüsselt",
             "nearLimit": "Noch etwa {n} Zeichen Platz",
-            "overLimit": "Zu lang. Bitte um etwa {n} Zeichen kürzen."
+            "overLimit": "Zu lang. Bitte um etwa {n} Zeichen kürzen.",
+            "pick": "Textdatei laden",
+            "drop": "Textdatei hier ablegen",
+            "dropSub": "Nur Text. Der Inhalt landet im Feld, die Datei wird nicht hochgeladen.",
+            "fileTooBig": "Die Datei ist zu groß. Erlaubt sind etwa {n} Zeichen.",
+            "fileNotText": "Das ist keine Textdatei. Es geht nur reiner Text."
         },
         "password": {
             "title": "Passwort",
@@ -93,24 +118,23 @@
             "strength": "Stärke",
             "bits": "{bits} Bit",
             "exact": "zufällig erzeugt",
-            "estimate": "geschätzt"
+            "estimate": "geschätzt",
+            "levels": {
+                "1": "Schwach",
+                "2": "Okay",
+                "3": "Gut",
+                "4": "Stark"
+            }
         },
         "dock": {
             "label": "Regeln für dein Secret",
             "expiry": "Läuft ab nach",
             "views": "Abrufe",
             "attempts": "Fehlversuche",
-            "review": "Vor dem Senden prüfen",
             "submit": "Verschlüsseln & Link erstellen",
-            "submitting": "Verschlüssele …"
-        },
-        "review": {
-            "title": "Das verlässt deinen Browser",
-            "lead": "Passwort, Schlüssel und Klartext sind nicht dabei. Der Ciphertext ist hier gekürzt.",
-            "truncated": "… ({length} Zeichen)",
-            "back": "Zurück",
-            "send": "Genau das senden",
-            "sending": "Sende …"
+            "submitting": "Verschlüssele …",
+            "oneTime": "Einmalig",
+            "oneTimeHint": "Nach dem ersten Abruf vernichten"
         }
     },
     "result": {

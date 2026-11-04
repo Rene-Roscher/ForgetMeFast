@@ -36,8 +36,14 @@ const trust: { key: string; icon: IconName }[] = [
                         </span>
                     </li>
                 </ul>
-                <p><strong class="text-foreground">{{ t('shell.coverage.protects') }}</strong> {{ t('shell.coverage.protectsBody') }}</p>
-                <p><strong class="text-foreground">{{ t('shell.coverage.limits') }}</strong> {{ t('shell.coverage.limitsBody') }}</p>
+                <div class="flex items-start gap-3 rounded-lg bg-emerald-500/10 p-3">
+                    <Icon name="check-circle" class="mt-0.5 text-positive" />
+                    <p><strong class="block text-foreground">{{ t('shell.coverage.yes') }}</strong>{{ t('shell.coverage.protectsBody') }}</p>
+                </div>
+                <div class="flex items-start gap-3 rounded-lg bg-amber-500/10 p-3">
+                    <Icon name="alert" class="mt-0.5 text-amber-700 dark:text-amber-300" />
+                    <p><strong class="block text-foreground">{{ t('shell.coverage.no') }}</strong>{{ t('shell.coverage.limitsBody') }}</p>
+                </div>
             </PopoverContent>
         </PopoverPortal>
     </PopoverRoot>

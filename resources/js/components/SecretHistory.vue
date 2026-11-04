@@ -16,6 +16,7 @@ const history = useHistory();
 const statuses = ref<Record<string, { state: HistoryState; viewsUsed: number }>>({});
 const now = ref(Date.now());
 const busy = ref(false);
+const spins = ref(0);
 const destroyTarget = ref<HistoryEntry | null>(null);
 const destroyOpen = ref(false);
 const clearOpen = ref(false);
@@ -38,6 +39,7 @@ async function refreshOne(entry: HistoryEntry): Promise<void> {
 }
 
 async function refreshAll(): Promise<void> {
+    spins.value += 1;
     busy.value = true;
     try {
         for (const entry of history.entries.value) await refreshOne(entry);
@@ -118,7 +120,7 @@ const dot: Record<HistoryState, string> = {
         </div>
 
         <ul v-else class="min-h-0 flex-1 divide-y divide-border overflow-auto border-y border-border">
-            <li v-for="row in rows" :key="row.entry.id" class="flex items-center gap-3 px-5 py-3.5" data-testid="history-row">
+            <li v-for="row in rows" :key="row.entry.id" class="row-in flex items-center gap-3 px-5 py-3.5" data-testid="history-row">
                 <span class="size-2 shrink-0 rounded-full" :class="dot[row.state]" aria-hidden="true" />
                 <div class="flex min-w-0 flex-1 flex-col gap-0.5">
                     <p class="flex items-baseline gap-2 text-sm">
@@ -138,7 +140,7 @@ const dot: Record<HistoryState, string> = {
         </ul>
 
         <div v-if="rows.length > 0" class="flex items-center justify-between gap-2 px-3 py-3">
-            <button type="button" class="btn btn-quiet btn-sm" :disabled="busy" data-testid="history-refresh" @click="refreshAll"><Icon name="refresh" />{{ t('history.refresh') }}</button>
+            <button type="button" class="btn btn-quiet btn-sm" :disabled="busy" data-testid="history-refresh" @click="refreshAll"><Icon name="refresh" class="transition-transform duration-500 ease-out motion-reduce:transition-none" :style="{ transform: `rotate(${spins * 360}deg)` }" />{{ t('history.refresh') }}</button>
             <button type="button" class="btn btn-quiet btn-sm text-muted-foreground" data-testid="history-clear" @click="clearOpen = true">{{ t('history.clear') }}</button>
         </div>
 

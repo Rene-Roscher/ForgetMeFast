@@ -1,34 +1,17 @@
-import { ref } from 'vue';
+import { toast as sonner } from 'vue-sonner';
+import { i18n } from '@/i18n';
 
-export type ToastKind = 'error' | 'success' | 'info';
-export interface ToastItem {
-    id: number;
-    kind: ToastKind;
-    message: string;
-    open: boolean;
-}
+// Meldungen zeigt vue-sonner (components/Toaster.vue). Diese kleine Hülle hält die Aufrufe im Code kurz und setzt Titel und
+// Dauer einheitlich. Dieselbe Meldung bekommt dieselbe id und wird aktualisiert statt gestapelt.
+type Kind = 'error' | 'success' | 'info';
 
-// Kleiner Speicher für Meldungen. Angezeigt werden sie von components/Toaster.vue (Reka UI Toast, oben mittig).
-const items = ref<ToastItem[]>([]);
-let counter = 0;
-
-function push(kind: ToastKind, message: string): void {
-    // Dieselbe Meldung nicht doppelt stapeln.
-    if (items.value.some((t) => t.open && t.kind === kind && t.message === message)) return;
-    items.value = [...items.value.slice(-3), { id: ++counter, kind, message, open: true }];
+function show(kind: Kind, message: string): void {
+    const title = i18n.global.t(`toast.titles.${kind}`);
+    sonner[kind](title, { id: `${kind}:${message}`, description: message, duration: kind === 'error' ? 8000 : 3500 });
 }
 
 export const toast = {
-    error: (message: string) => push('error', message),
-    success: (message: string) => push('success', message),
-    info: (message: string) => push('info', message),
+    error: (message: string) => show('error', message),
+    success: (message: string) => show('success', message),
+    info: (message: string) => show('info', message),
 };
-
-export function useToasts() {
-    return {
-        items,
-        remove(id: number): void {
-            items.value = items.value.filter((t) => t.id !== id);
-        },
-    };
-}

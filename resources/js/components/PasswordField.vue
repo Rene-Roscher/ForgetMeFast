@@ -23,9 +23,13 @@ const bits = computed(() => {
     if (source.value === 'chars') return generatedBits(PASSWORD_ALPHABET.length, PASSWORD_CHARS);
     return estimateBits(model.value);
 });
-const percent = computed(() => Math.min(100, (bits.value / 128) * 100));
+// Vier Stufen nach Bit (Schwellen 40, 60, 80). Die Farbe ist nur Zugabe, die Stufe steht immer auch als Wort daneben.
+const level = computed(() => (model.value.length === 0 ? 0 : bits.value < 40 ? 1 : bits.value < 60 ? 2 : bits.value < 80 ? 3 : 4));
+const levelColors = ['', 'bg-red-500', 'bg-amber-400', 'bg-lime-500', 'bg-emerald-500'];
+const spins = ref(0);
 
 function roll(kind: 'words' | 'chars'): void {
+    spins.value += 1;
     model.value = kind === 'words' ? randomPassphrase(EFF_LARGE_WORDLIST) : randomChars();
     source.value = kind;
 }
@@ -33,12 +37,8 @@ function setMode(value: unknown): void {
     if (value === 'words' || value === 'chars') roll(value);
 }
 function onInput(event: Event): void {
-    model.value = (event.target as HTMLInputElement | HTMLTextAreaElement).value;
+    model.value = (event.target as HTMLInputElement).value;
     source.value = 'typed';
-}
-/** Enter im zweizeiligen Feld sendet das Formular ab, statt einen Zeilenumbruch einzufügen (ein Passwort hat keinen). */
-function submitForm(event: KeyboardEvent): void {
-    (event.target as HTMLElement).closest('form')?.requestSubmit();
 }
 </script>
 
@@ -47,12 +47,11 @@ function submitForm(event: KeyboardEvent): void {
         <div class="flex flex-col gap-1.5">
             <label :for="id" class="label">{{ label }}</label>
             <div class="relative">
-                <!-- Verborgen: ein Passwortfeld. Sichtbar: ein zweizeiliges Feld, damit eine lange Passphrase vollständig lesbar bleibt. -->
+                <!-- Eine Zeile, die bei langen Passphrasen seitwärts läuft statt umzubrechen. -->
                 <input
-                    v-if="!visible"
                     :id="id"
                     :value="model"
-                    type="password"
+                    :type="visible ? 'text' : 'password'"
                     :autocomplete="autocomplete ?? 'off'"
                     :aria-invalid="invalid || undefined"
                     :aria-describedby="describedby"
@@ -60,20 +59,6 @@ function submitForm(event: KeyboardEvent): void {
                     autocapitalize="off"
                     class="field pr-11 font-mono"
                     @input="onInput"
-                />
-                <textarea
-                    v-else
-                    :id="id"
-                    :value="model"
-                    rows="2"
-                    :autocomplete="autocomplete ?? 'off'"
-                    :aria-invalid="invalid || undefined"
-                    :aria-describedby="describedby"
-                    spellcheck="false"
-                    autocapitalize="off"
-                    class="field resize-none py-2 pr-11 font-mono leading-snug break-words"
-                    @input="onInput"
-                    @keydown.enter.prevent="submitForm"
                 />
                 <Tip :text="visible ? t('create.password.hide') : t('create.password.show')">
                     <button type="button" class="icon-btn absolute top-1 right-1" :aria-pressed="visible" :aria-label="visible ? t('create.password.hide') : t('create.password.show')" @click="visible = !visible">
@@ -89,17 +74,17 @@ function submitForm(event: KeyboardEvent): void {
                 <ToggleGroupItem value="chars" data-testid="pw-mode-chars" class="no-ring min-h-8 cursor-pointer rounded-md px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-accent focus-visible:shadow-none data-[state=on]:bg-foreground data-[state=on]:text-background">{{ t('create.password.chars') }}</ToggleGroupItem>
             </ToggleGroupRoot>
             <Tip :text="t('create.password.refresh')">
-                <button type="button" class="btn btn-secondary btn-sm px-2" data-testid="pw-refresh" :aria-label="t('create.password.refresh')" @click="roll(mode)"><Icon name="refresh" /></button>
+                <button type="button" class="btn btn-secondary btn-sm px-2" data-testid="pw-refresh" :aria-label="t('create.password.refresh')" @click="roll(mode)"><Icon name="refresh" class="transition-transform duration-500 ease-out motion-reduce:transition-none" :style="{ transform: `rotate(${spins * 360}deg)` }" /></button>
             </Tip>
         </div>
 
         <div v-if="generator" class="flex flex-col gap-1.5" data-testid="strength">
             <div class="flex items-baseline justify-between gap-2 text-xs">
-                <span class="font-medium">{{ t('create.password.strength') }}</span>
+                <span class="font-medium">{{ t('create.password.strength') }}<template v-if="level > 0">: <span data-testid="strength-level">{{ t(`create.password.levels.${level}`) }}</span></template></span>
                 <span v-if="model.length" class="text-muted-foreground tabular-nums"><span class="font-semibold text-foreground">{{ t('create.password.bits', { bits: Math.round(bits) }) }}</span> · {{ source === 'typed' ? t('create.password.estimate') : t('create.password.exact') }}</span>
             </div>
-            <div class="h-1.5 overflow-hidden rounded-full bg-inset" role="presentation">
-                <div class="h-full bg-foreground motion-safe:transition-[width]" :style="{ width: `${percent}%` }" />
+            <div class="grid grid-cols-4 gap-1" role="presentation">
+                <span v-for="n in 4" :key="n" class="h-1.5 rounded-full transition-colors duration-300 motion-reduce:transition-none" :class="n <= level ? levelColors[level] : 'bg-inset'" />
             </div>
         </div>
         <p v-if="hint" class="hint">{{ hint }}</p>

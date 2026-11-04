@@ -79,7 +79,7 @@ const measure = () => {
     }
     // 4. Zielgrößen (WCAG 2.5.8: mindestens 24 x 24 px).
     for (const el of Array.from(document.querySelectorAll('button, a[href], input:not([type=hidden]), summary'))) {
-        if (!visible(el)) continue;
+        if (!visible(el) || el.classList.contains('sr-only')) continue; // das verborgene Dateifeld wird über seinen Knopf bedient
         const r = el.getBoundingClientRect();
         checked++;
         if (r.width < 24 || r.height < 24) failures.push(`Zielgröße ${label(el)}: ${Math.round(r.width)}x${Math.round(r.height)}`);
@@ -183,11 +183,7 @@ for (const scheme of ['light', 'dark'] as const) {
 
             await page.getByTestId('pw-refresh').click(); // wieder ein gültiges Passwort
             await audit(page, 'create-ausgefuellt');
-            await page.getByTestId('review-toggle').click();
             await page.getByTestId('submit').click();
-            await expect(page.getByTestId('server-body')).toBeVisible({ timeout: 15_000 });
-            await audit(page, 'create-pruefen-dialog');
-            await page.getByTestId('review-send').click();
             await expect(page.getByTestId('result')).toBeVisible({ timeout: 15_000 });
             await audit(page, 'ergebnis');
             await page.getByTestId('destroy').click();
@@ -270,7 +266,6 @@ for (const scheme of ['light', 'dark'] as const) {
             await phoneChecks(page, 'handy-create');
 
             await page.locator('#secret').fill('Handy-Test');
-            await page.getByTestId('review-toggle').click();
             await audit(page, 'handy-create-ausgefuellt');
 
             // Am Seitenende darf die schwebende Leiste nichts verdecken.
@@ -287,7 +282,7 @@ for (const scheme of ['light', 'dark'] as const) {
             const dockBox = (await page.getByTestId('dock').locator('> div').boundingBox())!;
             expect(dockBox.x).toBeGreaterThanOrEqual(0);
             expect(dockBox.x + dockBox.width).toBeLessThanOrEqual(390);
-            for (const name of ['Läuft ab nach', 'Abrufe', 'Fehlversuche']) {
+            for (const name of ['Läuft ab nach', 'Fehlversuche']) {
                 const h = (await page.getByRole('group', { name: 'Regeln für dein Secret' }).locator(':scope *', { hasText: name }).first().boundingBox());
                 expect(h).not.toBeNull();
             }
@@ -327,7 +322,7 @@ for (const scheme of ['light', 'dark'] as const) {
             await page.route('**/api/secrets', (r) => (r.request().method() === 'POST' ? r.fulfill({ status: 500, body: '{}' }) : r.continue()));
             await page.locator('#secret').fill('Fehler');
             await page.getByTestId('submit').click();
-            const toast = page.getByTestId('toast-error');
+            const toast = page.locator('[data-sonner-toast][data-type="error"]');
             await expect(toast).toBeVisible();
             const t = (await toast.boundingBox())!;
             expect(t.x).toBeGreaterThanOrEqual(0);

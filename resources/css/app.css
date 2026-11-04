@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import './tokens.css';
 @import './fonts.css';
+@import 'vue-sonner/style.css'; /* Grundlayout der Meldungen; hier statt in der Komponente, damit Vite im Dev-Modus kein Inline-Style einfügt (CSP) */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -29,6 +30,7 @@
     --color-border-strong: var(--border-strong);
     --color-caption: var(--caption);
     --color-control: var(--input-border);
+    --color-positive: var(--positive);
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
     --color-surface-sunken: var(--surface-sunken);
@@ -53,6 +55,7 @@
 /* Ebenen (Geist-Stil): Bühne, Karte, innere Karte. Das Seitenpanel ist in beiden Modi fast schwarz. Teal ist die Marke
    und der Fokus, Primärknöpfe sind neutral (schwarz im hellen, weiß im dunklen Modus). */
 :root {
+    --positive: #047857; /* emerald-700 */
     --stage: #f0f0f0;
     --surface-outer: #f7f7f7;
     --inset: var(--surface-panel);
@@ -69,6 +72,7 @@
     --side-accent: #5eead4; /* teal-300 */
 }
 .dark {
+    --positive: #34d399; /* emerald-400 */
     --stage: #0a0a0a;
     --surface-outer: #0f0f0f;
     --inset: #1d1d1d;
@@ -100,6 +104,8 @@
     .btn {
         @apply inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-md px-3.5 text-sm font-medium whitespace-nowrap transition-colors duration-100 select-none disabled:cursor-not-allowed disabled:opacity-50;
     }
+    .btn, .icon-btn { transition-property: color, background-color, border-color, scale; }
+    .btn:active:not(:disabled), .icon-btn:active:not(:disabled) { scale: 0.97; }
     .btn-primary {
         @apply bg-primary text-primary-foreground hover:bg-[var(--primary-hover)];
     }
@@ -172,16 +178,6 @@
     from { opacity: 0; translate: 24px 0; }
     to { opacity: 1; translate: 0 0; }
 }
-@keyframes toast-in {
-    from { opacity: 0; translate: 0 -12px; scale: 0.98; }
-    to { opacity: 1; translate: 0 0; scale: 1; }
-}
-@keyframes toast-out {
-    from { opacity: 1; }
-    to { opacity: 0; translate: 0 -8px; }
-}
-.toast[data-state='open'] { animation: toast-in 160ms ease-out; }
-.toast[data-state='closed'] { animation: toast-out 120ms ease-in forwards; }
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -189,6 +185,7 @@
 .modal-content[data-state='open'] { animation: modal-in 150ms ease-out; }
 .sheet-content[data-state='open'] { animation: sheet-in 180ms ease-out; }
 .modal-overlay[data-state='open'] { animation: fade-in 150ms ease-out; }
+.row-in { animation: fade-in 180ms ease-out both; }
 .popover-content[data-state='open'] { animation: fade-in 120ms ease-out; }
 .tip[data-state='delayed-open'], .tip[data-state='instant-open'] { animation: fade-in 100ms ease-out; }
 

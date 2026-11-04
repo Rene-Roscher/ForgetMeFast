@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useHistory } from '@/history';
+import { usePrefs } from '@/prefs';
 import { toast } from '@/toast';
 import { api, ApiError, errorKey } from '@/api';
 import AppShell from '@/components/AppShell.vue';
@@ -14,7 +15,7 @@ import SelectMenu from '@/components/ui/SelectMenu.vue';
 import ToggleButton from '@/components/ui/ToggleButton.vue';
 import { useCountdown } from '@/composables/useCountdown';
 import {
-    createSecret, CryptoError, EFF_LARGE_WORDLIST, isAcceptablePassword, isCryptoAvailable, MAX_COUNT, MAX_PLAINTEXT_BYTES, randomPassphrase,
+    createSecret, CryptoError, EFF_LARGE_WORDLIST, isAcceptablePassword, isCryptoAvailable, MAX_COUNT, MAX_PLAINTEXT_BYTES, randomChars, randomPassphrase,
     TTL_SECONDS, type CreatedSecret,
 } from '@/crypto';
 
@@ -34,21 +35,29 @@ const number = new Intl.NumberFormat('de-DE');
 
 const secure = isCryptoAvailable();
 const history = useHistory();
+const prefs = usePrefs();
 const secret = ref('');
-// Das Passwort wird schon beim Laden erzeugt (bei jedem Neuladen ein neues) und ist sofort sichtbar.
-const password = ref(secure ? randomPassphrase(EFF_LARGE_WORDLIST) : '');
-const source = ref<'typed' | 'words' | 'chars'>('words');
-const ttl = ref<number>(86400);
-const views = ref(1);
-const attempts = ref(3);
-const reviewFirst = ref(false);
-const reviewOpen = ref(false);
-const submitButton = ref<HTMLButtonElement | null>(null);
-const prepared = ref<CreatedSecret | null>(null);
+// Das Passwort wird schon beim Laden erzeugt (bei jedem Neuladen ein neues, in der zuletzt gewählten Art) und ist sofort sichtbar.
+const fresh = () => (prefs.value.mode === 'chars' ? randomChars() : randomPassphrase(EFF_LARGE_WORDLIST));
+const password = ref(secure ? fresh() : '');
+const source = ref<'typed' | 'words' | 'chars'>(prefs.value.mode);
+watch(source, (value) => {
+    if (value === 'words' || value === 'chars') prefs.value.mode = value;
+});
+// Die Regeln leben in prefs (und damit im Browser-Speicher); diese Ansichten halten das Formular einfach.
+const ttl = computed({ get: () => prefs.value.ttl, set: (v: number) => (prefs.value.ttl = v) });
+const views = computed({ get: () => prefs.value.views, set: (v: number) => (prefs.value.views = v) });
+const attempts = computed({ get: () => prefs.value.attempts, set: (v: number) => (prefs.value.attempts = v) });
+const oneTime = computed({ get: () => prefs.value.oneTime, set: (v: boolean) => (prefs.value.oneTime = v) });
+// "Einmalig" heißt genau ein Abruf; dann entfällt die Auswahl.
+const maxViews = computed(() => (oneTime.value ? 1 : views.value));
 const busy = ref(false);
 const result = ref<Result | null>(null);
 const destroyOpen = ref(false);
 const destroyed = ref(false);
+const dragging = ref(false);
+const secretInput = ref<HTMLTextAreaElement | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 const bytes = computed(() => new TextEncoder().encode(secret.value).length);
 const tooLarge = computed(() => bytes.value > MAX_PLAINTEXT_BYTES);
@@ -66,23 +75,40 @@ const linkCopied = computed(() => t('toast.linkCopied'));
 const expiresAt = computed(() => result.value?.expiresAt ?? null);
 const remaining = useCountdown(expiresAt);
 
-// Schließt der Prüfen-Dialog ohne Senden, kehrt der Fokus zur Aktion zurück (der Button war während des Verschlüsselns deaktiviert).
-watch(reviewOpen, async (open) => {
-    if (!open && !result.value) {
-        await nextTick();
-        submitButton.value?.focus();
+// Das Feld wächst mit dem Inhalt (bis 60 % der Fensterhöhe), danach scrollt es.
+function autosize(): void {
+    const el = secretInput.value;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight + 2, Math.round(window.innerHeight * 0.6))}px`;
+}
+watch(secret, () => nextTick(autosize));
+onMounted(autosize);
+
+// Textdatei laden: nur reiner Text, nur bis zum Limit, nur im Browser (nichts wird hochgeladen).
+async function loadFile(file: File | undefined): Promise<void> {
+    if (!file) return;
+    if (file.size > MAX_PLAINTEXT_BYTES) return void toast.error(t('create.secret.fileTooBig', { n: number.format(Math.floor(MAX_PLAINTEXT_BYTES / 100) * 100) }));
+    const text = await file.text();
+    // Binärdaten enthalten Nullbytes oder werden beim Dekodieren zu U+FFFD.
+    if (text.includes('\u0000') || text.includes('\uFFFD')) return void toast.error(t('create.secret.fileNotText'));
+    secret.value = text;
+}
+function onDrop(event: DragEvent): void {
+    dragging.value = false;
+    void loadFile(event.dataTransfer?.files?.[0]);
+}
+function onPick(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    void loadFile(input.files?.[0]);
+    input.value = '';
+}
+function dragOver(event: DragEvent): void {
+    if (event.dataTransfer?.types.includes('Files')) {
+        event.preventDefault();
+        dragging.value = true;
     }
-});
-
-// Eine vorbereitete Verschlüsselung gilt nur für genau diese Eingaben.
-watch([secret, password, ttl, views, attempts], () => (prepared.value = null));
-
-const reviewBody = computed(() => {
-    const body = prepared.value?.body;
-    if (!body) return '';
-    const c = body.ciphertext;
-    return JSON.stringify({ ...body, ciphertext: `${c.slice(0, 48)}${t('create.review.truncated', { length: c.length })}` }, null, 2);
-});
+}
 
 function message(e: unknown): string {
     if (e instanceof CryptoError) {
@@ -115,18 +141,15 @@ async function send(p: CreatedSecret): Promise<void> {
             manageToken: p.manageToken,
             expiresAt: new Date(res.expires_at),
             ttl: ttl.value,
-            views: views.value,
+            views: maxViews.value,
             attempts: attempts.value,
         };
         // Klartext und Eingabe-Passwort verlassen den Zustand; Link und Passwort bleiben nur in `result`.
         secret.value = '';
         password.value = '';
-        prepared.value = null;
-        reviewOpen.value = false;
-        history.add({ id: p.body.id, link: result.value.link, manageToken: p.manageToken, createdAt: Date.now(), expiresAt: result.value.expiresAt.getTime(), ttl: ttl.value, maxViews: views.value });
+        history.add({ id: p.body.id, link: result.value.link, manageToken: p.manageToken, createdAt: Date.now(), expiresAt: result.value.expiresAt.getTime(), ttl: ttl.value, maxViews: maxViews.value });
         window.addEventListener('beforeunload', warn);
     } catch (e) {
-        reviewOpen.value = false;
         toast.error(message(e));
     } finally {
         busy.value = false;
@@ -137,18 +160,12 @@ async function submit(): Promise<void> {
     if (!canSubmit.value) return;
     busy.value = true;
     try {
-        prepared.value = await createSecret({ secret: secret.value, password: password.value, settings: { ttl: ttl.value, maxViews: views.value, maxAttempts: attempts.value } });
+        const created = await createSecret({ secret: secret.value, password: password.value, settings: { ttl: ttl.value, maxViews: maxViews.value, maxAttempts: attempts.value } });
+        await send(created);
     } catch (e) {
         toast.error(message(e));
         busy.value = false;
-        return;
     }
-    busy.value = false;
-    if (reviewFirst.value) {
-        reviewOpen.value = true; // erst zeigen, dann auf die Bestätigung warten
-        return;
-    }
-    await send(prepared.value);
 }
 
 async function destroy(): Promise<void> {
@@ -171,8 +188,8 @@ function reset(): void {
     window.removeEventListener('beforeunload', warn);
     result.value = null;
     destroyed.value = false;
-    password.value = randomPassphrase(EFF_LARGE_WORDLIST);
-    source.value = 'words';
+    password.value = fresh();
+    source.value = prefs.value.mode;
 }
 onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
 </script>
@@ -235,26 +252,40 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
         <!-- Formular: Inhalt links, Passwort als eigene Karte daneben, die Regeln und die Aktion schweben unten -->
         <form v-else class="w-full max-w-5xl" novalidate @submit.prevent="submit">
             <div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-                <section class="card-outer flex flex-col" aria-labelledby="secret-title">
+                <section class="card-outer relative flex flex-col" aria-labelledby="secret-title" @dragenter="dragOver" @dragover="dragOver" @dragleave.self="dragging = false" @drop.prevent="onDrop">
                     <div class="card-head">
                         <h2 id="secret-title" class="text-sm font-semibold">{{ t('create.secret.title') }}</h2>
-                        <span class="hint hidden items-center gap-1.5 sm:inline-flex"><Icon name="shield" />{{ t('create.secret.badge') }}</span>
+                        <div class="flex items-center gap-1">
+                            <span class="hidden items-center gap-1.5 pr-1 text-xs font-medium text-positive sm:inline-flex"><Icon name="shield" />{{ t('create.secret.badge') }}</span>
+                            <button type="button" class="btn btn-quiet btn-sm" data-testid="file-pick" @click="fileInput?.click()"><Icon name="upload" />{{ t('create.secret.pick') }}</button>
+                            <input ref="fileInput" type="file" accept="text/*,.txt,.md,.json,.env,.yml,.yaml,.pem,.key,.conf,.ini,.csv" class="sr-only" tabindex="-1" aria-hidden="true" data-testid="file-input" @change="onPick" />
+                        </div>
                     </div>
                     <label for="secret" class="sr-only">{{ t('create.secret.title') }}</label>
-                    <textarea
-                        id="secret"
-                        data-card-field
-                        v-model="secret"
-                        spellcheck="false"
-                        autocomplete="off"
-                        :placeholder="t('create.secret.placeholder')"
-                        :aria-invalid="tooLarge || undefined"
-                        aria-describedby="secret-limit"
-                        class="card-inner no-ring block min-h-52 w-full resize-y p-3.5 font-mono text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground sm:text-sm lg:min-h-72"
-                    />
-                    <p id="secret-limit" class="flex min-h-4 items-center justify-end gap-1.5 px-2.5 pt-2 pb-1 text-xs" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
-                        <template v-if="limitHint"><Icon v-if="limitHint.over" name="alert" />{{ limitHint.text }}</template>
-                    </p>
+                    <div class="relative">
+                        <textarea
+                            id="secret"
+                            ref="secretInput"
+                            v-model="secret"
+                            data-card-field
+                            spellcheck="false"
+                            autocomplete="off"
+                            :placeholder="t('create.secret.placeholder')"
+                            :aria-invalid="tooLarge || undefined"
+                            aria-describedby="secret-limit"
+                            class="card-inner no-ring block min-h-52 w-full resize-none p-3.5 pb-9 font-mono text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground sm:text-sm lg:min-h-72"
+                            @input="autosize"
+                        />
+                        <p id="secret-limit" class="pointer-events-none absolute right-3.5 bottom-2.5 flex items-center gap-1.5 rounded-md bg-card px-1.5 text-xs" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
+                            <template v-if="limitHint"><Icon v-if="limitHint.over" name="alert" />{{ limitHint.text }}</template>
+                        </p>
+                    </div>
+                    <!-- Ablegen einer Textdatei -->
+                    <div v-if="dragging" class="pointer-events-none absolute inset-1.5 z-10 flex flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-brand bg-card/95 text-center" data-testid="drop-overlay">
+                        <Icon name="upload" class="size-6 text-brand" />
+                        <p class="text-sm font-medium">{{ t('create.secret.drop') }}</p>
+                        <p class="text-xs text-muted-foreground">{{ t('create.secret.dropSub') }}</p>
+                    </div>
                 </section>
 
                 <section class="card-outer flex flex-col" aria-labelledby="password-title">
@@ -271,12 +302,12 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                 <div class="pointer-events-auto mx-auto flex w-full max-w-5xl flex-col gap-2 rounded-xl border border-border bg-card/95 p-1.5 shadow-[0_12px_36px_-12px_rgb(0_0_0/0.5)] backdrop-blur sm:flex-row sm:items-center sm:gap-2 sm:p-2.5" role="group" :aria-label="t('create.dock.label')">
                     <div class="grid grid-cols-3 gap-1.5 sm:mr-auto sm:flex sm:flex-wrap sm:items-center sm:gap-2">
                         <SelectMenu id="ttl" v-model="ttl" :label="t('create.dock.expiry')" icon="clock" :options="expiryOptions" />
-                        <DockStepper id="views" v-model="views" :label="t('create.dock.views')" icon="eye" :min="1" :max="MAX_COUNT" />
+                        <ToggleButton v-model="oneTime" icon="flame" :label="t('create.dock.oneTime')" :hint="t('create.dock.oneTimeHint')" testid="onetime-toggle" />
+                        <DockStepper v-if="!oneTime" id="views" v-model="views" :label="t('create.dock.views')" icon="eye" :min="1" :max="MAX_COUNT" />
                         <DockStepper id="attempts" v-model="attempts" :label="t('create.dock.attempts')" icon="shield" :min="1" :max="MAX_COUNT" />
                     </div>
                     <div class="flex items-center gap-2">
-                        <ToggleButton v-model="reviewFirst" icon="file-search" :label="t('create.dock.review')" testid="review-toggle" />
-                        <button ref="submitButton" type="submit" :disabled="!canSubmit" data-testid="submit" class="btn btn-primary btn-lg flex-1 sm:min-w-60 sm:flex-none">
+                        <button type="submit" :disabled="!canSubmit" data-testid="submit" class="btn btn-primary btn-lg flex-1 sm:min-w-60 sm:flex-none">
                             {{ busy ? t('create.dock.submitting') : t('create.dock.submit') }}<Icon v-if="!busy" name="arrow-right" />
                         </button>
                     </div>
@@ -284,12 +315,5 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
             </div>
         </form>
 
-        <Modal v-model:open="reviewOpen" wide :title="t('create.review.title')" :description="t('create.review.lead')" testid="review-dialog">
-            <pre class="max-h-80 overflow-auto rounded-md border border-border-strong bg-inset p-3 font-mono text-xs leading-relaxed break-all whitespace-pre-wrap" data-testid="server-body">{{ reviewBody }}</pre>
-            <template #footer>
-                <button type="button" class="btn btn-secondary" @click="reviewOpen = false">{{ t('create.review.back') }}</button>
-                <button type="button" class="btn btn-primary" :disabled="busy" data-testid="review-send" @click="prepared && send(prepared)">{{ busy ? t('create.review.sending') : t('create.review.send') }}<Icon v-if="!busy" name="arrow-right" /></button>
-            </template>
-        </Modal>
     </AppShell>
 </template>

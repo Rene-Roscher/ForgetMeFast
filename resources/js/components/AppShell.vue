@@ -3,6 +3,7 @@ import { TooltipProvider } from 'reka-ui';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CoverageNote from '@/components/CoverageNote.vue';
+import HowItWorks from '@/components/HowItWorks.vue';
 import HistoryDrawer from '@/components/HistoryDrawer.vue';
 import Icon, { type IconName } from '@/components/Icon.vue';
 import LogoMark from '@/components/LogoMark.vue';
@@ -55,6 +56,7 @@ const secure = typeof window !== 'undefined' && window.isSecureContext;
                         <span class="flex items-center gap-2"><Icon name="history" />{{ t('history.open') }}</span>
                         <span v-if="history.entries.value.length > 0" class="rounded-md bg-white/15 px-1.5 text-xs tabular-nums" data-testid="history-count">{{ history.entries.value.length }}</span>
                     </button>
+                    <HowItWorks tone="side" testid="how" />
                     <CoverageNote tone="side" testid="coverage" />
                 </div>
             </aside>
@@ -78,7 +80,8 @@ const secure = typeof window !== 'undefined' && window.isSecureContext;
                 <main class="flex flex-1 flex-col items-center gap-4 px-3 pt-4 sm:px-6 lg:px-8" :class="[dock ? 'pb-40 sm:pb-32' : 'pb-10', center ? 'justify-center' : '']">
                     <slot />
                     <!-- Handy: keine Seitenleiste, deshalb die Grenzen (und das, was schützt) ganz unten. -->
-                    <section class="w-full max-w-6xl pt-2 lg:hidden">
+                    <section class="flex w-full max-w-5xl flex-col gap-2 pt-2 lg:hidden">
+                        <HowItWorks tone="card" testid="how-mobile" />
                         <CoverageNote tone="card" testid="coverage-mobile" with-trust />
                     </section>
                 </main>
