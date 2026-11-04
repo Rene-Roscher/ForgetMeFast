@@ -1,11 +1,11 @@
 # 0002. Argon2id-Bibliothek für den Browser
 
-Status: Proposed
+Status: Accepted
 Date: 2026-11-04
 Supersedes: none
 
-Dieser Vorschlag berührt Protokoll v1 (Wahl der Krypto-Bibliothek). Er wird erst `Accepted`, wenn der
-Maintainer ihn freigibt. Bis dahin wird keine Argon2id-Bibliothek eingebaut.
+Berührt Protokoll v1 (Wahl der Krypto-Bibliothek). Der Maintainer hat am 2026-11-04 entschieden: genauer prüfen und
+`@noble/hashes` nehmen, sofern es keinen ernsten Grund dagegen gibt. Die Nachmessung unten ergab keinen.
 
 ## Context
 Protokoll v1 verlangt Argon2id im Browser mit mindestens m=19 MiB, t=2, p=1 (`docs/SPEC.md`, OWASP). Die Web Crypto
@@ -24,8 +24,15 @@ mindestens 600.000 Iterationen. Verglichen wurden vier npm-Pakete.
 | RFC 9106 §5.3 Vektor | **stimmt überein** (hier gemessen) | nicht prüfbar: API hat keine Eingabe für Associated Data | nicht geprüft | nicht geprüft: Modul lädt in Node nur mit WASM-Loader |
 | Audit | Cure53 2022 für v1.0.0, **Argon2 ausdrücklich nicht im Umfang** | keine Angabe gefunden | keine Angabe gefunden | keine Angabe gefunden |
 
-Laufzeit mit m=19456 KiB, t=2, p=1 in Node 24.11.1, drei Läufe: `@noble/hashes` 99 bis 104 ms, `hash-wasm` 21 bis 22 ms.
-**Im Browser nicht gemessen.** Die Messung gehört in die Umsetzung (Playwright, echter Chromium).
+Laufzeit mit m=19456 KiB, t=2, p=1:
+- Node 24.11.1, drei Läufe: `@noble/hashes` 99 bis 104 ms, `hash-wasm` 21 bis 22 ms.
+- Chromium 156 (headless, Desktop-CPU), vier Läufe je Bibliothek: `@noble/hashes` 111 ms kalt, danach 94 bis 96 ms;
+  `hash-wasm` 28 ms kalt, danach 20 bis 22 ms.
+- Mobilgeräte nicht gemessen; dort ist mit deutlich längeren Zeiten zu rechnen (Einschätzung, kein Messwert).
+
+Bundle-Größe (rolldown 1.2.16, IIFE, minifiziert, nur `argon2id` importiert): `@noble/hashes` 13.965 B, gzip 5.550 B;
+`hash-wasm` 28.049 B, gzip 11.118 B (WASM inline). Die OpenPGP-Bibliothek nennt in ihrer README unter 7 KB gzip; nicht
+nachgemessen.
 
 Quellen (alle am 2026-11-04 gelesen):
 - npm-Registry (`npm view <paket>`), GitHub-API (`repos/<repo>`), READMEs der vier Projekte.
@@ -48,9 +55,10 @@ unverändert), aktiv gepflegt, MIT, keine Abhängigkeiten, ausreichend schnell i
 - Reines JS hat keine garantierte Konstantzeit (laut Projekt-README nur „algorithmic constant time“). Hier unkritisch,
   weil die Ableitung im eigenen Browser des Nutzers läuft und der Angreifer keine Zeitmessung daran hat. Das ist eine
   Einschätzung, kein Beleg.
-- Offen vor der Umsetzung: Laufzeit im Browser messen, Bundle-Größe nach dem Tree-Shaking messen, KDF-Parameter
-  und Name (`argon2id`) im Header festschreiben.
+- Laufzeit (rund 100 ms im Desktop-Chromium) und Größe (5,5 kB gzip) sind gemessen und unauffällig.
+- Offen: Laufzeit auf einem echten Mobilgerät, KDF-Parameter und Name (`argon2id`) im Header festschreiben.
 - Alternative bei Freigabe von `'wasm-unsafe-eval'`: `hash-wasm` (schneller, aber RFC-Vektor mit AD nicht prüfbar,
   Pflege seit 2024-11 ruhend). Das lockert die CSP-Invariante und bräuchte eine eigene ADR.
 - Rückfall laut Spec: PBKDF2-SHA-256 ≥ 600.000 Iterationen über Web Crypto, KDF-Name im Header.
-- Nicht geprüft: `argon2-browser` und `argon2id` (OpenPGP) gegen den RFC-Vektor.
+- Nicht gegen den RFC-Vektor geprüft: `argon2-browser` und `argon2id` (OpenPGP). Beide sind WASM und bräuchten
+  `'wasm-unsafe-eval'`; `argon2-browser` wird seit 2022-04 nicht mehr veröffentlicht. Damit scheiden sie aus.

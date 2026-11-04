@@ -69,7 +69,7 @@ Keine. Es gibt noch keinen Code.
    - Options: wird in ADR 0002 belegt.
    - Trade-offs: berührt Protokoll v1 (Paketwahl). Nichts wird eingebaut, bevor du die ADR freigibst.
    - Recommendation: offen bis zur Recherche.
-   - Decision: ADR 0002 wird recherchiert und dir als Vorschlag vorgelegt; Einbau erst nach deiner Freigabe.
+   - Answer: `@noble/hashes`, sofern nichts Ernstes dagegen spricht (nachgeprüft, siehe ADR 0002, Status Accepted).
 8. Commits unsigniert und ohne Push?
    - Options: A, unsigniert und ohne Push; B, du richtest SSH-Signing ein.
    - Trade-offs: A weicht vom [default] ab und wird in ADR 0003 begründet.

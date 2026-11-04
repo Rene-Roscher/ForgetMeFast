@@ -53,7 +53,7 @@ Dateien setzen (noch nicht geprüft).
 *(wird mit je einem Satz Begründung und Quelle pro Baustein von Protokoll v1 gefüllt)*
 
 - [ADR 0001](docs/adr/0001-record-architecture-decisions.md): Entscheidungen als ADR festhalten.
-- [ADR 0002](docs/adr/0002-argon2id-library.md): Argon2id-Bibliothek (Vorschlag, noch nicht freigegeben).
+- [ADR 0002](docs/adr/0002-argon2id-library.md): Argon2id-Bibliothek `@noble/hashes` (Argon2-Teil nicht auditiert).
 - [ADR 0003](docs/adr/0003-setup-decisions.md): ohne Accounts, ohne Cookies, nativer Dev-Stack, unsignierte Commits.
 
 ## Qualitätssicherung
