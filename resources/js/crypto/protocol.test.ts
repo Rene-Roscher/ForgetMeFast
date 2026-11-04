@@ -48,7 +48,7 @@ describe('createSecret gegen den unabhängig erzeugten Protokollvektor', () => {
             expect(created.body.manage_hash).toBe(v.outputs.manage_hash);
             expect(created.linkKey).toBe(v.outputs.link_fragment);
             expect(created.manageToken).toBe(encode(fromHex(v.inputs.manage_token_hex)));
-            expect(created.body.kdf).toEqual({ name: 'argon2id', ...v.inputs.kdf });
+            expect(created.body.kdf).toEqual(v.inputs.kdf);
         });
     }
 });
