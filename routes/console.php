@@ -1,8 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Aufräumen jede Minute (docs/SPEC.md). Öffnen prüft den Ablauf selbst; der Job entfernt nur Reste.
+Schedule::command('secrets:prune')->everyMinute()->withoutOverlapping();
