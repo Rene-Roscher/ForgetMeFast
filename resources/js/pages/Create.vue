@@ -234,7 +234,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
         <form v-else class="w-full max-w-5xl" novalidate @submit.prevent="submit">
             <div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
                 <section class="card-outer flex flex-col" aria-labelledby="secret-title">
-                    <div class="flex items-center justify-between gap-3 px-4 pt-3.5 sm:px-5">
+                    <div class="flex items-center justify-between gap-3 px-4 pt-4 pb-3">
                         <h2 id="secret-title" class="text-sm font-semibold">{{ t('create.secret.title') }}</h2>
                         <span class="hint hidden items-center gap-1.5 sm:inline-flex"><Icon name="shield" />{{ t('create.secret.badge') }}</span>
                     </div>
@@ -247,9 +247,9 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                         :placeholder="t('create.secret.placeholder')"
                         :aria-invalid="tooLarge || undefined"
                         aria-describedby="secret-limit"
-                        class="no-ring min-h-52 w-full resize-y bg-transparent px-4 py-3 font-mono text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground focus-visible:shadow-none sm:px-5 sm:text-sm lg:min-h-72"
+                        class="field no-ring mx-1.5 w-auto min-h-52 resize-y rounded-lg p-3.5 font-mono leading-relaxed lg:min-h-72"
                     />
-                    <p id="secret-limit" class="flex min-h-4 items-center justify-end gap-1.5 px-4 pb-3 text-xs sm:px-5" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
+                    <p id="secret-limit" class="flex min-h-4 items-center justify-end gap-1.5 px-4 pt-2 pb-2.5 text-xs" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
                         <template v-if="limitHint"><Icon v-if="limitHint.over" name="alert" />{{ limitHint.text }}</template>
                     </p>
                 </section>
