@@ -3,7 +3,7 @@
 Secrets einmalig und Ende-zu-Ende-verschlüsselt teilen. Self-Hosted, ohne Accounts, ohne Tracking.
 
 > **Demo-Projekt.** ForgetMeFast ist ein Demonstrationsprojekt, das an einem Tag mit agentischer Entwicklung entstanden ist
-> (Claude Code, rund sechs Stunden zwischen dem ersten und dem letzten Commit, 75 Commits am 2026-11-04 und danach weitergepflegt). Es zeigt
+> (Claude Code; alle Commits stammen vom 2026-11-04, zwischen dem ersten und dem letzten liegen gut sechs Stunden). Es zeigt
 > eine Arbeitsweise: Spezifikation zuerst, Quellen statt Behauptungen, Tests und Gegenproben, CI und ein gehärtetes Container-Image. Es ist
 > **kein geprüftes Produkt**; die Kryptografie wurde nicht extern begutachtet (siehe [Bekannte Grenzen](#bekannte-grenzen) und
 > [`SECURITY.md`](SECURITY.md)). Wer es mit echten Geheimnissen betreiben will, prüft das Protokoll selbst.
