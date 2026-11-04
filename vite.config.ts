@@ -14,6 +14,10 @@ export default defineConfig({
         vue(),
         tailwindcss(),
     ],
+    build: {
+        // Never inline assets as data: URIs; the CSP (font-src, img-src 'self') does not allow them.
+        assetsInlineLimit: 0,
+    },
     server: {
         watch: {
             ignored: ['**/storage/framework/views/**'],

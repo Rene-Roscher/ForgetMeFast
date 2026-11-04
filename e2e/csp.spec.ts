@@ -30,3 +30,20 @@ test('no response sets a cookie', async ({ page, context }) => {
     await page.goto('/');
     expect(await context.cookies()).toEqual([]);
 });
+
+test('fonts load from the same origin and the theme follows the system without a flash', async ({ browser }) => {
+    const context = await browser.newContext({ colorScheme: 'dark' });
+    const page = await context.newPage();
+    const external: string[] = [];
+    page.on('request', (req) => {
+        if (!req.url().startsWith('http://127.0.0.1')) external.push(req.url());
+    });
+
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'ForgetMeFast' })).toBeVisible();
+
+    expect(await page.evaluate(() => document.documentElement.classList.contains('dark'))).toBe(true);
+    expect(await page.evaluate(() => document.fonts.check('16px "Plus Jakarta Sans"'))).toBe(true);
+    expect(external).toEqual([]);
+    await context.close();
+});

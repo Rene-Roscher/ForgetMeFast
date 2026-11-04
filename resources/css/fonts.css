@@ -1,0 +1,21 @@
+/*
+ * Self-hosted fonts (no CDN). Files come from the @fontsource-variable packages, both licensed
+ * under the SIL Open Font License 1.1 (see their LICENSE files; credit in README).
+ * Family names match the --font-sans / --font-mono tokens in tokens.css.
+ * The latin subset covers German (ä, ö, ü, ß).
+ */
+@font-face {
+    font-family: 'Plus Jakarta Sans';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 200 800;
+    src: url('@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2') format('woff2-variations');
+}
+
+@font-face {
+    font-family: 'Geist Mono';
+    font-style: normal;
+    font-display: swap;
+    font-weight: 100 900;
+    src: url('@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2') format('woff2-variations');
+}
