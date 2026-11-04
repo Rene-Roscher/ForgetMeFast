@@ -25,7 +25,7 @@ async function copy() {
             </div>
             <button type="button" class="btn btn-primary btn-sm" @click="copy"><Icon name="copy" />{{ t('result.copy') }}</button>
         </div>
-        <code :data-testid="testid" class="block rounded-md bg-inset p-3 font-mono text-[0.8125rem] leading-relaxed select-all" :class="breakAnywhere ? 'break-all' : 'break-words'">{{ value }}</code>
+        <code :data-testid="testid" class="block rounded-md border border-border bg-inset p-3 font-mono text-[0.8125rem] leading-relaxed select-all" :class="breakAnywhere ? 'break-all' : 'break-words'">{{ value }}</code>
         <p class="hint">{{ hint }}</p>
     </section>
 </template>

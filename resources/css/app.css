@@ -36,6 +36,7 @@
     --color-surface-panel: var(--surface-panel);
     --color-text-link: var(--text-link);
     --color-stage: var(--stage);
+    --color-surface-outer: var(--surface-outer);
     --color-inset: var(--inset);
     --color-side: var(--side-bg);
     --color-side-foreground: var(--side-fg);
@@ -52,7 +53,8 @@
 /* Ebenen (Geist-Stil): Bühne, Karte, innere Karte. Das Seitenpanel ist in beiden Modi fast schwarz. Teal ist die Marke
    und der Fokus, Primärknöpfe sind neutral (schwarz im hellen, weiß im dunklen Modus). */
 :root {
-    --stage: #fafafa;
+    --stage: #f0f0f0;
+    --surface-outer: #f7f7f7;
     --inset: var(--surface-panel);
     --brand: #0f766e; /* teal-700 */
     --brand-foreground: #ffffff;
@@ -68,7 +70,8 @@
 }
 .dark {
     --stage: #0a0a0a;
-    --inset: var(--surface-raised);
+    --surface-outer: #0f0f0f;
+    --inset: #1d1d1d;
     --brand: #2dd4bf; /* teal-400 */
     --brand-foreground: #042f2e;
     --focus: #2dd4bf;
@@ -137,12 +140,22 @@
     .hint {
         @apply text-xs leading-snug text-muted-foreground;
     }
-    /* Äußere Karte der Bühne und die darin geschachtelten inneren Karten: flach, mit feinem Rand. */
+    /* Verschachtelte Karten: die äußere ist etwas gedämpfter und trägt Titel und Fuß, die innere ist heller und trägt den Inhalt. */
     .card-outer {
-        @apply w-full rounded-lg border border-border bg-card;
+        @apply w-full rounded-xl border border-border bg-surface-outer p-1.5;
+    }
+    .card-head {
+        @apply flex items-center justify-between gap-3 px-2.5 pt-2 pb-2.5;
     }
     .card-inner {
-        @apply rounded-md border border-border bg-inset p-4;
+        @apply rounded-lg border border-border bg-card p-4;
+    }
+    .card-foot {
+        @apply flex flex-wrap items-center justify-between gap-2 px-1 pt-2 pb-0.5;
+    }
+    /* Einfache Karte ohne Verschachtelung (Zustände des Viewers, Hinweise). */
+    .card-flat {
+        @apply w-full rounded-xl border border-border bg-card;
     }
     .icon-tile {
         @apply flex size-8 shrink-0 items-center justify-center rounded-md bg-brand text-brand-foreground;

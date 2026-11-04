@@ -67,6 +67,8 @@ const measure = () => {
     //    sichtbarer Beschriftung werden an ihrem Text erkannt, ihr Rand ist nicht die einzige Information; für sie gilt 1. oben.
     for (const el of Array.from(document.querySelectorAll('input:not([type=hidden]), textarea, [role=radiogroup] > div, [role=group].inline-flex'))) {
         if (!visible(el) || (el as HTMLButtonElement).disabled) continue;
+        // Das Secret-Feld ist selbst die innere Karte (Wunsch des Maintainers): Rand wie bei Karten, nicht wie bei Feldern.
+        if (el.hasAttribute('data-card-field')) continue;
         const s = getComputedStyle(el);
         if (parseFloat(s.borderTopWidth) === 0) continue;
         const r = ratio(over(parse(s.borderTopColor), bgOf(el.parentElement)), bgOf(el.parentElement));

@@ -108,7 +108,7 @@ const busy = computed(() => phase.value === 'working');
 
 <template>
     <AppShell variant="view" center>
-        <section class="card-outer max-w-lg" aria-live="polite">
+        <section class="card-flat max-w-lg" aria-live="polite">
             <div v-if="phase === 'loading'" class="flex items-center gap-4 p-7 text-base text-muted-foreground" data-testid="loading">
                 <span class="icon-tile bg-inset text-foreground"><Icon name="lock" /></span>{{ t('view.loading') }}
             </div>

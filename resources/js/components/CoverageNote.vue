@@ -18,7 +18,7 @@ const trust: { key: string; icon: IconName }[] = [
 
 <template>
     <PopoverRoot>
-        <div :data-testid="testid" :class="tone === 'side' ? '' : 'card-outer'">
+        <div :data-testid="testid" :class="tone === 'side' ? '' : 'card-flat'">
             <PopoverTrigger class="group flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-3.5 py-2.5 text-left text-sm font-medium" :class="tone === 'side' ? 'border border-side-line bg-white/5 hover:bg-white/10' : 'hover:bg-accent'">
                 {{ t('shell.coverage.title') }}
                 <Icon :name="tone === 'side' ? 'chevron-right' : 'chevron-down'" class="text-muted-foreground group-data-[state=open]:text-foreground" />

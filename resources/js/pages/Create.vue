@@ -190,7 +190,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
             </template>
         </template>
 
-        <div v-if="!secure" role="alert" class="notice card-outer max-w-2xl" data-testid="insecure">
+        <div v-if="!secure" role="alert" class="notice card-flat max-w-2xl" data-testid="insecure">
             <Icon name="alert" class="mt-0.5" />
             <div>
                 <h2 class="font-semibold">{{ t('errors.insecure.title') }}</h2>
@@ -200,14 +200,16 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
 
         <!-- Ergebnis: die Box passt sich dem Inhalt an -->
         <section v-else-if="result" class="card-outer max-w-xl" data-testid="result">
-            <div class="flex flex-col gap-3 p-4 sm:p-5">
+            <div class="card-head">
                 <ul class="flex flex-wrap gap-1.5">
                     <li class="chip"><Icon name="clock" />{{ t('result.chips.expiry', { label: t(`expiry.${result.ttl}`) }) }}</li>
                     <li class="chip"><Icon name="eye" />{{ t('result.chips.views', result.views) }}</li>
                     <li class="chip"><Icon name="shield" />{{ t('result.chips.attempts', result.attempts) }}</li>
                     <li class="chip" data-testid="countdown"><Icon name="clock" />{{ remaining ? t('result.chips.remaining', { time: remaining }) : t('result.chips.expired') }}</li>
                 </ul>
+            </div>
 
+            <div class="card-inner flex flex-col gap-4">
                 <template v-if="!destroyed">
                     <CopyField :step="1" icon="link" break-anywhere :label="t('result.link.title')" :value="result.link" :hint="t('result.link.hint')" :copied-message="t('toast.linkCopied')" testid="result-link" />
                     <CopyField :step="2" icon="key" :label="t('result.password.title')" :value="result.password" :hint="t('result.password.hint')" :copied-message="t('toast.passwordCopied')" testid="result-password" />
@@ -216,7 +218,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                 <p v-else role="status" class="notice" data-testid="destroyed"><Icon name="check-circle" class="mt-0.5" />{{ t('result.destroy.done') }}</p>
             </div>
 
-            <footer class="flex flex-wrap items-center justify-between gap-2 rounded-b-lg border-t border-border bg-inset px-4 py-3 sm:px-5">
+            <footer class="card-foot">
                 <button v-if="!destroyed" type="button" class="btn btn-quiet" data-testid="destroy" @click="destroyOpen = true"><Icon name="trash" />{{ t('result.destroy.button') }}</button>
                 <span v-else />
                 <button type="button" class="btn btn-secondary" data-testid="new-secret" @click="reset"><Icon name="plus" />{{ t('result.newSecret') }}</button>
@@ -234,30 +236,33 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
         <form v-else class="w-full max-w-5xl" novalidate @submit.prevent="submit">
             <div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
                 <section class="card-outer flex flex-col" aria-labelledby="secret-title">
-                    <div class="flex items-center justify-between gap-3 px-4 pt-4 pb-3">
+                    <div class="card-head">
                         <h2 id="secret-title" class="text-sm font-semibold">{{ t('create.secret.title') }}</h2>
                         <span class="hint hidden items-center gap-1.5 sm:inline-flex"><Icon name="shield" />{{ t('create.secret.badge') }}</span>
                     </div>
                     <label for="secret" class="sr-only">{{ t('create.secret.title') }}</label>
                     <textarea
                         id="secret"
+                        data-card-field
                         v-model="secret"
                         spellcheck="false"
                         autocomplete="off"
                         :placeholder="t('create.secret.placeholder')"
                         :aria-invalid="tooLarge || undefined"
                         aria-describedby="secret-limit"
-                        class="field no-ring mx-1.5 w-auto min-h-52 resize-y rounded-lg p-3.5 font-mono leading-relaxed lg:min-h-72"
+                        class="card-inner no-ring block min-h-52 w-full resize-y p-3.5 font-mono text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground sm:text-sm lg:min-h-72"
                     />
-                    <p id="secret-limit" class="flex min-h-4 items-center justify-end gap-1.5 px-4 pt-2 pb-2.5 text-xs" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
+                    <p id="secret-limit" class="flex min-h-4 items-center justify-end gap-1.5 px-2.5 pt-2 pb-1 text-xs" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
                         <template v-if="limitHint"><Icon v-if="limitHint.over" name="alert" />{{ limitHint.text }}</template>
                     </p>
                 </section>
 
-                <section class="card-outer flex flex-col gap-4 p-4 sm:p-5" aria-labelledby="password-title">
-                    <h2 id="password-title" class="text-sm font-semibold">{{ t('create.password.title') }}</h2>
+                <section class="card-outer flex flex-col" aria-labelledby="password-title">
+                    <div class="card-head"><h2 id="password-title" class="text-sm font-semibold">{{ t('create.password.title') }}</h2></div>
+                    <div class="card-inner flex flex-col gap-4">
                     <PasswordField id="password" v-model="password" v-model:source="source" :label="t('create.password.label')" :hint="t('create.password.hint')" generator autocomplete="new-password" />
                     <p v-if="password.length > 0 && !passwordOk" class="notice" role="status"><Icon name="alert" class="mt-0.5" />{{ t('errors.passwordTooShort') }}</p>
+                    </div>
                 </section>
             </div>
 
