@@ -28,3 +28,5 @@ Thumbs.db
 /test-results
 /playwright-report
 /coverage
+/database/e2e.sqlite*
+/storage/logs/e2e-access.log
