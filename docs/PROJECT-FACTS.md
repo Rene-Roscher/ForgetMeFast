@@ -12,9 +12,14 @@ Fakten, keine Regeln. Versionen stehen nach dem Scaffold nur noch aus den Lockfi
 ## Scaffold-Tabelle
 | Komponente | Verzeichnis | Starter | Version | Flags |
 |---|---|---|---|---|
-| Laravel-App | `.` (Repo-Wurzel) | `laravel new`, ohne Starter Kit | wird vor dem Scaffold nachgeschlagen | `--no-interaction`, Pest, SQLite, ohne Boost, Flags aus `--help` |
+| Laravel-App | `.` (Repo-Wurzel) | `composer create-project laravel/laravel`, ohne Starter Kit | laravel/laravel v13.11.0, framework v13.40.0 | `--no-interaction --prefer-dist` |
 
 Es gibt genau eine Komponente.
+
+## Umgebung
+`~/.zshrc:9` setzt `COMPOSER_IGNORE_PLATFORM_REQS=1`. Damit installierte Composer am 2026-11-04 `symfony/http-foundation`
+8.1 (verlangt PHP ≥ 8.4.1) unter PHP 8.3.10, die App brach mit einem Syntaxfehler ab. Composer-Befehle laufen mit
+`env -u COMPOSER_IGNORE_PLATFORM_REQS`; die CI setzt die Variable nicht.
 
 ## Befehle
 - `composer dev` startet App und Scheduler lokal.
@@ -37,4 +42,6 @@ Kein Agent-Trailer in Commits (`core:commit-hygiene`).
 Marketplace `rene-roscher-skills`, Projekt-Scope: `core`, `laravel`, `web`, `delivery`, `api`, `guardrails`.
 Nicht installiert: `saas`. `laravel-boost@claude-plugins-official` bleibt aktiviert, weil `laravel` es voraussetzt;
 das Composer-Paket `laravel/boost` wird nicht installiert, der MCP-Server des Plugins startet deshalb nicht.
+Der Marketplace-Eintrag in `.claude/settings.json` ist nicht auf einen Release-Tag gepinnt, weil das Repo
+`Rene-Roscher/skills` am 2026-11-04 keine Tags hat (`git ls-remote --tags`). Sobald es Tags gibt, `ref` setzen.
 Einmalig pro Person: `claude plugin install <name>@rene-roscher-skills --scope project`.
