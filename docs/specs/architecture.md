@@ -25,19 +25,21 @@ Eine einzige Laravel-App liefert die statische Inertia-Hülle und vier JSON-Endp
   Platte aufzeichnet.
 - Vite-Dev-Server: `vite.config.ts` bindet ihn an `127.0.0.1:5173`. Browser lehnen IPv6-Adressen wie `[::1]` als
   CSP-Quelle ab (in Chromium gesehen), deshalb erlaubt `SecurityHeaders` für IPv6-Hosts nichts.
-- Statische Dateien unter- Layout: `components/AppShell.vue`. Links ein Seitenpanel in Tailwind teal-950 mit den belegten Vertrauensaussagen und der
-  Grenzen-Aussage, rechts die Bühne mit äußeren und inneren Karten. Beim Erstellen: Inhalt als große Karte, Einstellungen als eigene
-  Karte daneben, die Aktion "Verschlüsseln & Link erstellen" in einer schwebenden Leiste unten (`data-testid="dock"`). Ergebnis und
-  Viewer sind schmalere Boxen, die sich dem Inhalt anpassen. Radien 8 bis 16 px, keine Pillen.
-- Bausteine: Reka UI 2 (ToggleGroup, NumberField, Switch, Dialog, Tooltip, Collapsible) in `components/ui/`, siehe ADR 0005.
+- Statische Dateien unter- Layout: `components/AppShell.vue`. Links ein dunkles Seitenpanel mit den belegten Vertrauensaussagen, Verlauf, "So funktioniert es" und
+  "Wie weit reicht der Schutz?" (Popover), rechts die Bühne mit verschachtelten Karten (äußere gedämpft mit Titel und Fuß, innere hell mit
+  Inhalt; `.card-outer`, `.card-inner`). Beim Erstellen: Secret als große Karte, Passwort als eigene Karte daneben, Regeln und Aktion in
+  einer schwebenden Leiste unten (`data-testid="dock"`, flache Bedienelemente ohne Rand und Ring). Ergebnis und Viewer sind schmalere
+  Boxen, der Viewer teilt sich bei viel Inhalt in Text und Übersicht. Radien 8 bis 16 px, keine Pillen.
+- Bausteine: Reka UI 2 (ToggleGroup, NumberField, Select, Toggle, Dialog, Popover, Tooltip) in `components/ui/`, siehe ADR 0005; Meldungen
+  platziert vue-sonner, gezeichnet von `ToastCard.vue` (ADR 0007).
   Nativ bleiben nur Eingabefelder. Dialoge: Titel als Name, Beschreibung verknüpft, Fokus hinein und mit Esc zurück (E2E-Test).
 - Texte: vue-i18n mit `resources/js/locales/de.json`, nur Deutsch, vorkompiliert. Tests: Syntax, Parität, Nutzung.
 - Verlauf: Link "Verlauf" unten links in der Seitenleiste (am Handy Icon in der Kopfzeile) öffnet ein Fach von rechts
   (`HistoryDrawer.vue`, `SecretHistory.vue`); "Wie weit reicht der Schutz?" steht ganz unten in der Seitenleiste (am Handy am Seitenende).
-  Ergebnis und Viewer sind waagerecht und senkrecht zentriert. Fehler erscheinen als Toast oben mittig (`Toaster.vue`).
+  Ergebnis und Viewer sind waagerecht und senkrecht zentriert. Fehler und Bestätigungen erscheinen als Toast unten rechts über der Leiste (`Toaster.vue`, `ToastCard.vue`).
 - Design umschalten: Icon-Button oben rechts (`ThemeToggle.vue`). Die Wahl `light` oder `dark` steht in `localStorage`
   (Schlüssel `fmf-theme`), sonst nichts, kein Cookie. `public/theme-init.js` setzt die Klasse vor dem ersten Zeichnen.
-- Icons: `lucide-vue-next` (ISC) über `components/Icon.vue`; Logo `components/LogoMark.vue` (Schloss mit Handschlag) und
+- Icons: `lucide-vue-next` (ISC) über `components/Icon.vue`; Logo `components/LogoMark.vue` (eine Hand, die ein Schloss trägt) und
   `public/favicon.svg`. Keine Emojis, keine Symbolzeichen (Test `ui-guard.test.ts`).
 - Vertrauensaussagen in der Seitenleiste sind nur solche, die das Projekt belegt: E2E-Test, Klartext-Scan, Cookie-Test,
   Krypto-Tests. "Zero Knowledge" meint die Eigenschaft, dass der Server weder Klartext noch Passwort noch Schlüssel kennt,

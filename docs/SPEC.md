@@ -45,16 +45,28 @@ Weitere ehrliche Grenzen: Chat-Anbieter sehen den **kompletten Link** (er ist Na
 - **Jetzt vernichten** auf der Ergebnisseite (mit dem `manage_token` im Speicher).
 - Die Farbe ist **keine** Sicherheitsfunktion (ca. 3,6 Bit) und gehört nicht in den MVP. Wenn überhaupt, als rein kosmetische Markierung im Stretch.
 
-## UI (modern, einfach, alles zentriert)
-- **Ersteller `/`:** Zentrierter Container (max. ca. 1040 px), eine Karte mit zwei Spalten. **Links** die Einstellungen (Ablauf als Segment-Control, Stepper für Abrufe und Fehlversuche, Passwortfeld mit Auge, Würfel-Button und Stärke-Balken in Bit). **Rechts** das große Eingabefeld für das Secret mit Zeichenzähler und Hinweis "Wird im Browser verschlüsselt, bevor etwas gesendet wird". Darunter der Button "Verschlüsseln und Link erstellen". Mobile: gestapelt, Eingabefeld zuerst.
-- **Gesendeter Body:** Die frühere Server-Sicht ("Vor dem Senden prüfen") ist entfallen (ADR 0007). Der Playwright-Test prüft stattdessen den tatsächlich gesendeten Request: genau die erwarteten Felder, kein Klartext, kein Passwort, kein Link-Key.
-- **Ergebnis:** Zwei klar getrennte Blöcke, **Link** und **Passwort**, jeweils mit Kopieren und dem Hinweis "Getrennt senden". Dazu Chips mit den Einstellungen, Countdown, "Jetzt vernichten", "Neues Secret".
-- **Viewer `/s/{id}`:** Schmale zentrierte Karte mit Schloss, "Geschütztes Secret", Passwortfeld, "Entschlüsseln". Bei Fehlern "Falsches Passwort, noch n Versuche". Bei Erfolg liegt das Secret unscharf hinter "Anzeigen", mit Kopieren, Auto-Hide nach 60 s, Restabrufen und Ablauf-Countdown.
+## UI (modern, einfach, zentriert)
+- **Aufbau:** Seitenleiste links (Marke, Vertrauensaussagen, Verlauf, "So funktioniert es", "Wie weit reicht der Schutz?"), rechts die Bühne.
+  Karten sind verschachtelt: eine äußere, etwas gedämpfte Karte trägt Titel und Fuß, die innere hellere den Inhalt. Hell und Dunkel
+  per Icon oben rechts. Am Handy gibt es keine Seitenleiste; Verlauf steht als Icon in der Kopfzeile, die Erklärungen am Seitenende.
+- **Ersteller `/`:** Links die große Karte für das Secret (Textfeld als innere Karte, wächst mit dem Inhalt, Textdatei laden oder
+  ablegen, Beispiel-Platzhalter, Strg+S), daneben die Karte für das Passwort (beim Laden erzeugt und sichtbar, Wörter oder Zeichen,
+  Stärke in vier Stufen, eine Zeile). Unten eine schwebende Leiste: Ablauf, "Einmalig" (genau ein Abruf, blendet die Abrufe aus),
+  Abrufe, Fehlversuche und "Verschlüsseln & Link erstellen". Die zuletzt gewählten Regeln bleiben im Browser (ADR 0007).
+- **Gesendeter Body:** Der Playwright-Test prüft den tatsächlich gesendeten Request: genau die erwarteten Felder, kein Klartext,
+  kein Passwort, kein Link-Key. Einen Prüfen-Dialog vor dem Senden gibt es nicht mehr (ADR 0007).
+- **Ergebnis:** Chips mit den Regeln auf der äußeren Karte, darin **Link** und **Passwort** je mit Kopieren und dem Hinweis, sie auf zwei
+  getrennten Wegen zu schicken. Unten "Jetzt vernichten" (danach ein klarer Endzustand) und "Neues Secret".
+- **Verlauf:** Eigene Secrets in diesem Browser (Link mit Schlüssel und Verwaltungstoken, nie Passwort oder Klartext), Abrufe und
+  Status vom Server über das Verwaltungstoken (ADR 0006).
+- **Viewer `/s/{id}`:** Schmale zentrierte Karte mit Schloss, "Geschütztes Secret", Passwortfeld, "Entschlüsseln". Bei Fehlern
+  "Falsches Passwort, noch n Versuche". Bei Erfolg liegt das Secret unscharf hinter "Anzeigen" (Auto-Hide nach 60 s), mit Kopieren,
+  Restabrufen und Ablauf-Countdown. Bei viel Inhalt steht der Text links und die Übersicht rechts.
 - **Endzustände:** "Nicht verfügbar" ist für unbekannt, abgelaufen, vernichtet und verbraucht **identisch** (gleicher Status, gleicher Body).
 - Hell und dunkel, kein Flackern beim Laden, Tastatur und Screenreader bedienbar.
 
 ## API
-`POST /api/secrets` · `GET /api/secrets/{id}/params` · `POST /api/secrets/{id}/open` · `DELETE /api/secrets/{id}` (mit `manage_token` im Header). Strikte Validierung: Wertebereiche, Größen (Ciphertext höchstens 64 KiB plus Overhead), strikte base64url-Prüfung, unbekannte Felder abweisen. Der Server nimmt nie absolute Zeiten vom Client an.
+`POST /api/secrets` · `GET /api/secrets/{id}/params` · `POST /api/secrets/{id}/open` · `DELETE /api/secrets/{id}` (mit `manage_token` im Header) · `GET /api/secrets/{id}/status` (mit `manage_token`, für den Verlauf des Erstellers, ADR 0006). Strikte Validierung: Wertebereiche, Größen (Ciphertext höchstens 64 KiB plus Overhead), strikte base64url-Prüfung, unbekannte Felder abweisen. Der Server nimmt nie absolute Zeiten vom Client an.
 
 ## Datenmodell
 `secrets`: `id` (PK), `v`, `kdf` (Name, m, t, p), `salt`, `iv`, `ciphertext` (nullable nach Vernichtung), `verifier`, `manage_hash`, `max_views`, `views_used`, `max_attempts`, `failed_attempts`, `expires_at`, `destroyed_at`, `destroyed_reason`, `created_at`. Kein Klartext-Feld und keine IP-Spalte.
@@ -89,4 +101,4 @@ Status-Seite für den Ersteller ("ungeöffnet, geöffnet, vernichtet"), CLI-Clie
 
 ## Arbeitsweise und Zeitplan
 Reihenfolge: Krypto-Modul mit Tests zuerst, dann Laravel-API mit Tests, dann UI, dann Härtung und E2E, dann README. Kleine Commits, jede Agent-Änderung lesen, nichts committen, was nicht erklärt und belegt ist. Vor dem Veröffentlichen: frische Installation nach README, Tests grün, kein Secret im Repo.
-Richtwert: Krypto-Modul 1,5 h · API 1,5 h · UI 2 h (mit Server-Sicht) · Härtung und E2E 1 h · README 1 h, **gesamt ca. 7 h**.
+Richtwert: Krypto-Modul 1,5 h · API 1,5 h · UI 2 h · Härtung und E2E 1 h · README 1 h, **gesamt ca. 7 h**.

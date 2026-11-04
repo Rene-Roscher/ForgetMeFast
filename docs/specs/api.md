@@ -7,7 +7,7 @@ Code: app/Http/Controllers, app/Http/Requests, app/Rules, app/Actions, routes/ap
 Checked against code: 2026-11-04
 
 ## Zweck
-Vier JSON-Endpunkte, die die Browser-App nutzt. Kein öffentliches API-Produkt.
+Fünf JSON-Endpunkte (anlegen, Parameter, öffnen, Status, vernichten), die die Browser-App nutzt. Kein öffentliches API-Produkt.
 
 ## Regeln
 - Endpunkte und Validierung laut `docs/SPEC.md` (API). Unbekannte Felder abweisen, Größen begrenzen.

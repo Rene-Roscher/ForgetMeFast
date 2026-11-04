@@ -2,6 +2,13 @@
 
 Secrets einmalig und Ende-zu-Ende-verschlüsselt teilen. Self-Hosted, ohne Accounts, ohne Tracking.
 
+> **Demo-Projekt.** ForgetMeFast ist ein Demonstrationsprojekt, das an einem Tag mit agentischer Entwicklung entstanden ist
+> (Claude Code, rund sechs Stunden zwischen dem ersten und dem letzten Commit, 75 Commits am 2026-11-04 und danach weitergepflegt). Es zeigt
+> eine Arbeitsweise: Spezifikation zuerst, Quellen statt Behauptungen, Tests und Gegenproben, CI und ein gehärtetes Container-Image. Es ist
+> **kein geprüftes Produkt**; die Kryptografie wurde nicht extern begutachtet (siehe [Bekannte Grenzen](#bekannte-grenzen) und
+> [`SECURITY.md`](SECURITY.md)). Wer es mit echten Geheimnissen betreiben will, prüft das Protokoll selbst.
+> Lizenz: [MIT](LICENSE).
+
 ## Idee
 
 ForgetMeFast ist eine selbst gehostete Webapp, mit der man Passwörter, API-Keys und Zugangsdaten einmalig weitergibt, ohne
@@ -63,6 +70,26 @@ nur die Adresse des Proxys, und alle Besucher teilen sich ein einziges Throttle-
 alle). Nur Proxys eintragen, die ihr kontrolliert: Von ihnen wird `X-Forwarded-For` übernommen, von sonst niemandem. Zusätzlich im
 Proxy die Body-Größe begrenzen (`client_max_body_size 128k;` in nginx); die App lehnt größere Bodies selbst mit 413 ab, aber
 das Lesen soll gar nicht erst bis dorthin gehen. IPv6-Adressen zählen im Throttling nach dem /64-Präfix.
+
+## Betrieb mit Docker
+
+CI baut das Image, prüft es mit einem Rauchtest und Trivy und schiebt es auf `main` und bei Versions-Tags nach
+`ghcr.io/<owner>/<repo>`. Lokal bauen: `docker build -t forgetmefast .`
+
+```bash
+export APP_KEY="$(docker run --rm forgetmefast php artisan key:generate --show)"   # einmal erzeugen und aufbewahren
+docker compose up -d                                                                # docker-compose.yml: Image, Volume, gehärtet
+```
+
+- **HTTPS** muss ein Reverse Proxy davor beenden; der Container spricht HTTP auf Port 8080 (nur an `127.0.0.1` gebunden).
+  Ohne HTTPS stellt der Browser Web Crypto nicht bereit.
+- **`TRUSTED_PROXIES`** auf die Adresse des Proxys setzen (siehe oben), sonst teilen sich alle Besucher ein Throttle-Kontingent.
+- **Daten** liegen als SQLite in `/data` (Volume). Das Image selbst ist unveränderlich; die Compose-Datei startet es mit
+  schreibgeschütztem Dateisystem, ohne Capabilities und ohne neue Rechte, als Benutzer `www-data`.
+- **Inhalt des Images:** FrankenPHP (Caddy mit PHP 8.3), `--no-dev`, Basis-Images auf einen Digest festgenagelt. Caddy setzt die
+  Sicherheits-Header auch für statische Dateien und liefert Quelltext, `.env` und Dotfiles nie aus. Der Aufräumjob läuft jede
+  Minute im Container. Ein Zugriffsprotokoll mit Adressen gibt es nicht.
+- **Nicht enthalten:** TLS, Backups, Updates. Das bleibt dem Betreiber.
 
 ## Eingesetzte KI-Werkzeuge und Vorgehen
 
@@ -151,18 +178,19 @@ Dazu kommen diese, die der Agent selbst gefunden hat:
 - **Mobilgeräte.** Argon2id braucht im Desktop-Chromium etwa 100 ms; auf Handys nicht gemessen.
 - **Löschen ist kein Überschreiben.** SQLite läuft mit `secure_delete`, das garantiert aber kein physisches Überschreiben
   (Dateisystem, Snapshots). Harmlos, weil nur Ciphertext dort liegt.
-- **Statische Dateien.** Die Header setzt Laravel nur für seine eigenen Antworten; für `public/` muss es der Webserver tun.
-  Nicht geprüft.
+- **Statische Dateien.** Die Header setzt Laravel nur für seine eigenen Antworten; für `public/` muss es der Webserver tun. Im
+  Container-Image tut das Caddy (Rauchtest in der CI prüft es); bei anderem Betrieb ist es Sache des Betreibers.
 - **Anlegen ist nicht idempotent.** Geht die Antwort verloren, versucht der Nutzer es erneut und es entsteht ein zweites
   Secret; das erste läuft ab.
-- **Gemeinsame IP.** Das Throttling zählt je gesalzenem IP-Hash. Viele Nutzer hinter derselben Adresse teilen sich das Limit.
+- **Gemeinsame IP.** Das Throttling zählt je gesalzenem IP-Hash (IPv6 nach /64). Viele Nutzer hinter derselben Adresse teilen sich das
+  Limit; hinter einem Reverse Proxy muss `TRUSTED_PROXIES` gesetzt sein, sonst gilt das für alle.
 - **Browser-Verlauf und Erweiterungen** sehen das Fragment, bevor die Seite es entfernt.
 - **Im Browser gespeichert wird:** die Wahl Hell oder Dunkel (`fmf-theme`), deine zuletzt gewählten Regeln (`fmf-prefs`: Ablauf, Abrufe, Fehlversuche, Einmalig, Art des Passworts) und dein Verlauf (`fmf-history`) mit Link, Verwaltungstoken und Ablauf deiner eigenen Secrets, **nie** Passwort oder Klartext (ADR 0006). "Verlauf leeren" löscht ihn. Kein Cookie, nichts davon erreicht den Server.
 - **Zwischenablage.** Kopiert der Nutzer das Secret, liegt es dort, bis er es ersetzt.
 
 ## Lizenzen und Quellen
 
-- Icons: [Lucide](https://lucide.dev) (`lucide-vue-next`), ISC-Lizenz. Das Logo setzt das Lucide-Icon "handshake" in ein Schloss.
+- Icons: [Lucide](https://lucide.dev) (`lucide-vue-next`), ISC-Lizenz. Das Logo (eine Hand, die ein Schloss trägt) nutzt die Handform von Lucide "hand-heart"; das Schloss ist eigen. Meldungen: [vue-sonner](https://github.com/xiaoluoboding/vue-sonner) (MIT).
 - Oberfläche: [Reka UI](https://reka-ui.com) (MIT), [vue-i18n](https://vue-i18n.intlify.dev) (MIT), Palette Tailwind teal; Gründe und Abwägungen in [ADR 0005](docs/adr/0005-ui-components-i18n-and-palette.md).
 - Schriften Plus Jakarta Sans und Geist Mono: SIL Open Font License 1.1 (über `@fontsource-variable/*`).
 - EFF Large Wordlist (Passphrasen): © Electronic Frontier Foundation, Creative Commons Attribution 4.0 International
