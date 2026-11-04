@@ -6,7 +6,7 @@
         "dev": "vite",
         "build": "vite build",
         "typecheck": "vue-tsc --noEmit",
-        "test": "vitest run",
+        "test": "vitest run --coverage",
         "check": "npm run typecheck && npm run test && npm run build && npm audit",
         "e2e": "rm -f public/hot && npm run build && playwright test",
         "e2e:dev": "E2E_DEV=1 playwright test && rm -f public/hot"
