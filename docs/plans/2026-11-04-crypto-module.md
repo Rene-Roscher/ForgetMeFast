@@ -1,7 +1,7 @@
 # Plan: Krypto-Modul (Protokoll v1, Browser)
 
-Status: Draft
-Approved-by:
+Status: Approved
+Approved-by: Rene Roscher, 2026-11-04
 Date: 2026-11-04
 Issue: none
 Multi-tenant: no
