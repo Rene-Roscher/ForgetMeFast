@@ -34,5 +34,5 @@ sein wie der Code: gebaut, getestet und veröffentlicht in der CI, mit minimalen
 - Das Image ist etwa 390 MB groß (FrankenPHP ist der größte Teil).
 - `apk upgrade` macht den Bau nicht bitgleich reproduzierbar; dafür kommen Sicherheitskorrekturen der Basis ohne Wartezeit an.
 - Das Image wurde lokal gebaut, gestartet und mit einem echten Ablauf (anlegen, öffnen, danach weg) im Browser geprüft, auch mit
-  dem gehärteten Compose-Profil. Die CI-Jobs selbst liefen noch nicht auf GitHub.
+  dem gehärteten Compose-Profil. Die CI läuft auf GitHub; der letzte Lauf auf `main` ist grün (Build, Rauchtest, Trivy, Veröffentlichung nach GHCR).
 - `laravel/tinker` liegt jetzt in `require-dev` und ist nicht im Image.

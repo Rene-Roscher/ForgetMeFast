@@ -100,10 +100,11 @@ Gebaut wurde mit **Claude Code** und den Skills aus dem Marketplace `Rene-Rosche
 Was der Agent gebaut hat: Laravel-Gerüst, Krypto-Modul, API, Oberfläche, Tests, CI und Dokumentation, jeweils nach einem
 Plan, mit Test vor Code und mit einer Gegenprobe pro Schutzmaßnahme.
 
-Was der Maintainer entschieden und geprüft hat: den Stack und das Protokoll (`docs/SPEC.md`), die Setup-Entscheidungen
+Was ich entschieden und geprüft habe: den Stack und das Protokoll (`docs/SPEC.md`), die Setup-Entscheidungen
 ([ADR 0003](docs/adr/0003-setup-decisions.md): keine Accounts, keine Cookies, nativer Dev-Stack), die Argon2id-Bibliothek
-([ADR 0002](docs/adr/0002-argon2id-library.md)), alle Protokolldetails, die die Spec offenließ
-([ADR 0004](docs/adr/0004-crypto-module-protocol-details.md)), die Oberfläche (Gestaltung mit gemessenen Kontrasten,
+([ADR 0002](docs/adr/0002-argon2id-library.md)), die Protokolldetails, die die Spec offenließ
+([ADR 0004](docs/adr/0004-crypto-module-protocol-details.md)): Der Agent legte Optionen mit Empfehlung vor, ich habe jede einzeln
+beantwortet (jeweils die Empfehlung), die Oberfläche (Gestaltung mit gemessenen Kontrasten,
 [ADR 0005](docs/adr/0005-ui-components-i18n-and-palette.md) bis [0007](docs/adr/0007-sonner-prefs-text-files-and-no-review.md)).
 
 Ehrliche Einschränkungen beim Vorgehen:
@@ -111,7 +112,7 @@ Ehrliche Einschränkungen beim Vorgehen:
   zwölf Punkte, die der Agent einzeln nachprüfte und einarbeitete, darunter einen Fehler im Agenten-Plan.
 - Für die Pläne zu API und Oberfläche gab es keine eigene gegnerische Prüfung. Stattdessen stehen ein Paralleltest mit echten
   Prozessen und die E2E-Tests dahinter.
-- Die Krypto-Entscheidungen wurden einzeln vom Maintainer beantwortet und stehen in ADR 0004. Eine externe Prüfung der Krypto gab es nicht.
+- Die Krypto-Entscheidungen habe ich einzeln beantwortet, sie stehen in ADR 0004. Eine externe Prüfung der Krypto gab es nicht.
 
 ## Architekturentscheidungen
 
@@ -154,7 +155,7 @@ Stand 2026-11-04, alles lokal gelaufen:
 - **Gegenproben:** Jede Schutzmaßnahme wurde einmal gegen eine absichtliche Verletzung rot gesehen (Mutation), auch die
   Messungen selbst.
 - **CI:** [`.github/workflows/ci.yml`](.github/workflows/ci.yml) mit auf Commit-SHAs gepinnten Actions, Lesezugriff und
-  `zizmor`. **Sie ist noch nie auf GitHub gelaufen**, weil nichts gepusht wurde.
+  `zizmor`. **Sie läuft auf GitHub, der letzte Lauf auf `main` ist grün** (Tests, E2E, Container-Build mit Rauchtest und Scan, `zizmor`, Veröffentlichung des Images).
 
 ## Bekannte Grenzen
 
@@ -167,7 +168,7 @@ Stand 2026-11-04, alles lokal gelaufen:
 | Kompromittierter Server liefert manipuliertes JavaScript | **Nicht abgedeckt.** Das Grundproblem von Web-E2EE. Gemildert durch strikte CSP, minimale Abhängigkeiten, Open Source. |
 | Wer den Link hat, will nur zerstören | Möglich (3 Fehlversuche). Vertraulichkeit geht vor Verfügbarkeit. |
 
-Weitere ehrliche Grenzen: Chat-Anbieter sehen den **kompletten Link** (er ist Nachrichtentext), deshalb muss das Passwort über einen anderen Kanal gehen. Der Server sieht Metadaten (Zeitpunkt, IP-Hash im Throttling, Größen-Bucket). Browser-Verlauf und Erweiterungen sehen das Fragment. Keine externe Prüfung der Krypto. Sicherheitseigenschaften beim richtigen Namen nennen: Vertraulichkeit gegenüber dem Server, Integrität durch AEAD, keine Aussage zu Forward Secrecy.
+Weitere ehrliche Grenzen: Chat-Anbieter sehen den **kompletten Link** (er ist Nachrichtentext), deshalb muss das Passwort über einen anderen Kanal gehen. Der Server sieht Metadaten (Zeitpunkt, IP-Hash im Throttling, Größen-Bucket). Browser-Verlauf und Erweiterungen sehen das Fragment. Keine externe Prüfung der Krypto. Zugesichert werden Vertraulichkeit gegenüber dem Server und Integrität durch AEAD, keine Aussage zu Forward Secrecy.
 
 Dazu kommen diese, die der Agent selbst gefunden hat:
 
