@@ -29,7 +29,7 @@ const secure = typeof window !== 'undefined' && window.isSecureContext;
 
 <template>
     <TooltipProvider :delay-duration="300">
-        <Toaster />
+        <Toaster :dock="dock" />
         <HistoryDrawer />
         <div class="min-h-screen bg-stage lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] xl:grid-cols-[19rem_minmax(0,1fr)]">
             <!-- Seitenleiste nur am Desktop. Auf dem Handy kommt der Inhalt zuerst. Ganz unten: die Grenzen des Schutzes. -->

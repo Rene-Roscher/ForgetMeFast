@@ -189,6 +189,13 @@
 .modal-content[data-state='open'] { animation: modal-in 150ms ease-out; }
 .sheet-content[data-state='open'] { animation: sheet-in 180ms ease-out; }
 .modal-overlay[data-state='open'] { animation: fade-in 150ms ease-out; }
+/* Der Strich der Meldung läuft mit der Zeit nach oben weg und pausiert, solange die Maus auf der Karte liegt. */
+.toast-bar { transform-origin: top; animation: toast-bar linear forwards; }
+.toast-card:hover .toast-bar { animation-play-state: paused; }
+@keyframes toast-bar {
+    from { transform: scaleY(1); }
+    to { transform: scaleY(0); }
+}
 .destroyed-in { animation: sheet-up 260ms ease-out both; }
 @keyframes sheet-up {
     from { opacity: 0; translate: 0 8px; scale: 0.98; }

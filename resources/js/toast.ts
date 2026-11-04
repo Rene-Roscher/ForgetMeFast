@@ -11,7 +11,8 @@ const card = markRaw(ToastCard);
 
 function show(kind: Kind, message: string): void {
     const id = `${kind}:${message}`;
-    sonner.custom(card, { id, duration: kind === 'error' ? 8000 : 3500, componentProps: { id, kind, message, title: i18n.global.t(`toast.titles.${kind}`) } });
+    const duration = kind === 'error' ? 8000 : 3500;
+    sonner.custom(card, { id, duration, componentProps: { id, kind, message, duration, title: i18n.global.t(`toast.titles.${kind}`) } });
 }
 
 export const toast = {

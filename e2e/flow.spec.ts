@@ -222,7 +222,7 @@ test('Passwort neu erzeugen, Art wechseln und selbst tippen: exakte Bits für er
     await expect(page.getByTestId('strength')).toContainText('geschätzt');
 });
 
-test('Fehler erscheinen als Toast oben mittig, mit Schließen, und blockieren nichts', async ({ page }) => {
+test('Fehler erscheinen als Toast unten rechts über der Leiste, mit Strich, mit Schließen, und blockieren nichts', async ({ page }) => {
     await page.goto('/');
     await page.route('**/api/secrets', (r) => (r.request().method() === 'POST' ? r.fulfill({ status: 500, body: '{}' }) : r.continue()));
     await page.locator('#secret').fill('Fehlerfall');
@@ -231,10 +231,23 @@ test('Fehler erscheinen als Toast oben mittig, mit Schließen, und blockieren ni
     const toast = page.getByTestId('toast-error');
     await expect(toast).toBeVisible();
     await expect(toast).toContainText('Der Server hat einen Fehler gemeldet');
+    await page.waitForTimeout(600); // Einblend-Animation der Bibliothek
     const box = (await toast.boundingBox())!;
     const width = page.viewportSize()!.width;
-    expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThan(24); // mittig
-    expect(box.y).toBeLessThan(40); // oben
+    const height = page.viewportSize()!.height;
+    expect(box.x + box.width, 'rechts').toBeGreaterThan(width - 40);
+    expect(box.y + box.height, 'unten, aber über der Aktionsleiste').toBeGreaterThan(height - 200);
+    const submit = (await page.getByTestId('submit').boundingBox())!;
+    expect(box.y + box.height, 'verdeckt den Absende-Knopf nicht').toBeLessThanOrEqual(submit.y);
+    // Der Strich: schmal, abgerundet, läuft ab und pausiert beim Überfahren.
+    const bar = toast.locator('.toast-bar');
+    const bb = (await bar.boundingBox())!;
+    expect(bb.width).toBeLessThanOrEqual(4);
+    expect(await bar.evaluate((el) => getComputedStyle(el).borderTopLeftRadius)).not.toBe('0px');
+    await toast.hover();
+    expect(await bar.evaluate((el) => getComputedStyle(el).animationPlayState)).toBe('paused');
+    await page.mouse.move(5, 5);
+    expect(await bar.evaluate((el) => getComputedStyle(el).animationPlayState)).toBe('running');
     // Der Fehler steht nicht zusätzlich als Box im Formular, und die Eingabe ist unverändert.
     await expect(page.locator('#secret')).toHaveValue('Fehlerfall');
     await toast.hover();
@@ -544,4 +557,25 @@ test('Viewer: viel Inhalt links, Übersicht rechts; wenig Inhalt bleibt eine sch
     const sa = (await c.getByRole('complementary', { name: 'Übersicht' }).boundingBox())!;
     expect(sa.y, 'Übersicht unter dem Inhalt').toBeGreaterThan(sc.y + sc.height - 1);
     await ctx.close();
+});
+
+test('ein Dialog aus dem Verlauf-Fach liegt vor dem Fach', async ({ page }) => {
+    await create(page, { secret: 'Ebenen-Test' });
+    await page.getByTestId('history-open').click();
+    await expect(page.getByTestId('history-drawer')).toBeVisible();
+    await page.getByTestId('history-destroy').click();
+    const dialog = page.getByTestId('history-destroy-dialog');
+    await expect(dialog).toBeVisible();
+    const front = await dialog.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        const top = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+        return el.contains(top);
+    });
+    expect(front, 'der Dialog liegt vorn').toBe(true);
+    const overlayOverDrawer = await page.evaluate(() => {
+        const drawer = document.querySelector('[data-testid=history-drawer]')!.getBoundingClientRect();
+        const top = document.elementFromPoint(drawer.x + 20, drawer.y + 20)!;
+        return !top.closest('[data-testid=history-drawer]');
+    });
+    expect(overlayOverDrawer, 'der Dialog-Hintergrund deckt das Fach ab').toBe(true);
 });
