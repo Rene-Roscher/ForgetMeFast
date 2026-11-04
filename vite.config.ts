@@ -1,8 +1,13 @@
 import inertia from '@inertiajs/vite';
+import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite';
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
+
+const root = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
     plugins: [
@@ -12,8 +17,13 @@ export default defineConfig({
         }),
         inertia({ ssr: false }),
         vue(),
+        // Nachrichten werden beim Build geprüft und vorkompiliert (runtimeOnly). Die vue-i18n-Doku nennt das eval-Problem mit
+        // CSP für Versionen vor 9.3; ab dort gibt es JIT-Kompilierung, ab v10 ist sie Standard. Dass es unter unserer strikten
+        // CSP läuft, belegt der E2E-Test (keine Verstöße), nicht diese Annahme.
+        VueI18nPlugin({ include: [resolve(root, 'resources/js/locales/**')], runtimeOnly: true, compositionOnly: true, strictMessage: true }),
         tailwindcss(),
     ],
+    resolve: { alias: { '@': resolve(root, 'resources/js') } },
     build: {
         // Never inline assets as data: URIs; the CSP (font-src, img-src 'self') does not allow them.
         assetsInlineLimit: 0,

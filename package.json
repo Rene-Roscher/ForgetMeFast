@@ -12,6 +12,8 @@
         "e2e:dev": "E2E_DEV=1 playwright test && rm -f public/hot"
     },
     "devDependencies": {
+        "@intlify/message-compiler": "^11.4.18",
+        "@intlify/unplugin-vue-i18n": "^11.2.8",
         "@playwright/test": "^1.64.1",
         "@tailwindcss/vite": "^4.0.0",
         "@types/node": "^26.6.6",
@@ -36,6 +38,11 @@
         "@inertiajs/vue3": "^3.11.0",
         "@noble/hashes": "2.4.0",
         "lucide-vue-next": "^1.0.0",
-        "vue": "^3.5.44"
+        "reka-ui": "^2.11.0",
+        "vue": "^3.5.44",
+        "vue-i18n": "^11.4.18"
+    },
+    "overrides": {
+        "minimatch": "^11.0.1"
     }
 }
