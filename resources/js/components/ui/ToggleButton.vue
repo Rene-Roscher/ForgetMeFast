@@ -10,7 +10,7 @@ const model = defineModel<boolean>({ required: true });
 
 <template>
     <Tip :text="label" side="top">
-        <Toggle v-model="model" :aria-label="label" :data-testid="testid" class="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-caption bg-input text-foreground transition-colors hover:bg-accent data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:text-background">
+        <Toggle v-model="model" :aria-label="label" :data-testid="testid" class="inline-flex size-9 cursor-pointer items-center justify-center rounded-md border border-control bg-input text-foreground transition-colors hover:bg-accent data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:text-background">
             <Icon :name="icon" />
         </Toggle>
     </Tip>

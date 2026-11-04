@@ -84,7 +84,7 @@ function submitForm(event: KeyboardEvent): void {
         </div>
 
         <div v-if="generator" class="flex items-center gap-2">
-            <ToggleGroupRoot type="single" :model-value="mode" :aria-label="t('create.password.modeLabel')" class="inline-flex rounded-md border border-caption bg-input p-0.5" @update:model-value="setMode">
+            <ToggleGroupRoot type="single" :model-value="mode" :aria-label="t('create.password.modeLabel')" class="inline-flex rounded-md border border-control bg-input p-0.5" @update:model-value="setMode">
                 <ToggleGroupItem value="words" data-testid="pw-mode-words" class="min-h-8 cursor-pointer rounded-md px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-accent data-[state=on]:bg-foreground data-[state=on]:text-background">{{ t('create.password.words') }}</ToggleGroupItem>
                 <ToggleGroupItem value="chars" data-testid="pw-mode-chars" class="min-h-8 cursor-pointer rounded-md px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-accent data-[state=on]:bg-foreground data-[state=on]:text-background">{{ t('create.password.chars') }}</ToggleGroupItem>
             </ToggleGroupRoot>
@@ -98,7 +98,7 @@ function submitForm(event: KeyboardEvent): void {
                 <span class="font-medium">{{ t('create.password.strength') }}</span>
                 <span v-if="model.length" class="text-muted-foreground tabular-nums"><span class="font-semibold text-foreground">{{ t('create.password.bits', { bits: Math.round(bits) }) }}</span> · {{ source === 'typed' ? t('create.password.estimate') : t('create.password.exact') }}</span>
             </div>
-            <div class="h-1.5 overflow-hidden rounded-sm border border-caption bg-input" role="presentation">
+            <div class="h-1.5 overflow-hidden rounded-sm border border-control bg-input" role="presentation">
                 <div class="h-full bg-foreground motion-safe:transition-[width]" :style="{ width: `${percent}%` }" />
             </div>
         </div>

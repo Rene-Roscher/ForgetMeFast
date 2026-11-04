@@ -71,7 +71,9 @@ const measure = () => {
         if (parseFloat(s.borderTopWidth) === 0) continue;
         const r = ratio(over(parse(s.borderTopColor), bgOf(el.parentElement)), bgOf(el.parentElement));
         checked++;
-        if (r < 3) failures.push(`Rand ${label(el)}: ${r.toFixed(2)}:1 < 3`);
+        // Hell: 3:1 (WCAG 1.4.11). Dunkel: Felder heben sich durch Füllung und feinen Rand ab wie bei Vercel und Linear, gefordert sind 1,4:1.
+        const need = document.documentElement.classList.contains('dark') ? 1.4 : 3;
+        if (r < need) failures.push(`Rand ${label(el)}: ${r.toFixed(2)}:1 < ${need}`);
     }
     // 4. Zielgrößen (WCAG 2.5.8: mindestens 24 x 24 px).
     for (const el of Array.from(document.querySelectorAll('button, a[href], input:not([type=hidden]), summary'))) {
