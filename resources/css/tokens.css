@@ -90,12 +90,12 @@
   --foreground: #ededed;
   --muted: #111111;
   --muted-foreground: #a1a1a1;
-  --card: #111111;
+  --card: #121212;
   --card-foreground: #ededed;
   --accent: #1f1f1f;
   --accent-foreground: #ededed;
-  --border: #454545;
-  --border-strong: #5c5c5c;
+  --border: #333333;
+  --border-strong: #444444;
   --ring: #2dd4bf66;
   --primary-hover: #d4d4d4; /* teal-300 */
   --secondary: #1f1f1f;
@@ -104,12 +104,12 @@
   --destructive-foreground: #0a0a0a;
   --table-header: #111111;
   --table-highlight: #0f1a19;
-  --caption: #7d7d7d;
+  --caption: #6b6b6b;
   --badge-bg: #1f1f1f;
   --badge-foreground: #ededed;
-  --badge-border: #454545;
+  --badge-border: #333333;
   --input: #0a0a0a;
-  --input-border: #7d7d7d;
+  --input-border: #6b6b6b;
   --input-placeholder: #a1a1a1;
   --shadow-glow: 0 0 0 1px #2dd4bf1a, 0 18px 44px -20px #000c;
   --surface-sunken: #0a0a0a;
