@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useHistory } from '@/history';
+import { toast } from '@/toast';
 import { api, ApiError, errorKey } from '@/api';
 import AppShell from '@/components/AppShell.vue';
 import CopyField from '@/components/CopyField.vue';
 import Icon from '@/components/Icon.vue';
 import PasswordField from '@/components/PasswordField.vue';
+import DockStepper from '@/components/ui/DockStepper.vue';
 import Modal from '@/components/ui/Modal.vue';
-import NumberStepper from '@/components/ui/NumberStepper.vue';
-import SegmentedControl from '@/components/ui/SegmentedControl.vue';
-import Switch from '@/components/ui/Switch.vue';
+import SelectMenu from '@/components/ui/SelectMenu.vue';
+import ToggleButton from '@/components/ui/ToggleButton.vue';
 import { useCountdown } from '@/composables/useCountdown';
 import {
-    createSecret, CryptoError, isAcceptablePassword, isCryptoAvailable, MAX_COUNT, MAX_PLAINTEXT_BYTES, TTL_SECONDS,
-    type CreatedSecret,
+    createSecret, CryptoError, EFF_LARGE_WORDLIST, isAcceptablePassword, isCryptoAvailable, MAX_COUNT, MAX_PLAINTEXT_BYTES, randomPassphrase,
+    TTL_SECONDS, type CreatedSecret,
 } from '@/crypto';
 
 interface Result {
@@ -30,9 +32,12 @@ interface Result {
 const { t } = useI18n();
 const number = new Intl.NumberFormat('de-DE');
 
+const secure = isCryptoAvailable();
+const history = useHistory();
 const secret = ref('');
-const password = ref('');
-const source = ref<'typed' | 'words' | 'chars'>('typed');
+// Das Passwort wird schon beim Laden erzeugt (bei jedem Neuladen ein neues) und ist sofort sichtbar.
+const password = ref(secure ? randomPassphrase(EFF_LARGE_WORDLIST) : '');
+const source = ref<'typed' | 'words' | 'chars'>('words');
 const ttl = ref<number>(86400);
 const views = ref(1);
 const attempts = ref(3);
@@ -41,17 +46,23 @@ const reviewOpen = ref(false);
 const submitButton = ref<HTMLButtonElement | null>(null);
 const prepared = ref<CreatedSecret | null>(null);
 const busy = ref(false);
-const error = ref<string | null>(null);
 const result = ref<Result | null>(null);
 const destroyOpen = ref(false);
 const destroyed = ref(false);
 
-const secure = isCryptoAvailable();
 const bytes = computed(() => new TextEncoder().encode(secret.value).length);
 const tooLarge = computed(() => bytes.value > MAX_PLAINTEXT_BYTES);
+// Das Limit (65.532 Byte) sagt einem Menschen nichts. Gezeigt wird nur, wenn es eng wird, und in Zeichen, ungefähr (Umlaute und Emoji brauchen mehr Byte).
+const limitLeft = computed(() => MAX_PLAINTEXT_BYTES - bytes.value);
+const limitHint = computed(() => {
+    if (bytes.value > MAX_PLAINTEXT_BYTES) return { over: true, text: t('create.secret.overLimit', { n: number.format(Math.round(-limitLeft.value / 10) * 10 || 10) }) };
+    if (bytes.value >= MAX_PLAINTEXT_BYTES * 0.85) return { over: false, text: t('create.secret.nearLimit', { n: number.format(Math.floor(limitLeft.value / 100) * 100) }) };
+    return null;
+});
 const passwordOk = computed(() => isAcceptablePassword(password.value));
 const canSubmit = computed(() => secure && !busy.value && secret.value.length > 0 && !tooLarge.value && passwordOk.value);
 const expiryOptions = TTL_SECONDS.map((value) => ({ value: value as number, label: t(`expiryShort.${value}`), title: t(`expiry.${value}`) }));
+const linkCopied = computed(() => t('toast.linkCopied'));
 const expiresAt = computed(() => result.value?.expiresAt ?? null);
 const remaining = useCountdown(expiresAt);
 
@@ -112,10 +123,11 @@ async function send(p: CreatedSecret): Promise<void> {
         password.value = '';
         prepared.value = null;
         reviewOpen.value = false;
+        history.add({ id: p.body.id, link: result.value.link, manageToken: p.manageToken, createdAt: Date.now(), expiresAt: result.value.expiresAt.getTime(), ttl: ttl.value, maxViews: views.value });
         window.addEventListener('beforeunload', warn);
     } catch (e) {
         reviewOpen.value = false;
-        error.value = message(e);
+        toast.error(message(e));
     } finally {
         busy.value = false;
     }
@@ -123,12 +135,11 @@ async function send(p: CreatedSecret): Promise<void> {
 
 async function submit(): Promise<void> {
     if (!canSubmit.value) return;
-    error.value = null;
     busy.value = true;
     try {
         prepared.value = await createSecret({ secret: secret.value, password: password.value, settings: { ttl: ttl.value, maxViews: views.value, maxAttempts: attempts.value } });
     } catch (e) {
-        error.value = message(e);
+        toast.error(message(e));
         busy.value = false;
         return;
     }
@@ -145,8 +156,9 @@ async function destroy(): Promise<void> {
     try {
         await api.destroy(result.value.id, result.value.manageToken);
         destroyed.value = true;
+        toast.success(t('toast.destroyed'));
     } catch (e) {
-        error.value = message(e);
+        toast.error(message(e));
     } finally {
         destroyOpen.value = false;
     }
@@ -159,22 +171,22 @@ function reset(): void {
     window.removeEventListener('beforeunload', warn);
     result.value = null;
     destroyed.value = false;
-    error.value = null;
-    source.value = 'typed';
+    password.value = randomPassphrase(EFF_LARGE_WORDLIST);
+    source.value = 'words';
 }
 onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
 </script>
 
 <template>
-    <AppShell variant="create">
+    <AppShell variant="create" :dock="secure && !result" :center="!secure || !!result">
         <template #header>
             <template v-if="result">
-                <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ t('result.title') }}</h1>
-                <p class="max-w-xl text-base text-muted-foreground">{{ t('result.lead') }}</p>
+                <h1 class="text-xl font-bold tracking-tight sm:text-2xl">{{ t('result.title') }}</h1>
+                <p class="text-sm text-muted-foreground">{{ t('result.lead') }}</p>
             </template>
             <template v-else>
-                <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ t('create.title') }}</h1>
-                <p class="max-w-xl text-base text-muted-foreground">{{ t('create.lead') }}</p>
+                <h1 class="text-xl font-bold tracking-tight sm:text-2xl">{{ t('create.title') }}</h1>
+                <p class="text-sm text-muted-foreground">{{ t('create.lead') }}</p>
             </template>
         </template>
 
@@ -187,9 +199,9 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
         </div>
 
         <!-- Ergebnis: die Box passt sich dem Inhalt an -->
-        <section v-else-if="result" class="card-outer max-w-2xl" data-testid="result">
-            <div class="flex flex-col gap-5 p-5 sm:p-7">
-                <ul class="flex flex-wrap gap-2">
+        <section v-else-if="result" class="card-outer max-w-xl" data-testid="result">
+            <div class="flex flex-col gap-3 p-4 sm:p-5">
+                <ul class="flex flex-wrap gap-1.5">
                     <li class="chip"><Icon name="clock" />{{ t('result.chips.expiry', { label: t(`expiry.${result.ttl}`) }) }}</li>
                     <li class="chip"><Icon name="eye" />{{ t('result.chips.views', result.views) }}</li>
                     <li class="chip"><Icon name="shield" />{{ t('result.chips.attempts', result.attempts) }}</li>
@@ -197,15 +209,14 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                 </ul>
 
                 <template v-if="!destroyed">
-                    <CopyField :step="1" icon="link" break-anywhere :label="t('result.link.title')" :value="result.link" :hint="t('result.link.hint')" testid="result-link" />
-                    <CopyField :step="2" icon="key" :label="t('result.password.title')" :value="result.password" :hint="t('result.password.hint')" testid="result-password" />
+                    <CopyField :step="1" icon="link" break-anywhere :label="t('result.link.title')" :value="result.link" :hint="t('result.link.hint')" :copied-message="t('toast.linkCopied')" testid="result-link" />
+                    <CopyField :step="2" icon="key" :label="t('result.password.title')" :value="result.password" :hint="t('result.password.hint')" :copied-message="t('toast.passwordCopied')" testid="result-password" />
                     <p class="hint flex items-center gap-2"><Icon name="lock" />{{ t('result.leaveNotice') }}</p>
                 </template>
                 <p v-else role="status" class="notice" data-testid="destroyed"><Icon name="check-circle" class="mt-0.5" />{{ t('result.destroy.done') }}</p>
-                <p v-if="error" role="alert" class="notice"><Icon name="alert" class="mt-0.5" />{{ error }}</p>
             </div>
 
-            <footer class="flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t border-border bg-inset px-5 py-4 sm:px-7">
+            <footer class="flex flex-wrap items-center justify-between gap-2 rounded-b-lg border-t border-border bg-inset px-4 py-3 sm:px-5">
                 <button v-if="!destroyed" type="button" class="btn btn-quiet" data-testid="destroy" @click="destroyOpen = true"><Icon name="trash" />{{ t('result.destroy.button') }}</button>
                 <span v-else />
                 <button type="button" class="btn btn-secondary" data-testid="new-secret" @click="reset"><Icon name="plus" />{{ t('result.newSecret') }}</button>
@@ -219,16 +230,16 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
             </Modal>
         </section>
 
-        <!-- Formular: Inhalt links, Einstellungen als eigene Karte daneben, die Aktion schwebt unten -->
-        <form v-else class="w-full max-w-6xl pb-28" novalidate @submit.prevent="submit">
-            <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_23rem] xl:grid-cols-[minmax(0,1fr)_25rem]">
-                <section class="card-outer flex flex-col gap-4 p-5 sm:p-7" aria-labelledby="secret-title">
-                    <div class="flex items-start gap-4">
-                        <span class="icon-tile"><Icon name="lock" /></span>
-                        <div>
-                            <h2 id="secret-title" class="text-lg font-semibold">{{ t('create.secret.title') }}</h2>
-                            <p class="hint mt-0.5">{{ t('create.secret.lead') }}</p>
+        <!-- Formular: Inhalt links, Passwort als eigene Karte daneben, die Regeln und die Aktion schweben unten -->
+        <form v-else class="w-full max-w-6xl" novalidate @submit.prevent="submit">
+            <div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+                <section class="card-outer flex flex-col gap-3 p-4 sm:p-5" aria-labelledby="secret-title">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="icon-tile"><Icon name="lock" /></span>
+                            <h2 id="secret-title" class="text-sm font-semibold">{{ t('create.secret.title') }}</h2>
                         </div>
+                        <span class="chip hidden sm:inline-flex"><Icon name="shield" />{{ t('create.secret.badge') }}</span>
                     </div>
                     <label for="secret" class="sr-only">{{ t('create.secret.title') }}</label>
                     <textarea
@@ -238,51 +249,44 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                         autocomplete="off"
                         :placeholder="t('create.secret.placeholder')"
                         :aria-invalid="tooLarge || undefined"
-                        aria-describedby="secret-count"
-                        class="field min-h-72 resize-y p-4 font-mono text-[0.9375rem] leading-relaxed lg:min-h-[24rem]"
+                        aria-describedby="secret-limit"
+                        class="field min-h-52 resize-y rounded-lg p-4 font-mono leading-relaxed shadow-none lg:min-h-72"
                     />
-                    <p id="secret-count" class="flex items-center justify-end gap-2 text-sm tabular-nums" :class="tooLarge ? 'font-semibold text-foreground' : 'text-muted-foreground'">
-                        <Icon v-if="tooLarge" name="alert" />{{ t('create.secret.counter', { used: number.format(bytes), max: number.format(MAX_PLAINTEXT_BYTES) }) }}
+                    <p id="secret-limit" class="flex min-h-4 items-center justify-end gap-1.5 text-xs" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
+                        <template v-if="limitHint"><Icon v-if="limitHint.over" name="alert" />{{ limitHint.text }}</template>
                     </p>
-                    <p v-if="error" role="alert" class="notice" data-testid="error"><Icon name="alert" class="mt-0.5" />{{ error }}</p>
                 </section>
 
-                <section class="card-outer flex flex-col gap-6 p-5 sm:p-7" aria-labelledby="settings-title">
-                    <div>
-                        <h2 id="settings-title" class="text-lg font-semibold">{{ t('create.settings.title') }}</h2>
-                        <p class="hint mt-0.5">{{ t('create.settings.lead') }}</p>
+                <section class="card-outer flex flex-col gap-3 p-4 sm:p-5" aria-labelledby="password-title">
+                    <div class="flex items-center gap-2.5">
+                        <span class="icon-tile"><Icon name="key" /></span>
+                        <h2 id="password-title" class="text-sm font-semibold">{{ t('create.password.title') }}</h2>
                     </div>
-                    <SegmentedControl id="ttl" v-model="ttl" :label="t('create.settings.expiry')" :options="expiryOptions" />
-                    <div class="grid grid-cols-2 gap-4">
-                        <NumberStepper id="views" v-model="views" :label="t('create.settings.views')" :min="1" :max="MAX_COUNT" />
-                        <NumberStepper id="attempts" v-model="attempts" :label="t('create.settings.attempts')" :min="1" :max="MAX_COUNT" />
-                    </div>
-                    <p class="hint -mt-3">{{ t('create.settings.viewsHint') }} {{ t('create.settings.attemptsHint') }}</p>
-                    <hr class="border-border" />
                     <PasswordField id="password" v-model="password" v-model:source="source" :label="t('create.password.label')" :hint="t('create.password.hint')" generator autocomplete="new-password" />
                     <p v-if="password.length > 0 && !passwordOk" class="notice" role="status"><Icon name="alert" class="mt-0.5" />{{ t('errors.passwordTooShort') }}</p>
-                    <hr class="border-border" />
-                    <Switch id="review" v-model="reviewFirst" :label="t('create.settings.review')" :hint="t('create.settings.reviewHint')" />
                 </section>
             </div>
 
-            <!-- Schwebende Aktionsleiste -->
-            <div class="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-3 sm:px-6 sm:pb-5 lg:left-[24rem] lg:px-10 xl:left-[28rem]" data-testid="dock">
-                <div class="pointer-events-auto mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-2xl border border-border-strong bg-card/90 p-3 shadow-[0_12px_40px_-12px_rgb(0_0_0/0.45)] backdrop-blur-md sm:flex-row sm:items-center sm:justify-between sm:p-4">
-                    <ul class="hidden flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted-foreground sm:flex" :aria-label="t('create.settings.title')">
-                        <li class="flex items-center gap-2"><Icon name="clock" />{{ t('create.dock.expiresAfter', { time: t(`expiryShort.${ttl}`) }) }}</li>
-                        <li class="flex items-center gap-2"><Icon name="eye" />{{ t('create.dock.views', views) }}</li>
-                        <li class="flex items-center gap-2"><Icon name="shield" />{{ t('create.dock.attempts', attempts) }}</li>
-                    </ul>
-                    <button ref="submitButton" type="submit" :disabled="!canSubmit" data-testid="submit" class="btn btn-primary btn-lg w-full sm:w-auto sm:min-w-80">
-                        {{ busy ? t('create.dock.submitting') : t('create.dock.submit') }}<Icon v-if="!busy" name="arrow-right" />
-                    </button>
+            <!-- Schwebende Leiste: Ablauf, Abrufe und Fehlversuche sind hier direkt die Auswahl -->
+            <div class="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4 lg:left-[17rem] lg:px-8 xl:left-[19rem]" data-testid="dock">
+                <div class="pointer-events-auto mx-auto flex w-full max-w-6xl flex-col gap-2 rounded-lg border border-border-strong bg-card/95 p-2 shadow-[0_12px_36px_-12px_rgb(0_0_0/0.5)] backdrop-blur sm:flex-row sm:items-center sm:gap-2 sm:p-2.5" role="group" :aria-label="t('create.dock.label')">
+                    <div class="grid grid-cols-3 gap-1.5 sm:mr-auto sm:flex sm:flex-wrap sm:items-center sm:gap-2">
+                        <SelectMenu id="ttl" v-model="ttl" :label="t('create.dock.expiry')" icon="clock" :options="expiryOptions" />
+                        <DockStepper id="views" v-model="views" :label="t('create.dock.views')" icon="eye" :min="1" :max="MAX_COUNT" />
+                        <DockStepper id="attempts" v-model="attempts" :label="t('create.dock.attempts')" icon="shield" :min="1" :max="MAX_COUNT" />
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <ToggleButton v-model="reviewFirst" icon="file-search" :label="t('create.dock.review')" testid="review-toggle" />
+                        <button ref="submitButton" type="submit" :disabled="!canSubmit" data-testid="submit" class="btn btn-primary btn-lg flex-1 sm:min-w-60 sm:flex-none">
+                            {{ busy ? t('create.dock.submitting') : t('create.dock.submit') }}<Icon v-if="!busy" name="arrow-right" />
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
 
         <Modal v-model:open="reviewOpen" wide :title="t('create.review.title')" :description="t('create.review.lead')" testid="review-dialog">
-            <pre class="max-h-80 overflow-auto rounded-lg border border-border-strong bg-inset p-4 font-mono text-sm leading-relaxed break-all whitespace-pre-wrap" data-testid="server-body">{{ reviewBody }}</pre>
+            <pre class="max-h-80 overflow-auto rounded-md border border-border-strong bg-inset p-3 font-mono text-xs leading-relaxed break-all whitespace-pre-wrap" data-testid="server-body">{{ reviewBody }}</pre>
             <template #footer>
                 <button type="button" class="btn btn-secondary" @click="reviewOpen = false">{{ t('create.review.back') }}</button>
                 <button type="button" class="btn btn-primary" :disabled="busy" data-testid="review-send" @click="prepared && send(prepared)">{{ busy ? t('create.review.sending') : t('create.review.send') }}<Icon v-if="!busy" name="arrow-right" /></button>

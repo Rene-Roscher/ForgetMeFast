@@ -1,14 +1,15 @@
 <script setup lang="ts">
-// Wortmarke der App: ein Schloss, in dem ein Handschlag steckt (zwei Parteien, ein geteiltes Geheimnis). Der Handschlag
-// ist das Lucide-Icon "handshake" (ISC), eingesetzt in den Schlosskörper. Dieselbe Marke steht als public/favicon.svg.
-import { Handshake } from 'lucide-vue-next';
+// Marke der App: ein Schloss, in dessen Körper zwei sich überlappende Ringe sitzen (zwei Parteien, ein geteiltes Geheimnis,
+// ein Handschlag als Form). Bewusst schlicht, damit sie auch bei 16 px lesbar bleibt. Dieselbe Marke steht als public/favicon.svg.
 defineProps<{ size?: number }>();
 </script>
 
 <template>
-    <svg :width="size ?? 28" :height="size ?? 28" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-        <path d="M10 13.5V10a6 6 0 0 1 12 0v3.5" />
-        <rect x="5" y="13" width="22" height="15" rx="4" />
-        <Handshake x="9.4" y="15.3" :width="13" :height="13" :stroke-width="2.4" viewBox="0 0 24 24" />
+    <svg :width="size ?? 32" :height="size ?? 32" viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+        <rect width="32" height="32" rx="8" fill="#0f766e" />
+        <path d="M10.5 14.5V11a5.5 5.5 0 0 1 11 0v3.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" />
+        <rect x="7" y="14" width="18" height="12.5" rx="3.5" fill="#fff" />
+        <circle cx="13.7" cy="20.3" r="3.1" stroke="#0f766e" stroke-width="1.9" />
+        <circle cx="18.3" cy="20.3" r="3.1" stroke="#0f766e" stroke-width="1.9" />
     </svg>
 </template>

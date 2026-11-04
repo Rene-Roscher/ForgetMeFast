@@ -33,40 +33,40 @@
 }
 
 :root { /* Light */
-  --background: #fff;
-  --foreground: #0a0a0a;
+  --background: #ffffff;
+  --foreground: #171717;
   --muted: #fafafa;
-  --muted-foreground: #525252;
-  --card: #fff;
-  --card-foreground: #0a0a0a;
-  --accent: #f5f5f5;
-  --accent-foreground: #0a0a0a;
-  --border: #e5e5e5;
-  --border-strong: #d4d4d4;
-  --ring: #14b8a666;
-  --primary-hover: #115e59; /* teal-800 */
-  --secondary: #f5f5f5;
-  --secondary-foreground: #0a0a0a;
-  --secondary-hover: #e5e5e5;
-  --destructive-foreground: #fff;
+  --muted-foreground: #666666;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --accent: #f2f2f2;
+  --accent-foreground: #171717;
+  --border: #eaeaea;
+  --border-strong: #d9d9d9;
+  --ring: #0d948866;
+  --primary-hover: #383838; /* teal-800 */
+  --secondary: #fafafa;
+  --secondary-foreground: #171717;
+  --secondary-hover: #f2f2f2;
+  --destructive-foreground: #ffffff;
   --table-header: #fafafa;
   --table-highlight: #f0fdfa; /* teal-50 */
-  --caption: #737373;
-  --badge-bg: #f5f5f5;
-  --badge-foreground: #0a0a0a;
-  --badge-border: #e5e5e5;
-  --input: #fff;
-  --input-border: #e5e5e5;
-  --input-placeholder: #737373;
-  --surface-sunken: #f5f5f5;
-  --surface-raised: #fff;
+  --caption: #8f8f8f;
+  --badge-bg: #f2f2f2;
+  --badge-foreground: #171717;
+  --badge-border: #eaeaea;
+  --input: #ffffff;
+  --input-border: #8f8f8f;
+  --input-placeholder: #666666;
+  --surface-sunken: #fafafa;
+  --surface-raised: #ffffff;
   --surface-raised-hover: #fafafa;
-  --surface-overlay: #fff;
+  --surface-overlay: #ffffff;
   --surface-panel: #fafafa;
   --surface-tint: #0000000b;
   --surface-chip: #0000000d;
   --edge-subtle: #0000000d;
-  --edge: #00000017;
+  --edge: #00000014;
   --edge-strong: #00000029;
   --elevation-raised: 0 1px 2px #0000000d;
   --elevation-raised-hover: 0 4px 12px -4px #0000001f;
@@ -77,51 +77,51 @@
   --avatar-fg-l: .42;
   --text-link: #0f766e; /* teal-700 */
   --text-positive: #115e59;
-  --primary: #0f766e; /* teal-700, weißer Text: 5,5:1 */
+  --primary: #171717; /* neutral, Vercel-Stil: schwarzer Knopf mit weißem Text */
   --primary-foreground: #ffffff;
-  --destructive: #ef4444;
+  --destructive: #e5484d;
 }
 
 .dark { /* Dark (nur Werte, die vom Light-Modus abweichen oder dort fehlen) */
-  --primary: #2dd4bf; /* teal-400 */
-  --primary-foreground: #042f2e; /* teal-950 */
-  --destructive: #ef4444;
-  --background: #060608;
-  --foreground: #fafafa;
-  --muted: #060608;
-  --muted-foreground: #a0a0ac;
-  --card: #0d0d12;
-  --card-foreground: #fafafa;
-  --accent: #141418;
-  --accent-foreground: #fafafa;
-  --border: #1a1a20;
-  --border-strong: #36363f;
-  --ring: #2dd4bf4d;
-  --primary-hover: #5eead4; /* teal-300 */
-  --secondary: #222228;
-  --secondary-foreground: #fafafa;
-  --secondary-hover: #36363f;
-  --destructive-foreground: #fafafa;
-  --table-header: #0d0d12;
-  --table-highlight: #0f1518;
-  --caption: #6c6c7b;
-  --badge-bg: #141418;
-  --badge-foreground: #fafafa;
-  --badge-border: #222228;
-  --input: #0d0d12;
-  --input-border: #222228;
-  --input-placeholder: #6c6c7b;
+  --primary: #ededed;
+  --primary-foreground: #0a0a0a;
+  --destructive: #f87171;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --muted: #111111;
+  --muted-foreground: #a1a1a1;
+  --card: #111111;
+  --card-foreground: #ededed;
+  --accent: #1f1f1f;
+  --accent-foreground: #ededed;
+  --border: #2e2e2e;
+  --border-strong: #3f3f3f;
+  --ring: #2dd4bf66;
+  --primary-hover: #d4d4d4; /* teal-300 */
+  --secondary: #1f1f1f;
+  --secondary-foreground: #ededed;
+  --secondary-hover: #2a2a2a;
+  --destructive-foreground: #0a0a0a;
+  --table-header: #111111;
+  --table-highlight: #0f1a19;
+  --caption: #7d7d7d;
+  --badge-bg: #1f1f1f;
+  --badge-foreground: #ededed;
+  --badge-border: #2e2e2e;
+  --input: #0a0a0a;
+  --input-border: #7d7d7d;
+  --input-placeholder: #a1a1a1;
   --shadow-glow: 0 0 0 1px #2dd4bf1a, 0 18px 44px -20px #000c;
-  --surface-sunken: #0e0e13;
-  --surface-raised: #17171c;
-  --surface-raised-hover: #1b1b21;
-  --surface-overlay: #111116;
-  --surface-panel: #0b0b0f;
+  --surface-sunken: #0a0a0a;
+  --surface-raised: #171717;
+  --surface-raised-hover: #1f1f1f;
+  --surface-overlay: #171717;
+  --surface-panel: #141414;
   --surface-tint: #ffffff0f;
   --surface-chip: #ffffff12;
   --edge-subtle: #ffffff14;
-  --edge: #ffffff1c;
-  --edge-strong: #fff3;
+  --edge: #ffffff1f;
+  --edge-strong: #ffffff38;
   --elevation-raised: inset 0 1px 0 #ffffff0a;
   --elevation-raised-hover: inset 0 1px 0 #ffffff0f;
   --elevation-overlay: 0 24px 80px -12px #000c;

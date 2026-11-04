@@ -52,10 +52,20 @@ export interface OpenResponse {
     expires_at: string;
 }
 
+export interface StatusResponse {
+    views_used: number;
+    max_views: number;
+    failed_attempts: number;
+    max_attempts: number;
+    expires_at: string;
+}
+
 export const api = {
     create: (body: CreateBody) => request<{ expires_at: string }>('/api/secrets', { method: 'POST', json: body }),
     params: (id: string) => request<unknown>(`/api/secrets/${encodeURIComponent(id)}/params`),
     open: (id: string, proof: string) => request<OpenResponse>(`/api/secrets/${encodeURIComponent(id)}/open`, { method: 'POST', json: { proof } }),
+    status: (id: string, manageToken: string) =>
+        request<StatusResponse>(`/api/secrets/${encodeURIComponent(id)}/status`, { headers: { 'X-Manage-Token': manageToken } }),
     destroy: (id: string, manageToken: string) =>
         request<void>(`/api/secrets/${encodeURIComponent(id)}`, { method: 'DELETE', headers: { 'X-Manage-Token': manageToken } }),
 };

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ToggleGroupItem, ToggleGroupRoot } from 'reka-ui';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Icon from '@/components/Icon.vue';
@@ -8,11 +9,13 @@ import {
     estimateBits, generatedBits, randomChars, randomPassphrase,
 } from '@/crypto';
 
-defineProps<{ id: string; label: string; hint?: string; generator?: boolean; autocomplete?: string; invalid?: boolean; describedby?: string }>();
+const props = defineProps<{ id: string; label: string; hint?: string; generator?: boolean; autocomplete?: string; invalid?: boolean; describedby?: string }>();
 const model = defineModel<string>({ required: true });
 const source = defineModel<'typed' | 'words' | 'chars'>('source', { default: 'typed' });
 const { t } = useI18n();
-const visible = ref(false);
+// Mit Generator ist das Passwort von Anfang an sichtbar (es wurde ja erzeugt); ohne Generator bleibt es verborgen.
+const visible = ref(!!props.generator);
+const mode = computed(() => (source.value === 'chars' ? 'chars' : 'words'));
 
 const bits = computed(() => {
     if (model.value.length === 0) return 0;
@@ -22,24 +25,26 @@ const bits = computed(() => {
 });
 const percent = computed(() => Math.min(100, (bits.value / 128) * 100));
 
-function roll(kind: 'words' | 'chars') {
+function roll(kind: 'words' | 'chars'): void {
     model.value = kind === 'words' ? randomPassphrase(EFF_LARGE_WORDLIST) : randomChars();
     source.value = kind;
-    visible.value = true;
 }
-function onInput(event: Event) {
+function setMode(value: unknown): void {
+    if (value === 'words' || value === 'chars') roll(value);
+}
+function onInput(event: Event): void {
     model.value = (event.target as HTMLInputElement | HTMLTextAreaElement).value;
     source.value = 'typed';
 }
 /** Enter im zweizeiligen Feld sendet das Formular ab, statt einen Zeilenumbruch einzufügen (ein Passwort hat keinen). */
-function submitForm(event: KeyboardEvent) {
+function submitForm(event: KeyboardEvent): void {
     (event.target as HTMLElement).closest('form')?.requestSubmit();
 }
 </script>
 
 <template>
-    <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-1.5">
             <label :for="id" class="label">{{ label }}</label>
             <div class="relative">
                 <!-- Verborgen: ein Passwortfeld. Sichtbar: ein zweizeiliges Feld, damit eine lange Passphrase vollständig lesbar bleibt. -->
@@ -53,7 +58,7 @@ function submitForm(event: KeyboardEvent) {
                     :aria-describedby="describedby"
                     spellcheck="false"
                     autocapitalize="off"
-                    class="field pr-14 font-mono text-[0.9375rem]"
+                    class="field pr-11 font-mono"
                     @input="onInput"
                 />
                 <textarea
@@ -66,31 +71,34 @@ function submitForm(event: KeyboardEvent) {
                     :aria-describedby="describedby"
                     spellcheck="false"
                     autocapitalize="off"
-                    class="field resize-none py-3 pr-14 font-mono text-[0.9375rem] leading-snug break-words"
+                    class="field resize-none py-2 pr-11 font-mono leading-snug break-words"
                     @input="onInput"
                     @keydown.enter.prevent="submitForm"
                 />
                 <Tip :text="visible ? t('create.password.hide') : t('create.password.show')">
-                    <button type="button" class="icon-btn absolute top-1.5 right-1.5" :aria-pressed="visible" :aria-label="visible ? t('create.password.hide') : t('create.password.show')" @click="visible = !visible">
+                    <button type="button" class="icon-btn absolute top-1 right-1" :aria-pressed="visible" :aria-label="visible ? t('create.password.hide') : t('create.password.show')" @click="visible = !visible">
                         <Icon :name="visible ? 'eye-off' : 'eye'" />
                     </button>
                 </Tip>
             </div>
         </div>
 
-        <div v-if="generator" class="flex flex-wrap items-center gap-2" role="group" :aria-label="t('create.password.generate')">
-            <span class="text-sm font-medium text-muted-foreground">{{ t('create.password.generate') }}</span>
-            <button type="button" class="btn btn-secondary btn-sm" data-testid="dice-words" @click="roll('words')"><Icon name="dice" />{{ t('create.password.words') }}</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-testid="dice-chars" @click="roll('chars')"><Icon name="dice" />{{ t('create.password.chars') }}</button>
+        <div v-if="generator" class="flex items-center gap-2">
+            <ToggleGroupRoot type="single" :model-value="mode" :aria-label="t('create.password.modeLabel')" class="inline-flex rounded-md border border-caption bg-input p-0.5" @update:model-value="setMode">
+                <ToggleGroupItem value="words" data-testid="pw-mode-words" class="min-h-8 cursor-pointer rounded-md px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-accent data-[state=on]:bg-foreground data-[state=on]:text-background">{{ t('create.password.words') }}</ToggleGroupItem>
+                <ToggleGroupItem value="chars" data-testid="pw-mode-chars" class="min-h-8 cursor-pointer rounded-md px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-accent data-[state=on]:bg-foreground data-[state=on]:text-background">{{ t('create.password.chars') }}</ToggleGroupItem>
+            </ToggleGroupRoot>
+            <Tip :text="t('create.password.refresh')">
+                <button type="button" class="btn btn-secondary btn-sm px-2" data-testid="pw-refresh" :aria-label="t('create.password.refresh')" @click="roll(mode)"><Icon name="refresh" /></button>
+            </Tip>
         </div>
 
-        <div v-if="generator" class="flex flex-col gap-2" data-testid="strength">
-            <div class="flex items-baseline justify-between gap-2 text-sm">
+        <div v-if="generator" class="flex flex-col gap-1.5" data-testid="strength">
+            <div class="flex items-baseline justify-between gap-2 text-xs">
                 <span class="font-medium">{{ t('create.password.strength') }}</span>
                 <span v-if="model.length" class="text-muted-foreground tabular-nums"><span class="font-semibold text-foreground">{{ t('create.password.bits', { bits: Math.round(bits) }) }}</span> · {{ source === 'typed' ? t('create.password.estimate') : t('create.password.exact') }}</span>
-                <span v-else class="text-muted-foreground">{{ t('create.password.none') }}</span>
             </div>
-            <div class="h-2.5 overflow-hidden rounded-sm border border-caption bg-input" role="presentation">
+            <div class="h-1.5 overflow-hidden rounded-sm border border-caption bg-input" role="presentation">
                 <div class="h-full bg-foreground motion-safe:transition-[width]" :style="{ width: `${percent}%` }" />
             </div>
         </div>

@@ -33,6 +33,7 @@
     --color-surface-sunken: var(--surface-sunken);
     --color-surface-raised: var(--surface-raised);
     --color-surface-panel: var(--surface-panel);
+    --color-text-link: var(--text-link);
     --color-stage: var(--stage);
     --color-inset: var(--inset);
     --color-side: var(--side-bg);
@@ -40,95 +41,127 @@
     --color-side-muted: var(--side-muted);
     --color-side-line: var(--side-line);
     --color-side-accent: var(--side-accent);
-    --color-text-link: var(--text-link);
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
     --radius-lg: var(--radius-lg);
     --radius-xl: var(--radius-xl);
     --radius-2xl: var(--radius-2xl);
 }
 
-/* Geschlossener Satz Bausteine. Komponenten benutzen nur diese Klassen für Schaltflächen, Felder und Hinweise.
-   Fokus: --ring (#00e09166) hat nur etwa 1,3:1 gegen Weiß, deshalb zeichnet der Fokusring in der Vordergrundfarbe (WCAG 2.2, 2.4.7 und 1.4.11). */
-/* Ebenen: Seitenpanel in der Markenfarbe (Tailwind teal-950), Bühne, äußere Karte, innere Karte.
-   Im dunklen Modus ist die Bühne dunkler als die Karte und die innere Karte heller (geschachtelte Erhöhung). */
+/* Ebenen (Geist-Stil): Bühne, Karte, innere Karte. Das Seitenpanel ist in beiden Modi fast schwarz. Teal ist die Marke
+   und der Fokus, Primärknöpfe sind neutral (schwarz im hellen, weiß im dunklen Modus). */
 :root {
-    --stage: var(--surface-sunken);
+    --stage: #fafafa;
     --inset: var(--surface-panel);
-    --focus: var(--foreground);
-    --side-bg: #042f2e; /* teal-950 */
+    --brand: #0f766e; /* teal-700 */
+    --brand-foreground: #ffffff;
+    --focus: #0d9488; /* teal-600, 3,7:1 auf Weiß */
+    --ring-gap: var(--card);
+    --side-bg: #0a0a0a;
+    --side-fg: #ededed;
+    --side-muted: #a1a1a1;
+    --side-line: #2e2e2e;
     --side-accent: #5eead4; /* teal-300 */
-    --side-fg: #ffffff;
-    --side-muted: rgb(255 255 255 / 0.76);
-    --side-line: rgb(255 255 255 / 0.16);
 }
 .dark {
-    --stage: var(--background);
+    --stage: #0a0a0a;
     --inset: var(--surface-raised);
+    --brand: #2dd4bf; /* teal-400 */
+    --brand-foreground: #042f2e;
+    --focus: #2dd4bf;
+    --side-bg: #000000;
 }
 .side {
     --focus: #ffffff;
+    --ring-gap: var(--side-bg);
 }
+
+/* Fokus: ein weicher Ring mit Abstand, der der Rundung folgt (kein harter Umriss). Mindestens 3:1 gegen den Untergrund, WCAG 2.4.7
+   und 1.4.11. Gilt global; der Abstand nimmt die Farbe der Fläche dahinter. Felder in einer inneren Karte setzen --ring-gap selbst. */
+:where(a, button, input, textarea, select, summary, [role='combobox'], [role='radio'], [role='switch'], [tabindex]):focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--ring-gap), 0 0 0 4px var(--focus);
+}
+.card-inner, [data-slot='inset'] { --ring-gap: var(--inset); }
 
 @layer components {
     .btn {
-        @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-5 text-[0.9375rem] font-semibold whitespace-nowrap transition-[background-color,box-shadow,transform] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus) active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:active:translate-y-0;
+        @apply inline-flex min-h-9 cursor-pointer items-center justify-center gap-2 rounded-md px-3.5 text-sm font-medium whitespace-nowrap transition-colors duration-100 select-none disabled:cursor-not-allowed disabled:opacity-50;
     }
     .btn-primary {
-        @apply bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.45),0_1px_2px_rgb(0_0_0/0.22)] hover:bg-[var(--primary-hover)] hover:shadow-[inset_0_1px_0_rgb(255_255_255/0.5),0_2px_6px_rgb(0_0_0/0.22)];
+        @apply bg-primary text-primary-foreground hover:bg-[var(--primary-hover)];
     }
     .btn-secondary {
-        @apply border border-border-strong bg-card text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.08)] hover:bg-accent;
+        @apply border border-border-strong bg-card text-foreground hover:bg-accent;
     }
     .btn-quiet {
         @apply text-foreground hover:bg-accent;
     }
     .btn-lg {
-        @apply min-h-14 rounded-xl px-7 text-base;
-    }
-    .btn-sm {
         @apply min-h-10 px-4;
     }
+    .btn-sm {
+        @apply min-h-8 px-2.5 text-[0.8125rem];
+    }
     .field {
-        @apply min-h-12 w-full rounded-lg border border-caption bg-input px-4 text-base text-foreground shadow-[inset_0_1px_2px_rgb(0_0_0/0.05)] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-(--focus);
+        @apply min-h-10 w-full rounded-md border border-caption bg-input px-3 text-base text-foreground transition-colors placeholder:text-muted-foreground hover:border-foreground/60 sm:text-sm;
     }
     .icon-btn {
-        @apply inline-flex size-10 cursor-pointer items-center justify-center rounded-lg text-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-(--focus) disabled:cursor-not-allowed disabled:opacity-60;
+        @apply inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50;
     }
     .chip {
-        @apply inline-flex items-center gap-2 rounded-lg border border-border-strong bg-inset px-3 py-1.5 text-sm font-medium text-foreground;
+        @apply inline-flex items-center gap-1.5 rounded-md border border-border bg-inset px-2 py-0.5 text-xs font-medium text-foreground;
     }
     /* Hinweis: Rand, Symbol und Text tragen die Bedeutung, nie die Farbe allein. */
     .notice {
-        @apply flex items-start gap-3 rounded-lg border border-border-strong border-l-4 border-l-destructive bg-inset p-4 text-base text-foreground;
+        @apply flex items-start gap-2.5 rounded-md border border-border border-l-[3px] border-l-destructive bg-inset p-3 text-sm text-foreground;
     }
     .label {
-        @apply text-base font-medium text-foreground;
+        @apply text-sm font-medium text-foreground;
     }
     .hint {
-        @apply text-sm leading-snug text-muted-foreground;
+        @apply text-xs leading-snug text-muted-foreground;
     }
-    /* Äußere Karte der Bühne und die darin geschachtelten inneren Karten. */
+    /* Äußere Karte der Bühne und die darin geschachtelten inneren Karten: flach, mit feinem Rand. */
     .card-outer {
-        @apply w-full rounded-2xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.06),0_8px_24px_-12px_rgb(0_0_0/0.18)];
+        @apply w-full rounded-lg border border-border bg-card;
     }
     .card-inner {
-        @apply rounded-xl border border-border bg-inset p-5;
+        @apply rounded-md border border-border bg-inset p-4;
     }
     .icon-tile {
-        @apply flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.45)];
+        @apply flex size-8 shrink-0 items-center justify-center rounded-md bg-brand text-brand-foreground;
     }
 }
 
+/* Tailwind zentriert Dialoge mit der Eigenschaft `translate`. Die Animation darf sie nicht anfassen: nur Deckkraft und `scale`.
+   (Eine Animation von `transform: translate(...)` addierte sich dazu, und der Dialog sprang von der Ecke in die Mitte.) */
 @keyframes modal-in {
-    from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)) scale(0.98); }
-    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    from { opacity: 0; scale: 0.97; }
+    to { opacity: 1; scale: 1; }
 }
+@keyframes sheet-in {
+    from { opacity: 0; translate: 24px 0; }
+    to { opacity: 1; translate: 0 0; }
+}
+@keyframes toast-in {
+    from { opacity: 0; translate: 0 -12px; scale: 0.98; }
+    to { opacity: 1; translate: 0 0; scale: 1; }
+}
+@keyframes toast-out {
+    from { opacity: 1; }
+    to { opacity: 0; translate: 0 -8px; }
+}
+.toast[data-state='open'] { animation: toast-in 160ms ease-out; }
+.toast[data-state='closed'] { animation: toast-out 120ms ease-in forwards; }
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-.modal-content[data-state='open'] { animation: modal-in 160ms ease-out; }
-.modal-overlay[data-state='open'] { animation: fade-in 160ms ease-out; }
-.tip[data-state='delayed-open'], .tip[data-state='instant-open'] { animation: fade-in 120ms ease-out; }
+.modal-content[data-state='open'] { animation: modal-in 150ms ease-out; }
+.sheet-content[data-state='open'] { animation: sheet-in 180ms ease-out; }
+.modal-overlay[data-state='open'] { animation: fade-in 150ms ease-out; }
+.tip[data-state='delayed-open'], .tip[data-state='instant-open'] { animation: fade-in 100ms ease-out; }
 
 @media (prefers-reduced-motion: reduce) {
     *,
@@ -142,7 +175,7 @@
 @layer base {
     body {
         -webkit-font-smoothing: antialiased;
-        background: var(--background);
+        background: var(--stage);
         color: var(--foreground);
         font-family: var(--font-sans);
     }

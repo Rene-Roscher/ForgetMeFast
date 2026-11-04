@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { toast } from '@/toast';
 import { api, ApiError, errorKey } from '@/api';
 import AppShell from '@/components/AppShell.vue';
 import Icon from '@/components/Icon.vue';
@@ -38,7 +39,7 @@ onMounted(async () => {
         params = await api.params(id);
         phase.value = 'ready';
     } catch (e) {
-        message.value = e instanceof ApiError && errorKey(e) === 'unavailable' ? null : fail(e);
+        if (!(e instanceof ApiError && errorKey(e) === 'unavailable')) toast.error(fail(e));
         phase.value = e instanceof ApiError && errorKey(e) === 'unavailable' ? 'unavailable' : 'ready';
     }
 });
@@ -77,7 +78,7 @@ async function submit(): Promise<void> {
             message.value = left > 0 ? t('view.wrong', left) : t('view.lastFailed');
             if (left === 0) return void (phase.value = 'unavailable');
         } else {
-            message.value = fail(e);
+            toast.error(fail(e));
         }
         phase.value = 'ready';
         queueMicrotask(() => document.getElementById('view-password')?.focus());
@@ -97,7 +98,7 @@ async function copy(): Promise<void> {
         copied.value = true;
     } catch {
         copied.value = false;
-        message.value = t('result.copyFailed');
+        toast.error(t('result.copyFailed'));
     }
     setTimeout(() => (copied.value = false), 2500);
 }
@@ -106,7 +107,7 @@ const busy = computed(() => phase.value === 'working');
 </script>
 
 <template>
-    <AppShell variant="view">
+    <AppShell variant="view" center>
         <section class="card-outer max-w-lg" aria-live="polite">
             <div v-if="phase === 'loading'" class="flex items-center gap-4 p-7 text-base text-muted-foreground" data-testid="loading">
                 <span class="icon-tile"><Icon name="lock" /></span>{{ t('view.loading') }}

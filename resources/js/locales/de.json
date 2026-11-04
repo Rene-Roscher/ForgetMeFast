@@ -9,7 +9,7 @@
     "shell": {
         "create": {
             "headline": "Zugangsdaten teilen, ohne dass sie im Chat bleiben.",
-            "lead": "Dein Secret wird in deinem Browser verschlüsselt. Der Empfänger kann es einmal lesen, danach ist es weg."
+            "lead": "Verschlüsselt in deinem Browser. Der Empfänger kann es einmal lesen, danach ist es weg."
         },
         "view": {
             "headline": "Jemand hat ein Secret für dich.",
@@ -17,11 +17,26 @@
         },
         "trustLabel": "Was dich schützt",
         "trust": {
-            "encrypted": { "title": "Im Browser verschlüsselt", "body": "AES-256 sperrt dein Secret, bevor etwas gesendet wird." },
-            "zeroKnowledge": { "title": "Zero Knowledge", "body": "Der Server kennt weder Klartext noch Passwort noch Schlüssel." },
-            "fragment": { "title": "Schlüssel bleibt im Link", "body": "Der Teil hinter dem # geht nie an den Server." },
-            "selfDestruct": { "title": "Löscht sich selbst", "body": "Nach Ablauf, dem letzten Abruf oder zu vielen Fehlversuchen." },
-            "hardened": { "title": "Gehärtetes Passwort", "body": "Argon2id macht jeden Rateversuch langsam und teuer." }
+            "encrypted": {
+                "title": "Im Browser verschlüsselt",
+                "body": "AES-256 sperrt dein Secret, bevor etwas gesendet wird."
+            },
+            "zeroKnowledge": {
+                "title": "Zero Knowledge",
+                "body": "Der Server kennt weder Klartext noch Passwort noch Schlüssel."
+            },
+            "fragment": {
+                "title": "Schlüssel bleibt im Link",
+                "body": "Der Teil hinter dem # geht nie an den Server."
+            },
+            "selfDestruct": {
+                "title": "Löscht sich selbst",
+                "body": "Nach Ablauf, dem letzten Abruf oder zu vielen Fehlversuchen."
+            },
+            "hardened": {
+                "title": "Gehärtetes Passwort",
+                "body": "Argon2id macht jeden Rateversuch langsam und teuer."
+            }
         },
         "coverage": {
             "title": "Wie weit reicht der Schutz?",
@@ -31,8 +46,7 @@
             "limitsBody": "Vor einem gehackten Server, der dir manipulierten Code schickt. Das ist das Grundproblem jeder verschlüsselten Webseite. Chat-Anbieter sehen den ganzen Link, schick das Passwort deshalb auf einem anderen Weg."
         },
         "secure": "Sichere Verbindung",
-        "insecure": "Verbindung nicht sicher",
-        "footer": "Keine Accounts, keine Cookies, kein Tracking."
+        "insecure": "Verbindung nicht sicher"
     },
     "expiry": {
         "300": "5 Minuten",
@@ -58,43 +72,35 @@
     },
     "create": {
         "title": "Neues Secret",
-        "lead": "Schreib dein Secret auf, leg die Regeln fest und teile danach nur den Link.",
+        "lead": "Schreib es auf, wähle unten die Regeln und teile danach nur den Link.",
         "secret": {
             "title": "Dein Secret",
-            "lead": "Es wird in deinem Browser verschlüsselt, bevor irgendetwas gesendet wird.",
             "placeholder": "Passwort, API-Key, Zugangsdaten …",
-            "counter": "{used} von {max} Byte"
-        },
-        "settings": {
-            "title": "Einstellungen",
-            "lead": "Wann soll das Secret verschwinden?",
-            "expiry": "Läuft ab nach",
-            "views": "Abrufe",
-            "viewsHint": "Wie oft es gelesen werden darf.",
-            "attempts": "Fehlversuche",
-            "attemptsHint": "Danach wird es vernichtet.",
-            "review": "Vor dem Senden prüfen",
-            "reviewHint": "Zeigt dir genau, was deinen Browser verlässt."
+            "badge": "Im Browser verschlüsselt",
+            "nearLimit": "Noch etwa {n} Zeichen Platz",
+            "overLimit": "Zu lang. Bitte um etwa {n} Zeichen kürzen."
         },
         "password": {
             "title": "Passwort",
             "label": "Passwort",
-            "hint": "Mindestens 10 Zeichen. Schick es auf einem anderen Weg als den Link.",
+            "hint": "Schon erzeugt. Schick es auf einem anderen Weg als den Link.",
             "show": "Passwort anzeigen",
             "hide": "Passwort verbergen",
-            "generate": "Erzeugen",
-            "words": "5 Wörter",
-            "chars": "16 Zeichen",
+            "modeLabel": "Art des Passworts",
+            "words": "Wörter",
+            "chars": "Zeichen",
+            "refresh": "Neues Passwort erzeugen",
             "strength": "Stärke",
             "bits": "{bits} Bit",
             "exact": "zufällig erzeugt",
-            "estimate": "geschätzt",
-            "none": "Noch kein Passwort"
+            "estimate": "geschätzt"
         },
         "dock": {
-            "expiresAfter": "Läuft nach {time} ab",
-            "views": "{n} Abruf | {n} Abrufe",
-            "attempts": "{n} Fehlversuch | {n} Fehlversuche",
+            "label": "Regeln für dein Secret",
+            "expiry": "Läuft ab nach",
+            "views": "Abrufe",
+            "attempts": "Fehlversuche",
+            "review": "Vor dem Senden prüfen",
             "submit": "Verschlüsseln & Link erstellen",
             "submitting": "Verschlüssele …"
         },
@@ -128,7 +134,7 @@
         "copy": "Kopieren",
         "copied": "Kopiert",
         "copyFailed": "Kopieren ging nicht. Markiere den Text und kopiere ihn von Hand.",
-        "leaveNotice": "Link und Passwort werden nirgends gespeichert. Schließt du diese Seite, sind sie weg.",
+        "leaveNotice": "Das Passwort wird nirgends gespeichert. Schließt du diese Seite, ist es weg.",
         "destroy": {
             "button": "Jetzt vernichten",
             "title": "Secret endgültig vernichten?",
@@ -138,6 +144,43 @@
             "done": "Vernichtet. Der Link funktioniert nicht mehr."
         },
         "newSecret": "Neues Secret"
+    },
+    "history": {
+        "title": "Deine letzten Secrets",
+        "lead": "Nur in diesem Browser gespeichert. Mit dem Link, aber nie mit dem Passwort.",
+        "created": "Erstellt {when}",
+        "state": {
+            "active": "Aktiv",
+            "expired": "Abgelaufen",
+            "gone": "Gelesen oder vernichtet",
+            "unknown": "Status unbekannt"
+        },
+        "views": "{used} von {max} Abrufen",
+        "expiresIn": "Läuft ab in {time}",
+        "copyLink": "Link kopieren",
+        "destroy": "Vernichten",
+        "remove": "Aus dem Verlauf entfernen",
+        "refresh": "Status aktualisieren",
+        "clear": "Verlauf leeren",
+        "clearTitle": "Verlauf leeren?",
+        "clearBody": "Die Einträge verschwinden nur aus diesem Browser. Die Secrets selbst bleiben bestehen, bis sie ablaufen.",
+        "clearConfirm": "Verlauf leeren",
+        "open": "Verlauf",
+        "empty": "Noch nichts hier. Neue Secrets erscheinen nach dem Erstellen in diesem Verlauf.",
+        "close": "Verlauf schließen"
+    },
+    "toast": {
+        "linkCopied": "Link kopiert",
+        "passwordCopied": "Passwort kopiert",
+        "destroyed": "Secret vernichtet",
+        "historyCleared": "Verlauf geleert",
+        "close": "Meldung schließen",
+        "label": "Meldungen",
+        "titles": {
+            "error": "Das hat nicht geklappt",
+            "success": "Erledigt",
+            "info": "Hinweis"
+        }
     },
     "view": {
         "title": "Geschütztes Secret",
@@ -181,6 +224,6 @@
         "decryptFailed": "Das Secret konnte nicht entschlüsselt werden und ist möglicherweise schon verbraucht.",
         "passwordTooShort": "Das Passwort ist zu kurz. Es braucht mindestens 10 Zeichen.",
         "secretEmpty": "Gib zuerst ein Secret ein.",
-        "secretTooLarge": "Das Secret ist zu groß. Erlaubt sind höchstens {max} Byte."
+        "secretTooLarge": "Das Secret ist zu groß. Bitte kürze es."
     }
 }
