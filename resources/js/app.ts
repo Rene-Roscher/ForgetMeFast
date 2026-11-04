@@ -1,3 +1,4 @@
+import './fragment'; // muss vor Inertia laufen
 import { createInertiaApp } from '@inertiajs/vue3';
 import { createApp, h, type DefineComponent } from 'vue';
 
