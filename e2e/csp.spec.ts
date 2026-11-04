@@ -47,3 +47,46 @@ test('fonts load from the same origin and the theme follows the system without a
     expect(external).toEqual([]);
     await context.close();
 });
+
+test('der Umschalter wechselt das Design, merkt sich die Wahl und flackert beim Laden nicht', async ({ browser }) => {
+    const ctx = await browser.newContext({ colorScheme: 'light' });
+    const page = await ctx.newPage();
+    await page.goto('/');
+    const isDark = () => page.evaluate(() => document.documentElement.classList.contains('dark'));
+
+    expect(await isDark()).toBe(false);
+    await page.getByTestId('theme-toggle').click();
+    expect(await isDark()).toBe(true);
+    expect(await page.evaluate(() => localStorage.getItem('fmf-theme'))).toBe('dark');
+    await expect(page.getByTestId('theme-toggle')).toHaveAccessibleName('Helles Design aktivieren');
+
+    // Nach dem Neuladen gilt die Wahl, und zwar schon beim Parsen: das blockierende Skript setzt die Klasse vor dem ersten Zeichnen.
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    expect(await isDark()).toBe(true);
+    // Wer "dark" gespeichert hat, bekommt es auch gegen die Systemeinstellung "hell"; "light" gilt auch bei "dunkel".
+    const dark = await browser.newContext({ colorScheme: 'dark' });
+    const p2 = await dark.newPage();
+    await p2.addInitScript(() => localStorage.setItem('fmf-theme', 'light'));
+    await p2.goto('/', { waitUntil: 'domcontentloaded' });
+    expect(await p2.evaluate(() => document.documentElement.classList.contains('dark'))).toBe(false);
+
+    await page.getByTestId('theme-toggle').click();
+    expect(await page.evaluate(() => localStorage.getItem('fmf-theme'))).toBe('light');
+    // Es wird nur diese eine Einstellung gespeichert, und es gibt weiterhin kein Cookie.
+    expect(await page.evaluate(() => Object.keys(localStorage))).toEqual(['fmf-theme']);
+    expect(await ctx.cookies()).toEqual([]);
+    await ctx.close();
+    await dark.close();
+});
+
+test('die Seitenleiste zeigt die Vertrauensaussagen, die das Projekt belegt, und nennt die Grenzen', async ({ page }) => {
+    await page.goto('/');
+    const side = page.getByTestId('sidebar');
+    for (const text of ['Ende-zu-Ende verschlüsselt', 'Zero Knowledge', 'Schlüssel nur im Link', 'Selbstzerstörend', 'Passwort mit Argon2id', 'Kein Tracking, keine Cookies, keine Accounts.']) {
+        await expect(side).toContainText(text);
+    }
+    await side.locator('summary').click();
+    await expect(side).toContainText('Nicht abgedeckt');
+    await expect(side).toContainText('manipuliertes JavaScript');
+    await expect(page.getByTestId('secure-indicator')).toContainText('Sichere Verbindung');
+});

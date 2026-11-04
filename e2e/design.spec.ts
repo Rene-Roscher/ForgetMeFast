@@ -63,8 +63,9 @@ const measure = () => {
         checked++;
         if (r < 4.5) failures.push(`Platzhalter ${label(el)}: ${r.toFixed(2)}:1 < 4.5`);
     }
-    // 3. Grenzen von Bedienelementen (mindestens 3:1 gegen den Hintergrund außerhalb).
-    for (const el of Array.from(document.querySelectorAll('input:not([type=hidden]), textarea, button.btn-secondary, [role=radiogroup] > div, [role=group].inline-flex'))) {
+    // 3. Grenzen von Eingabeelementen (mindestens 3:1 gegen den Hintergrund außerhalb, WCAG 1.4.11). Schaltflächen mit
+    //    sichtbarer Beschriftung werden an ihrem Text erkannt, ihr Rand ist nicht die einzige Information; für sie gilt 1. oben.
+    for (const el of Array.from(document.querySelectorAll('input:not([type=hidden]), textarea, [role=radiogroup] > div, [role=group].inline-flex'))) {
         if (!visible(el) || (el as HTMLButtonElement).disabled) continue;
         const s = getComputedStyle(el);
         if (parseFloat(s.borderTopWidth) === 0) continue;
@@ -83,6 +84,8 @@ const measure = () => {
 };
 
 async function audit(page: Page, name: string) {
+    // Erst messen, wenn die App gemountet ist (sonst gibt es kaum etwas zu messen).
+    await expect(page.locator('main h1, main [data-testid]').first()).toBeVisible();
     const { failures, checked } = await page.evaluate(measure);
     console.log(`Gestaltung ${name}: ${checked} Messungen`);
     expect(checked, `${name}: es wurde etwas gemessen`).toBeGreaterThan(5);
@@ -101,8 +104,14 @@ async function focusRing(page: Page, name: string) {
         const lin = (c: number) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
         const lum = (c: number[]) => 0.2126 * lin(c[0]!) + 0.7152 * lin(c[1]!) + 0.0722 * lin(c[2]!);
         const s = getComputedStyle(el);
-        const bg = getComputedStyle(document.body).backgroundColor;
-        const [hi, lo] = [lum(px(s.outlineColor)), lum(px(bg))].sort((a, b) => b - a) as [number, number];
+        const over = (top: number[], bottom: number[]) => {
+            const a = top[3]! / 255 + (bottom[3]! / 255) * (1 - top[3]! / 255);
+            const ch = (i: number) => (a === 0 ? 0 : (top[i]! * (top[3]! / 255) + bottom[i]! * (bottom[3]! / 255) * (1 - top[3]! / 255)) / a);
+            return [ch(0), ch(1), ch(2), a * 255];
+        };
+        let acc: number[] = [0, 0, 0, 0];
+        for (let n: Element | null = el; n && acc[3]! < 254; n = n.parentElement) acc = over(acc, px(getComputedStyle(n).backgroundColor));
+        const [hi, lo] = [lum(px(s.outlineColor)), lum(acc)].sort((a, b) => b - a) as [number, number];
         return { width: parseFloat(s.outlineWidth), style: s.outlineStyle, ratio: (hi + 0.05) / (lo + 0.05), tag: el.tagName };
     });
     expect(r.style, `${name}: Fokus sichtbar`).not.toBe('none');

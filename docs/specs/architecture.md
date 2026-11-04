@@ -25,7 +25,17 @@ Eine einzige Laravel-App liefert die statische Inertia-Hülle und vier JSON-Endp
   Platte aufzeichnet.
 - Vite-Dev-Server: `vite.config.ts` bindet ihn an `127.0.0.1:5173`. Browser lehnen IPv6-Adressen wie `[::1]` als
   CSP-Quelle ab (in Chromium gesehen), deshalb erlaubt `SecurityHeaders` für IPv6-Hosts nichts.
-- Statische Dateien unter- Oberfläche: nur eigene SVG-Icons (`components/Icon.vue`), keine Emojis und keine Symbolzeichen (Test `ui-guard.test.ts`).
+- Statische Dateien unter- Layout: `components/AppShell.vue`. Links ein Seitenpanel in der Markenfarbe (`--primary-foreground`, tiefes Grün) mit den
+  belegten Vertrauensaussagen und der Grenzen-Aussage, rechts die Bühne mit einer äußeren Karte, darin geschachtelte innere
+  Karten. Die Box passt sich dem Inhalt an (Ergebnis und Viewer sind schmaler als das Formular). Formen: Radien 6 bis 16 px,
+  keine Pillen. Ebenen als Variablen (`--stage`, `--inset`), im dunklen Modus wird die innere Karte heller als die äußere.
+- Design umschalten: Icon-Button oben rechts (`ThemeToggle.vue`). Die Wahl `light` oder `dark` steht in `localStorage`
+  (Schlüssel `fmf-theme`), sonst nichts, kein Cookie. `public/theme-init.js` setzt die Klasse vor dem ersten Zeichnen.
+- Icons: `lucide-vue-next` (ISC-Lizenz, keine Abhängigkeiten) über `components/Icon.vue`; keine Emojis und keine
+  Symbolzeichen (Test `ui-guard.test.ts`).
+- Vertrauensaussagen in der Seitenleiste sind nur solche, die das Projekt belegt: E2E-Test, Klartext-Scan, Cookie-Test,
+  Krypto-Tests. "Zero Knowledge" meint hier die Eigenschaft, dass der Server weder Klartext noch Passwort noch Schlüssel
+  kennt, nicht einen Zero-Knowledge-Beweis.
   Bausteine `btn`, `field`, `chip`, `notice` in `resources/css/app.css`. Der Fokusring nutzt die Vordergrundfarbe, weil der
   Token `--ring` nur etwa 1,3:1 gegen Weiß erreicht. Kontrast, Ränder, Fokus und Überlauf werden in `e2e/design.spec.ts` gemessen.
 - `resources/js/fragment.ts` liest das URL-Fragment einmal und leert die Adresse, bevor Inertia startet. Inertia stellte das

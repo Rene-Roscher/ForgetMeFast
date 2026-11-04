@@ -100,10 +100,10 @@ Stand 2026-11-04, alles lokal gelaufen:
 
 - **Pest:** 110 Tests (Validierung, Zähler, Vernichtung, einheitliche Antworten, Header, Cookies, Throttling, Architekturregeln,
   Schema ohne Klartext- und IP-Spalten, Logs ohne Marker, drei Paralleltests mit je 50 Prozessen).
-- **Vitest:** 135 Tests im Krypto-Modul und in der Oberfläche, Zeilenabdeckung 99 % bei erzwungenen 95 %; RFC-5869-Vektoren,
+- **Vitest:** 136 Tests im Krypto-Modul und in der Oberfläche, Zeilenabdeckung 99 % bei erzwungenen 95 %; RFC-5869-Vektoren,
   RFC-9106-Vektor, ein unabhängig erzeugter Protokollvektor, AAD-Test je Feld, statische Prüfung auf Speicher, Netzwerk und `console`.
-- **Playwright:** 25 Tests im echten Chromium: ganzer Ablauf in zwei Browser-Kontexten, Fehlversuche, Vernichten,
-  Server-Sicht gleich dem echten Request, CSP ohne Verstöße, Argon2id im Worker, **Klartext-Scan** über Datenbank, Logs und
+- **Playwright:** 27 Tests im echten Chromium: ganzer Ablauf in zwei Browser-Kontexten, Fehlversuche, Vernichten,
+  Server-Sicht gleich dem echten Request, Hell/Dunkel-Umschalter ohne Flackern, CSP ohne Verstöße, Argon2id im Worker, **Klartext-Scan** über Datenbank, Logs und
   Zugriffsprotokoll mit Positivkontrolle, gemessener Kontrast, Rahmen, Fokus und Überlauf in hell und dunkel.
 - **Gegenproben:** Jede Schutzmaßnahme wurde einmal gegen eine absichtliche Verletzung rot gesehen (Mutation), auch die
   Messungen selbst.
@@ -139,10 +139,12 @@ Dazu kommen diese, die der Agent selbst gefunden hat:
   Secret; das erste läuft ab.
 - **Gemeinsame IP.** Das Throttling zählt je gesalzenem IP-Hash. Viele Nutzer hinter derselben Adresse teilen sich das Limit.
 - **Browser-Verlauf und Erweiterungen** sehen das Fragment, bevor die Seite es entfernt.
+- **Gespeichert wird genau eine Einstellung:** die Wahl Hell oder Dunkel in `localStorage` (`fmf-theme`). Kein Cookie, nichts über dich oder deine Secrets.
 - **Zwischenablage.** Kopiert der Nutzer das Secret, liegt es dort, bis er es ersetzt.
 
 ## Lizenzen und Quellen
 
+- Icons: [Lucide](https://lucide.dev) (`lucide-vue-next`), ISC-Lizenz.
 - Schriften Plus Jakarta Sans und Geist Mono: SIL Open Font License 1.1 (über `@fontsource-variable/*`).
 - EFF Large Wordlist (Passphrasen): © Electronic Frontier Foundation, Creative Commons Attribution 4.0 International
   (CC BY 4.0), laut https://www.eff.org/copyright; Quelle https://www.eff.org/dice. Geändert: Würfelzahlen entfernt, als
