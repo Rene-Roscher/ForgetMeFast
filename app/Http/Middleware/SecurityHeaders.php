@@ -61,7 +61,7 @@ class SecurityHeaders
     private function viteDevOrigins(): array
     {
         $none = ['http' => '', 'ws' => ''];
-        $hot = public_path('hot');
+        $hot = Vite::hotFile();
 
         if (! app()->environment('local') || ! is_file($hot)) {
             return $none;
@@ -72,7 +72,10 @@ class SecurityHeaders
             return $none;
         }
 
-        $host = str_contains($parts['host'], ':') ? "[{$parts['host']}]" : $parts['host'];
+        // parse_url() keeps the brackets of an IPv6 host ("[::1]"); add them only when missing.
+        $host = str_contains($parts['host'], ':') && ! str_starts_with($parts['host'], '[')
+            ? "[{$parts['host']}]"
+            : $parts['host'];
         $authority = $host.(isset($parts['port']) ? ":{$parts['port']}" : '');
         $wsScheme = $parts['scheme'] === 'https' ? 'wss' : 'ws';
 

@@ -1,6 +1,8 @@
 <?php
 
+use App\Providers\AppServiceProvider;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Vite;
 use Inertia\DevTools\DevTools;
 
 function cspDirective(string $csp, string $name): string
@@ -60,7 +62,8 @@ it('uses a fresh nonce per request and exposes it to the page', function () {
 });
 
 it('adds the Vite dev server only in the local environment', function () {
-    $hot = public_path('hot');
+    $hot = storage_path('framework/testing/vite-hot');
+    Vite::useHotFile($hot);
     File::put($hot, 'http://localhost:5173');
 
     try {
@@ -80,4 +83,32 @@ it('does not record requests with Inertia DevTools, not even locally', function 
     app()->detectEnvironment(fn () => 'local');
 
     expect(DevTools::enabled())->toBeFalse();
+});
+
+it('writes a valid CSP source for an IPv6 Vite dev server', function () {
+    $hot = storage_path('framework/testing/vite-hot');
+    Vite::useHotFile($hot);
+    File::put($hot, 'http://[::1]:5173');
+
+    try {
+        app()->detectEnvironment(fn () => 'local');
+        $csp = $this->get('/')->headers->get('Content-Security-Policy');
+
+        expect(cspDirective($csp, 'script-src'))->toBe("script-src 'self' http://[::1]:5173")
+            ->and(cspDirective($csp, 'connect-src'))->toBe("connect-src 'self' http://[::1]:5173 ws://[::1]:5173")
+            ->and($csp)->not->toContain('[[');
+    } finally {
+        File::delete($hot);
+    }
+});
+
+it('keeps DevTools and SSR off even when the environment says otherwise', function () {
+    putenv('INERTIA_DEVTOOLS_ENABLED=true');
+    $_ENV['INERTIA_DEVTOOLS_ENABLED'] = 'true';
+    config(['inertia.devtools.enabled' => true, 'inertia.ssr.enabled' => true]);
+
+    (new AppServiceProvider(app()))->boot();
+
+    expect(config('inertia.devtools.enabled'))->toBeFalse()
+        ->and(config('inertia.ssr.enabled'))->toBeFalse();
 });
