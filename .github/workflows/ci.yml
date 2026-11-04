@@ -125,6 +125,9 @@ jobs:
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/.env)" = 404
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/composer.json)" = 404
           test "$(docker exec fmf id -u)" != 0
+          # Der Aufräumjob läuft und meldet sich (Herzschlag, den auch der HEALTHCHECK prüft).
+          for i in $(seq 1 30); do docker exec fmf test -f /tmp/scheduler.heartbeat && break; sleep 1; done
+          docker exec fmf test -f /tmp/scheduler.heartbeat
           docker exec fmf php artisan about --only=environment | grep -qi production
       - name: Scan the image for known vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0

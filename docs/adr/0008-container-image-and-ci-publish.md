@@ -14,8 +14,11 @@ sein wie der Code: gebaut, getestet und veröffentlicht in der CI, mit minimalen
    Composer sind nicht im fertigen Image. `apk upgrade` beim Bauen schließt bekannte Lücken der Basis (Trivy meldete sonst
    ein HIGH in `curl`).
 2. **Laufzeit:** Benutzer `www-data`, Port 8080, `tini` als Init. Der Einstieg (`docker/entrypoint.sh`) legt die SQLite-Datei in
-   `/data` an, migriert, baut Config-, Route- und View-Cache und startet den Aufräumjob (`schedule:run` jede Minute) neben dem
-   Webserver. `APP_KEY` kommt aus der Umgebung und steht nie im Image.
+   `/data` an, migriert, baut Config-, Route- und View-Cache und startet den Webserver als Kind. Der Einstiegsprozess selbst ist der
+   Aufseher und führt den Aufräumjob (`schedule:run`, mit Zeitlimit) zu jeder vollen Minute aus: Stirbt der Webserver, endet das
+   Skript und der Container startet neu; jeder erfolgreiche Lauf aktualisiert einen Herzschlag, den der HEALTHCHECK prüft (drei
+   Minuten Toleranz); Fehler gehen nach stderr. Verifiziert: abgelaufenes Secret wird innerhalb einer Minute entfernt, Kill des
+   Webservers oder der Schleife führt in etwa zwei Sekunden zu einem Neustart, `docker stop` endet in unter einer Sekunde mit 0. `APP_KEY` kommt aus der Umgebung und steht nie im Image.
 3. **Webserver** (`docker/Caddyfile`): kein Zugriffsprotokoll, `Server`-Header entfernt, dieselben Schutz-Header wie die App auch für
    statische Dateien (die Lücke, die das README vorher nannte), Quelltext, Dotfiles und Konfiguration liefert er nie aus. HTTPS
    beendet ein Reverse Proxy davor.

@@ -51,5 +51,8 @@ ENV APP_ENV=production \
 USER www-data
 VOLUME /data
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD wget -q -O /dev/null "http://127.0.0.1:${PORT}/up" || exit 1
+# Gesund heißt: Der Webserver antwortet, und der Aufräumjob hat in den letzten drei Minuten erfolgreich gelaufen.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD \
+    wget -q -O /dev/null "http://127.0.0.1:${PORT}/up" \
+    && test "$(( $(date +%s) - $(stat -c %Y /tmp/scheduler.heartbeat) ))" -lt 180 || exit 1
 ENTRYPOINT ["/sbin/tini", "-g", "--", "/usr/local/bin/entrypoint"]

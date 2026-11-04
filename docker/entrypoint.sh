@@ -18,12 +18,32 @@ php artisan config:cache --no-interaction
 php artisan route:cache --no-interaction
 php artisan view:cache --no-interaction
 
-# secrets:prune läuft jede Minute (routes/console.php). Eine einfache Schleife statt eines zweiten Prozess-Managers.
-(
-	while true; do
-		php artisan schedule:run --no-interaction >/dev/null 2>&1 || true
-		sleep 60
-	done
-) &
+# Der Webserver läuft als Kind, diese Schleife ist der Hauptprozess und beaufsichtigt ihn:
+#  - Stirbt der Webserver, endet das Skript, und der Container startet neu (restart-Richtlinie).
+#  - Der Aufräumjob (secrets:prune über `schedule:run`) läuft zu jeder vollen Minute, mit Zeitlimit, damit nichts hängen bleibt.
+#  - Jeder erfolgreiche Lauf aktualisiert einen Herzschlag; der HEALTHCHECK meldet "unhealthy", wenn er ausbleibt.
+#  - Fehler gehen nach stderr (und damit ins Container-Log), nicht ins Leere.
+HEARTBEAT=/tmp/scheduler.heartbeat
 
-exec frankenphp run --config /etc/caddy/Caddyfile
+frankenphp run --config /etc/caddy/Caddyfile &
+server=$!
+trap 'kill -TERM "$server" 2>/dev/null; wait "$server"; exit 0' TERM INT
+
+while kill -0 "$server" 2>/dev/null; do
+	if timeout 50 php artisan schedule:run --no-interaction >/dev/null; then
+		touch "$HEARTBEAT"
+	else
+		echo "scheduler: schedule:run schlug fehl oder dauerte zu lange (Exit $?)" >&2
+	fi
+	# bis zur nächsten vollen Minute warten, in Sekundenschritten: So fällt ein toter Webserver sofort auf (und ein Signal
+	# wirkt sofort), statt erst nach einer Minute.
+	seconds=$(date +%S | sed 's/^0//')
+	remaining=$((60 - ${seconds:-0}))
+	while [ "$remaining" -gt 0 ] && kill -0 "$server" 2>/dev/null; do
+		sleep 1 &
+		wait $! || true
+		remaining=$((remaining - 1))
+	done
+done
+
+wait "$server"

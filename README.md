@@ -88,7 +88,8 @@ docker compose up -d                                                            
   schreibgeschütztem Dateisystem, ohne Capabilities und ohne neue Rechte, als Benutzer `www-data`.
 - **Inhalt des Images:** FrankenPHP (Caddy mit PHP 8.3), `--no-dev`, Basis-Images auf einen Digest festgenagelt. Caddy setzt die
   Sicherheits-Header auch für statische Dateien und liefert Quelltext, `.env` und Dotfiles nie aus. Der Aufräumjob läuft jede
-  Minute im Container. Ein Zugriffsprotokoll mit Adressen gibt es nicht.
+  Minute im Container, beaufsichtigt: Fällt der Webserver aus, startet der Container neu; bleibt der Job aus, wird er "unhealthy"
+  (Herzschlag-Prüfung). Plain Docker startet bei "unhealthy" nicht von selbst neu, dafür braucht es einen Orchestrator oder `autoheal`. Ein Zugriffsprotokoll mit Adressen gibt es nicht.
 - **Nicht enthalten:** TLS, Backups, Updates. Das bleibt dem Betreiber.
 
 ## Eingesetzte KI-Werkzeuge und Vorgehen
