@@ -58,6 +58,12 @@ verlangen. Vor Composer-Befehlen zurücksetzen (siehe [`docs/PROJECT-FACTS.md`](
 muss die Sicherheits-Header auch für statische Dateien unter `public/` setzen (`Content-Security-Policy`, `no-store`,
 `Referrer-Policy`, `X-Content-Type-Options`, `X-Robots-Tag`); das macht Laravel nur für Antworten der App.
 
+**Hinter einem Reverse Proxy** (nginx, Caddy, Traefik) `TRUSTED_PROXIES` in `.env` auf dessen Adresse(n) setzen, sonst sieht die App
+nur die Adresse des Proxys, und alle Besucher teilen sich ein einziges Throttle-Kontingent (20 Anlegevorgänge pro Stunde für
+alle). Nur Proxys eintragen, die ihr kontrolliert: Von ihnen wird `X-Forwarded-For` übernommen, von sonst niemandem. Zusätzlich im
+Proxy die Body-Größe begrenzen (`client_max_body_size 128k;` in nginx); die App lehnt größere Bodies selbst mit 413 ab, aber
+das Lesen soll gar nicht erst bis dorthin gehen. IPv6-Adressen zählen im Throttling nach dem /64-Präfix.
+
 ## Eingesetzte KI-Werkzeuge und Vorgehen
 
 Gebaut wurde mit **Claude Code** und den Skills aus dem Marketplace `Rene-Roscher/skills` (`core`, `laravel`, `web`,

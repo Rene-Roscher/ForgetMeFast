@@ -47,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
         config(['inertia.devtools.enabled' => false, 'inertia.ssr.enabled' => false]);
 
         // composer dev: app server, Vite and the scheduler (secrets:prune runs every minute).
-        // The starter's queue worker and log tail are not needed: there are no queued jobs.
+        // Es gibt keine Queue-Jobs und das Log wird nicht live gelesen, deshalb entfallen Queue-Worker und Log-Tail.
         DevCommands::except('queue', 'logs');
         DevCommands::artisan('schedule:work', 'scheduler');
     }

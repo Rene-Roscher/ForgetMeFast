@@ -35,6 +35,23 @@ final class RateLimits
 
     public static function key(Request $request, string $limiter): string
     {
-        return hash_hmac('sha256', $limiter.'|'.$request->ip(), (string) config('app.key'));
+        return hash_hmac('sha256', $limiter.'|'.self::network((string) $request->ip()), (string) config('app.key'));
+    }
+
+    /**
+     * Fasst Adressen eines Anschlusses zusammen: IPv4 bleibt, IPv6 zählt nach dem /64-Präfix (ein Endkunde bekommt meist
+     * ein ganzes /64 und könnte sonst mit jeder Anfrage eine neue Adresse nehmen), IPv4-in-IPv6 zählt als IPv4.
+     */
+    public static function network(string $ip): string
+    {
+        $packed = @inet_pton($ip);
+        if ($packed === false || strlen($packed) !== 16) {
+            return $ip;
+        }
+        if (str_starts_with($packed, str_repeat("\0", 10)."\xff\xff")) {
+            return (string) inet_ntop(substr($packed, 12));
+        }
+
+        return (string) inet_ntop(substr($packed, 0, 8).str_repeat("\0", 8));
     }
 }

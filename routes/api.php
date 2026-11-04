@@ -11,8 +11,9 @@ use Illuminate\Support\Facades\Route;
 // id = 16 Zufallsbytes als base64url (22 Zeichen). Alles andere ist dieselbe 404 wie ein unbekanntes Secret.
 $id = '[A-Za-z0-9_-]{22}';
 
-Route::post('/secrets', CreateSecretController::class)->middleware('throttle:'.RateLimits::CREATE);
+// Größenlimits der Bodies (siehe LimitBodySize): Anlegen bis 96 KiB, alles andere nur wenige KiB.
+Route::post('/secrets', CreateSecretController::class)->middleware(['body.max:98304', 'throttle:'.RateLimits::CREATE]);
 Route::get('/secrets/{id}/params', ShowSecretParamsController::class)->where('id', $id)->middleware('throttle:'.RateLimits::PARAMS);
-Route::post('/secrets/{id}/open', OpenSecretController::class)->where('id', $id)->middleware('throttle:'.RateLimits::OPEN);
+Route::post('/secrets/{id}/open', OpenSecretController::class)->where('id', $id)->middleware(['body.max:2048', 'throttle:'.RateLimits::OPEN]);
 Route::get('/secrets/{id}/status', ShowSecretStatusController::class)->where('id', $id)->middleware('throttle:'.RateLimits::STATUS);
-Route::delete('/secrets/{id}', DestroySecretController::class)->where('id', $id)->middleware('throttle:'.RateLimits::DESTROY);
+Route::delete('/secrets/{id}', DestroySecretController::class)->where('id', $id)->middleware(['body.max:2048', 'throttle:'.RateLimits::DESTROY]);

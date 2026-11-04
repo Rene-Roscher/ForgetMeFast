@@ -19,7 +19,7 @@ Der Server hält nur Ciphertext und Metadaten. Entwurf, kein Rechtsrat.
 
 Keine Roh-IPs, keine Bodies, keine Secrets in Logs.
 Aufbewahrung: Der Aufräumjob `secrets:prune` (jede Minute) setzt abgelaufene Secrets auf vernichtet (Ciphertext `NULL`) und
-löscht alle vernichteten Zeilen sofort. SQLite läuft mit `secure_delete`. Das überschreibt gelöschte Seiten in der Datei,
+löscht alle vernichteten Zeilen sofort. SQLite läuft mit `secure_delete`. Das überschreibt gelöschte Seiten in der Datei, und nach jedem Aufräumen leert ein WAL-Checkpoint (TRUNCATE) die -wal-Datei, in der sonst alte Seitenabbilder liegen,
 bedeutet aber kein garantiertes physisches Überschreiben auf dem Datenträger (Dateisystem, Snapshots). Harmlos, weil nur
 Ciphertext und Metadaten dort liegen.
  Keine Auftragsverarbeiter, keine Drittlandübertragung,
