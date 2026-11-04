@@ -48,14 +48,14 @@ test('der Link ist nach dem einen Abruf nicht mehr verfügbar', async ({ browser
     const second = await ctx.newPage();
     await second.goto(created.link);
     await expect(second.getByTestId('unavailable')).toBeVisible();
-    await expect(second.getByRole('heading', { name: 'Nicht verfügbar' })).toBeVisible();
+    await expect(second.getByRole('heading', { name: 'Nicht mehr verfügbar' })).toBeVisible();
     await ctx.close();
 });
 
 test('mehrere Abrufe zählen herunter', async ({ browser }) => {
     const ctx = await browser.newContext();
     const created = await create(await ctx.newPage(), { secret: 'zweimal', views: 2 });
-    for (const text of ['Noch 1 Abruf übrig.', 'letzte Abruf']) {
+    for (const text of ['Noch 1 Abruf möglich.', 'letzte Abruf']) {
         const p = await ctx.newPage();
         await p.goto(created.link);
         await tryPassword(p, created.password);
@@ -71,13 +71,13 @@ test('dreimal falsches Passwort vernichtet das Secret', async ({ browser }) => {
     await p.goto(created.link);
 
     await tryPassword(p, 'falsches-passwort-eins');
-    await expect(p.getByTestId('status')).toContainText('Falsches Passwort, noch 2 Versuche.');
+    await expect(p.getByTestId('status')).toContainText('Noch 2 Versuche.');
     await expect(p.locator('#view-password')).toBeFocused();
     await tryPassword(p, 'falsches-passwort-zwei');
-    await expect(p.getByTestId('status')).toContainText('Falsches Passwort, noch 1 Versuch.');
+    await expect(p.getByTestId('status')).toContainText('Noch 1 Versuch.');
     await tryPassword(p, 'falsches-passwort-drei');
     await expect(p.getByTestId('unavailable')).toBeVisible();
-    await expect(p.getByTestId('unavailable')).toContainText('keine Versuche mehr');
+    await expect(p.getByTestId('unavailable')).toContainText('letzte Versuch');
 
     // Auch das richtige Passwort hilft jetzt nicht mehr.
     const again = await ctx.newPage();
@@ -93,7 +93,7 @@ test('der richtige Proof gibt den Versuch zurück: zwei Fehlversuche, dann richt
     await p.goto(created.link);
     await tryPassword(p, 'falsches-passwort-eins');
     await tryPassword(p, 'falsches-passwort-zwei');
-    await expect(p.getByTestId('status')).toContainText('noch 1 Versuch');
+    await expect(p.getByTestId('status')).toContainText('Noch 1 Versuch');
     await tryPassword(p, created.password);
     await expect(p.getByTestId('revealed')).toBeVisible({ timeout: 15_000 });
     await ctx.close();
@@ -105,8 +105,12 @@ test('Jetzt vernichten fragt nach und macht den Link unbrauchbar', async ({ brow
     const created = await create(a, { secret: 'vorzeitig weg' });
 
     await a.getByTestId('destroy').click();
-    await expect(a.getByRole('alertdialog')).toContainText('endgültig gelöscht');
+    const dialog = a.getByRole('dialog', { name: 'Secret endgültig vernichten?' });
+    await expect(dialog).toContainText('Danach funktioniert der Link nicht mehr');
+    // Der Fokus liegt im Dialog (Reka UI fokussiert das erste Bedienelement).
+    expect(await dialog.evaluate((el) => el.contains(document.activeElement))).toBe(true);
     await a.getByTestId('destroy-confirm').click();
+    await expect(a.getByTestId('destroy')).toHaveCount(0);
     await expect(a.getByTestId('destroyed')).toBeVisible();
 
     const b = await ctx.newPage();
@@ -128,31 +132,41 @@ test('unbekannte id: dieselbe Seite "Nicht verfügbar"', async ({ page }) => {
     await expect(page.getByTestId('unavailable')).toBeVisible();
 });
 
-test('Server-Sicht: das Panel zeigt exakt den Body, der später gesendet wird', async ({ page }) => {
+test('Prüfen vor dem Senden: der Dialog zeigt exakt den Body, der danach gesendet wird', async ({ page }) => {
     const secret = 'sehr geheimer Klartext 12345';
     const password = 'ein-ziemlich-langes-passwort';
     rememberNeedles(secret, password);
     await page.goto('/');
     await page.locator('#secret').fill(secret);
     await page.locator('#password').fill(password);
-    await page.getByTestId('server-view').locator('summary').click();
-    await expect(page.getByTestId('server-view')).toHaveAttribute('open', '');
+    await page.getByRole('switch', { name: 'Vor dem Senden prüfen' }).click();
 
+    const posted: string[] = [];
+    page.on('request', (r) => r.url().endsWith('/api/secrets') && r.method() === 'POST' && posted.push(r.postData() ?? ''));
     await page.getByTestId('submit').click();
-    await expect(page.getByTestId('server-body')).toBeVisible({ timeout: 15_000 });
+    const dialog = page.getByRole('dialog', { name: 'Das verlässt deinen Browser' });
+    await expect(dialog).toBeVisible({ timeout: 15_000 });
     const shown = JSON.parse((await page.getByTestId('server-body').textContent())!) as Record<string, unknown>;
-    await expect(page.getByTestId('submit')).toHaveText('Genau das senden');
-    await expect(page.getByTestId('result')).toHaveCount(0); // vor dem zweiten Klick wurde nichts gesendet
+    expect(posted).toEqual([]); // vor der Bestätigung wurde nichts gesendet
+    await expect(page.getByTestId('result')).toHaveCount(0);
 
-    const requestPromise = page.waitForRequest((r) => r.url().endsWith('/api/secrets') && r.method() === 'POST');
+    // Esc schließt den Dialog, der Fokus kehrt zum Auslöser zurück, und es wurde immer noch nichts gesendet.
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByTestId('submit')).toBeFocused();
+    expect(posted).toEqual([]);
+
     await page.getByTestId('submit').click();
+    await expect(dialog).toBeVisible({ timeout: 15_000 });
+    const requestPromise = page.waitForRequest((r) => r.url().endsWith('/api/secrets') && r.method() === 'POST');
+    await page.getByTestId('review-send').click();
     const sent = JSON.parse((await requestPromise).postData()!) as Record<string, unknown>;
 
-    const { ciphertext: shownCt, ...shownRest } = shown as { ciphertext: string };
+    // Nach dem erneuten Verschlüsseln sind Zufallswerte neu. Der Dialog, der zu DIESEM Senden gehörte, hat denselben Aufbau.
+    expect(Object.keys(shown).sort()).toEqual(Object.keys(sent).sort());
     const { ciphertext: sentCt, ...sentRest } = sent as { ciphertext: string };
-    expect(shownRest).toEqual(sentRest);
-    expect(shownCt).toBe(`${sentCt.slice(0, 48)}… (${sentCt.length} Zeichen)`);
-    expect(Object.keys(sent).sort()).toEqual(['ciphertext', 'id', 'iv', 'kdf', 'manage_hash', 'max_attempts', 'max_views', 'salt', 'ttl', 'v', 'verifier']);
+    expect(sentCt.length).toBeGreaterThan(1000);
+    expect(Object.keys(sentRest).sort()).toEqual(['id', 'iv', 'kdf', 'manage_hash', 'max_attempts', 'max_views', 'salt', 'ttl', 'v', 'verifier']);
 
     const raw = JSON.stringify(sent);
     expect(raw).not.toContain(secret);
@@ -163,7 +177,26 @@ test('Server-Sicht: das Panel zeigt exakt den Body, der später gesendet wird', 
     rememberNeedles(linkKey, `VERIFIER:${String(sent.verifier)}`);
 });
 
-test('ohne offenes Panel genügt ein Klick', async ({ page }) => {
+test('der Dialog zeigt exakt den gesendeten Body, wenn man ohne Esc bestätigt', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('#secret').fill('Body-Vergleich');
+    await page.locator('#password').fill('mindestens-zehn-zeichen');
+    await page.getByRole('switch', { name: 'Vor dem Senden prüfen' }).click();
+    await page.getByTestId('submit').click();
+    await expect(page.getByTestId('server-body')).toBeVisible({ timeout: 15_000 });
+    const shown = JSON.parse((await page.getByTestId('server-body').textContent())!) as Record<string, string>;
+    const requestPromise = page.waitForRequest((r) => r.url().endsWith('/api/secrets') && r.method() === 'POST');
+    await page.getByTestId('review-send').click();
+    const sent = JSON.parse((await requestPromise).postData()!) as Record<string, unknown> & { ciphertext: string };
+
+    const { ciphertext: shownCt, ...shownRest } = shown;
+    const { ciphertext: sentCt, ...sentRest } = sent;
+    expect(shownRest).toEqual(sentRest);
+    expect(shownCt).toBe(`${sentCt.slice(0, 48)}… (${sentCt.length} Zeichen)`);
+    rememberNeedles('Body-Vergleich', 'mindestens-zehn-zeichen');
+});
+
+test('ohne Prüfen genügt ein Klick', async ({ page }) => {
     await page.goto('/');
     await page.locator('#secret').fill('ein Klick');
     await page.locator('#password').fill('mindestens-zehn-zeichen');
@@ -190,13 +223,13 @@ test('Würfeln erzeugt ein Passwort und zeigt die Stärke: exakt für erzeugt, S
     await page.goto('/');
     await page.getByTestId('dice-words').click();
     await expect(page.getByTestId('strength')).toContainText('65 Bit');
-    await expect(page.getByTestId('strength')).toContainText('exakt, zufällig erzeugt');
+    await expect(page.getByTestId('strength')).toContainText('zufällig erzeugt');
     expect((await page.locator('#password').inputValue()).split('-').length).toBeGreaterThanOrEqual(5);
     await page.getByTestId('dice-chars').click();
     await expect(page.getByTestId('strength')).toContainText('95 Bit');
     expect(await page.locator('#password').inputValue()).toMatch(/^[A-Za-z0-9]{16}$/);
     await page.locator('#password').fill('selbst getippt 123');
-    await expect(page.getByTestId('strength')).toContainText('Schätzung, getippt');
+    await expect(page.getByTestId('strength')).toContainText('geschätzt');
 });
 
 test('Argon2id läuft in einem Worker unter der strikten CSP und die Zeit ist im Rahmen', async ({ page }) => {

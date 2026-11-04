@@ -85,7 +85,7 @@ const measure = () => {
 
 async function audit(page: Page, name: string) {
     // Erst messen, wenn die App gemountet ist (sonst gibt es kaum etwas zu messen).
-    await expect(page.locator('main h1, main [data-testid]').first()).toBeVisible();
+    await expect(page.locator('h1').first()).toBeVisible();
     const { failures, checked } = await page.evaluate(measure);
     console.log(`Gestaltung ${name}: ${checked} Messungen`);
     expect(checked, `${name}: es wurde etwas gemessen`).toBeGreaterThan(5);
@@ -152,15 +152,17 @@ for (const scheme of ['light', 'dark'] as const) {
             await audit(page, 'create-hinweis');
 
             await page.getByTestId('dice-words').click();
-            await page.getByTestId('server-view').locator('summary').click();
+            await audit(page, 'create-ausgefuellt');
+            await page.getByRole('switch', { name: 'Vor dem Senden prüfen' }).click();
             await page.getByTestId('submit').click();
             await expect(page.getByTestId('server-body')).toBeVisible({ timeout: 15_000 });
-            await audit(page, 'create-server-sicht');
-            await page.getByTestId('submit').click();
+            await audit(page, 'create-pruefen-dialog');
+            await page.getByTestId('review-send').click();
             await expect(page.getByTestId('result')).toBeVisible({ timeout: 15_000 });
             await audit(page, 'ergebnis');
             await page.getByTestId('destroy').click();
-            await audit(page, 'ergebnis-vernichten-rueckfrage');
+            await expect(page.getByTestId('destroy-dialog')).toBeVisible();
+            await audit(page, 'ergebnis-vernichten-dialog');
         });
 
         test('Viewer: Passwort, Fehlversuch, Anzeige, nicht verfügbar, unvollständig', async ({ page, browser }) => {
@@ -171,7 +173,7 @@ for (const scheme of ['light', 'dark'] as const) {
             await focusRing(page, 'viewer');
 
             await tryPassword(page, 'falsches-passwort-eins');
-            await expect(page.getByTestId('status')).toContainText('Falsches Passwort');
+            await expect(page.getByTestId('status')).toContainText('Das Passwort stimmt nicht');
             await audit(page, 'viewer-fehlversuch');
 
             await tryPassword(page, created.password);

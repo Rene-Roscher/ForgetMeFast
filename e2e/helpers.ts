@@ -31,9 +31,9 @@ export async function create(page: Page, opts: { secret: string; password?: stri
         await page.getByTestId('dice-words').click();
     }
     const password = await page.locator('#password').inputValue();
-    for (const [label, want, base] of [['Max. Abrufe', opts.views, 1], ['Max. Fehlversuche', opts.attempts, 3]] as const) {
+    for (const [label, want, base] of [['Abrufe', opts.views, 1], ['Fehlversuche', opts.attempts, 3]] as const) {
         for (let i = base; want !== undefined && i < want; i++) {
-            await page.getByRole('group', { name: label }).getByRole('button', { name: 'mehr' }).click();
+            await page.getByRole('button', { name: `${label}: Mehr` }).click();
         }
     }
     await page.getByTestId('submit').click();

@@ -17,7 +17,7 @@ test('home page boots Inertia under the strict CSP without violations', async ({
     expect(response?.headers()['content-security-policy']).toContain("script-src 'self'");
 
     // The Vue app only renders this heading after Inertia mounted, so it proves the JS ran under the CSP.
-    await expect(page.getByRole('heading', { name: 'Secret teilen' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Neues Secret' })).toBeVisible();
     expect(await page.locator('script:not([src]):not([type="application/json"])').count()).toBe(0);
     if (process.env.E2E_DEV === '1') {
         // Proves the dev run really loads scripts from the Vite dev server and not from public/build.
@@ -40,7 +40,7 @@ test('fonts load from the same origin and the theme follows the system without a
     });
 
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'Secret teilen' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Neues Secret' })).toBeVisible();
 
     expect(await page.evaluate(() => document.documentElement.classList.contains('dark'))).toBe(true);
     expect(await page.evaluate(() => document.fonts.check('16px "Plus Jakarta Sans"'))).toBe(true);
@@ -58,7 +58,7 @@ test('der Umschalter wechselt das Design, merkt sich die Wahl und flackert beim 
     await page.getByTestId('theme-toggle').click();
     expect(await isDark()).toBe(true);
     expect(await page.evaluate(() => localStorage.getItem('fmf-theme'))).toBe('dark');
-    await expect(page.getByTestId('theme-toggle')).toHaveAccessibleName('Helles Design aktivieren');
+    await expect(page.getByTestId('theme-toggle')).toHaveAccessibleName('Helles Design einschalten');
 
     // Nach dem Neuladen gilt die Wahl, und zwar schon beim Parsen: das blockierende Skript setzt die Klasse vor dem ersten Zeichnen.
     await page.goto('/', { waitUntil: 'domcontentloaded' });
@@ -82,11 +82,11 @@ test('der Umschalter wechselt das Design, merkt sich die Wahl und flackert beim 
 test('die Seitenleiste zeigt die Vertrauensaussagen, die das Projekt belegt, und nennt die Grenzen', async ({ page }) => {
     await page.goto('/');
     const side = page.getByTestId('sidebar');
-    for (const text of ['Ende-zu-Ende verschlüsselt', 'Zero Knowledge', 'Schlüssel nur im Link', 'Selbstzerstörend', 'Passwort mit Argon2id', 'Kein Tracking, keine Cookies, keine Accounts.']) {
+    for (const text of ['Im Browser verschlüsselt', 'Zero Knowledge', 'Schlüssel bleibt im Link', 'Löscht sich selbst', 'Gehärtetes Passwort', 'Keine Accounts, keine Cookies, kein Tracking.']) {
         await expect(side).toContainText(text);
     }
-    await side.locator('summary').click();
-    await expect(side).toContainText('Nicht abgedeckt');
-    await expect(side).toContainText('manipuliertes JavaScript');
+    await side.getByRole('button', { name: 'Wie weit reicht der Schutz?' }).click();
+    await expect(side).toContainText('Das schützt nicht');
+    await expect(side).toContainText('manipulierten Code');
     await expect(page.getByTestId('secure-indicator')).toContainText('Sichere Verbindung');
 });
