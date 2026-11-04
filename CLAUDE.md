@@ -74,6 +74,6 @@ Installiert: `core`, `laravel`, `web`, `delivery`, `api`. Nicht installiert: `sa
 
 ## Nicht tun
 - Keine Accounts, kein Login, keine Cookies für Funktionen, keine Analytics, keine CDN-Ressourcen.
-- Keine Dateien oder Anhänge, kein E-Mail-Versand, keine Mehrsprachigkeit.
+- Keine Dateien oder Anhänge, kein E-Mail-Versand, keine Mehrsprachigkeit. (Ausnahme per ADR 0007: eine Textdatei darf im Browser in das Secret-Feld geladen werden. Sie ist dann nur Text im Feld, es gibt keinen Upload und kein Dateiformat im Protokoll.)
 - Keine Protokolländerung, keine neue Krypto-Bibliothek und keine Absenkung von Parametern ohne ADR.
 - Keine Secrets, Keys oder echten Passwörter im Repo, in Fixtures oder in Logs.

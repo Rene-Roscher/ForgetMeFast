@@ -102,8 +102,8 @@ Stand 2026-11-04, alles lokal gelaufen:
   Schema ohne Klartext- und IP-Spalten, Logs ohne Marker, drei Paralleltests mit je 50 Prozessen).
 - **Vitest:** 145 Tests im Krypto-Modul und in der Oberfläche, Zeilenabdeckung 99 % bei erzwungenen 95 %; RFC-5869-Vektoren,
   RFC-9106-Vektor, ein unabhängig erzeugter Protokollvektor, AAD-Test je Feld, statische Prüfung auf Speicher, Netzwerk und `console`; die drei i18n-Tests (Syntax, Parität, Nutzung) und ein Wächter gegen Emojis.
-- **Playwright:** 28 Tests im echten Chromium: ganzer Ablauf in zwei Browser-Kontexten, Fehlversuche, Vernichten,
-  Prüfen-Dialog gleich dem echten Request mit Fokus und Esc, Hell/Dunkel-Umschalter ohne Flackern, CSP ohne Verstöße, Argon2id im Worker, **Klartext-Scan** über Datenbank, Logs und
+- **Playwright:** 45 Tests im echten Chromium: ganzer Ablauf in zwei Browser-Kontexten, Fehlversuche, Vernichten,
+  der gesendete Request ohne Klartext, Passwort und Link-Key, gemerkte Regeln, Textdatei laden, Hell/Dunkel-Umschalter ohne Flackern, CSP ohne Verstöße, Argon2id im Worker, **Klartext-Scan** über Datenbank, Logs und
   Zugriffsprotokoll mit Positivkontrolle, gemessener Kontrast, Rahmen, Fokus und Überlauf in hell und dunkel.
 - **Gegenproben:** Jede Schutzmaßnahme wurde einmal gegen eine absichtliche Verletzung rot gesehen (Mutation), auch die
   Messungen selbst.
@@ -139,7 +139,7 @@ Dazu kommen diese, die der Agent selbst gefunden hat:
   Secret; das erste läuft ab.
 - **Gemeinsame IP.** Das Throttling zählt je gesalzenem IP-Hash. Viele Nutzer hinter derselben Adresse teilen sich das Limit.
 - **Browser-Verlauf und Erweiterungen** sehen das Fragment, bevor die Seite es entfernt.
-- **Im Browser gespeichert wird:** die Wahl Hell oder Dunkel (`fmf-theme`) und dein Verlauf (`fmf-history`) mit Link, Verwaltungstoken und Ablauf deiner eigenen Secrets, **nie** Passwort oder Klartext (ADR 0006). "Verlauf leeren" löscht ihn. Kein Cookie, nichts davon erreicht den Server.
+- **Im Browser gespeichert wird:** die Wahl Hell oder Dunkel (`fmf-theme`), deine zuletzt gewählten Regeln (`fmf-prefs`: Ablauf, Abrufe, Fehlversuche, Einmalig, Art des Passworts) und dein Verlauf (`fmf-history`) mit Link, Verwaltungstoken und Ablauf deiner eigenen Secrets, **nie** Passwort oder Klartext (ADR 0006). "Verlauf leeren" löscht ihn. Kein Cookie, nichts davon erreicht den Server.
 - **Zwischenablage.** Kopiert der Nutzer das Secret, liegt es dort, bis er es ersetzt.
 
 ## Lizenzen und Quellen
