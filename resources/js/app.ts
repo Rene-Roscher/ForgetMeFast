@@ -1,7 +1,10 @@
 import { createInertiaApp } from '@inertiajs/vue3';
 import { createApp, h, type DefineComponent } from 'vue';
 
+const nonce = document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]')?.content;
+
 createInertiaApp({
+    nonce,
     resolve: async (name) => {
         const pages = import.meta.glob<DefineComponent>('./pages/**/*.vue');
         const page = pages[`./pages/${name}.vue`];
