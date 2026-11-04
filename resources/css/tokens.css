@@ -27,7 +27,7 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-2xl: 20px;
-  --color-primary-500: #00e091;
+  --color-primary-500: #14b8a6; /* teal-500 */
   --color-warning: #f59e0b;
   --radius-full: 9999px;
 }
@@ -43,14 +43,14 @@
   --accent-foreground: #0a0a0a;
   --border: #e5e5e5;
   --border-strong: #d4d4d4;
-  --ring: #00e09166;
-  --primary-hover: #00c47e;
+  --ring: #14b8a666;
+  --primary-hover: #115e59; /* teal-800 */
   --secondary: #f5f5f5;
   --secondary-foreground: #0a0a0a;
   --secondary-hover: #e5e5e5;
   --destructive-foreground: #fff;
   --table-header: #fafafa;
-  --table-highlight: #ecfdf5;
+  --table-highlight: #f0fdfa; /* teal-50 */
   --caption: #737373;
   --badge-bg: #f5f5f5;
   --badge-foreground: #0a0a0a;
@@ -75,16 +75,16 @@
   --thread: color-mix(in srgb, #000 10%, var(--surface-overlay));
   --avatar-bg-l: .93;
   --avatar-fg-l: .42;
-  --text-link: #047857;
-  --text-positive: #065f46;
-  --primary: #00e091;
-  --primary-foreground: #022c22;
+  --text-link: #0f766e; /* teal-700 */
+  --text-positive: #115e59;
+  --primary: #0f766e; /* teal-700, weißer Text: 5,5:1 */
+  --primary-foreground: #ffffff;
   --destructive: #ef4444;
 }
 
 .dark { /* Dark (nur Werte, die vom Light-Modus abweichen oder dort fehlen) */
-  --primary: #00e091;
-  --primary-foreground: #022c22;
+  --primary: #2dd4bf; /* teal-400 */
+  --primary-foreground: #042f2e; /* teal-950 */
   --destructive: #ef4444;
   --background: #060608;
   --foreground: #fafafa;
@@ -96,8 +96,8 @@
   --accent-foreground: #fafafa;
   --border: #1a1a20;
   --border-strong: #36363f;
-  --ring: #00e0914d;
-  --primary-hover: #34d399;
+  --ring: #2dd4bf4d;
+  --primary-hover: #5eead4; /* teal-300 */
   --secondary: #222228;
   --secondary-foreground: #fafafa;
   --secondary-hover: #36363f;
@@ -111,7 +111,7 @@
   --input: #0d0d12;
   --input-border: #222228;
   --input-placeholder: #6c6c7b;
-  --shadow-glow: 0 0 0 1px #00e0911a, 0 18px 44px -20px #000c;
+  --shadow-glow: 0 0 0 1px #2dd4bf1a, 0 18px 44px -20px #000c;
   --surface-sunken: #0e0e13;
   --surface-raised: #17171c;
   --surface-raised-hover: #1b1b21;
@@ -127,8 +127,8 @@
   --elevation-overlay: 0 24px 80px -12px #000c;
   --backdrop: #000000a6;
   --thread: color-mix(in srgb, #fff 10%, var(--surface-overlay));
-  --text-link: #34d399;
-  --text-positive: #6ee7b7;
+  --text-link: #5eead4;
+  --text-positive: #99f6e4; /* teal-200 */
   --avatar-bg-l: .34;
   --avatar-fg-l: .9;
 }

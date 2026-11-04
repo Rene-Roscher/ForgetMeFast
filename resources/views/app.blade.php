@@ -6,6 +6,7 @@
         <meta name="csp-nonce" content="{{ request()->attributes->get('csp_nonce') }}">
         <meta name="color-scheme" content="light dark">
         <script src="/theme-init.js"></script>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         <title>ForgetMeFast</title>
         @vite(['resources/css/app.css', 'resources/js/app.ts'])
         <x-inertia::head />

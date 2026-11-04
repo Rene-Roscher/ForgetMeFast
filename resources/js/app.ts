@@ -1,6 +1,7 @@
 import './fragment'; // muss vor Inertia laufen
 import { createInertiaApp } from '@inertiajs/vue3';
 import { createApp, h, type DefineComponent } from 'vue';
+import { i18n } from '@/i18n';
 
 const nonce = document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]')?.content;
 
@@ -17,6 +18,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            .use(i18n)
             .mount(el);
     },
 });

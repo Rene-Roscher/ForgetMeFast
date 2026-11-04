@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Icon from '@/components/Icon.vue';
+import Tip from '@/components/ui/Tip.vue';
 import {
     EFF_LARGE_WORDLIST, PASSPHRASE_WORDS, PASSWORD_ALPHABET, PASSWORD_CHARS,
     estimateBits, generatedBits, randomChars, randomPassphrase,
 } from '@/crypto';
-import { de } from '@/lang/de';
 
 defineProps<{ id: string; label: string; hint?: string; generator?: boolean; autocomplete?: string; invalid?: boolean; describedby?: string }>();
 const model = defineModel<string>({ required: true });
 const source = defineModel<'typed' | 'words' | 'chars'>('source', { default: 'typed' });
+const { t } = useI18n();
 const visible = ref(false);
 
 const bits = computed(() => {
@@ -26,47 +28,69 @@ function roll(kind: 'words' | 'chars') {
     visible.value = true;
 }
 function onInput(event: Event) {
-    model.value = (event.target as HTMLInputElement).value;
+    model.value = (event.target as HTMLInputElement | HTMLTextAreaElement).value;
     source.value = 'typed';
+}
+/** Enter im zweizeiligen Feld sendet das Formular ab, statt einen Zeilenumbruch einzufügen (ein Passwort hat keinen). */
+function submitForm(event: KeyboardEvent) {
+    (event.target as HTMLElement).closest('form')?.requestSubmit();
 }
 </script>
 
 <template>
-    <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
             <label :for="id" class="label">{{ label }}</label>
             <div class="relative">
+                <!-- Verborgen: ein Passwortfeld. Sichtbar: ein zweizeiliges Feld, damit eine lange Passphrase vollständig lesbar bleibt. -->
                 <input
+                    v-if="!visible"
                     :id="id"
                     :value="model"
-                    :type="visible ? 'text' : 'password'"
+                    type="password"
                     :autocomplete="autocomplete ?? 'off'"
                     :aria-invalid="invalid || undefined"
                     :aria-describedby="describedby"
                     spellcheck="false"
                     autocapitalize="off"
-                    class="field pr-12 font-mono text-[13px]"
+                    class="field pr-14 font-mono text-[0.9375rem]"
                     @input="onInput"
                 />
-                <button type="button" class="icon-btn absolute top-1/2 right-1 -translate-y-1/2" :aria-pressed="visible" :aria-label="visible ? de.create.hide : de.create.show" :title="visible ? de.create.hide : de.create.show" @click="visible = !visible">
-                    <Icon :name="visible ? 'eye-off' : 'eye'" />
-                </button>
+                <textarea
+                    v-else
+                    :id="id"
+                    :value="model"
+                    rows="2"
+                    :autocomplete="autocomplete ?? 'off'"
+                    :aria-invalid="invalid || undefined"
+                    :aria-describedby="describedby"
+                    spellcheck="false"
+                    autocapitalize="off"
+                    class="field resize-none py-3 pr-14 font-mono text-[0.9375rem] leading-snug break-words"
+                    @input="onInput"
+                    @keydown.enter.prevent="submitForm"
+                />
+                <Tip :text="visible ? t('create.password.hide') : t('create.password.show')">
+                    <button type="button" class="icon-btn absolute top-1.5 right-1.5" :aria-pressed="visible" :aria-label="visible ? t('create.password.hide') : t('create.password.show')" @click="visible = !visible">
+                        <Icon :name="visible ? 'eye-off' : 'eye'" />
+                    </button>
+                </Tip>
             </div>
         </div>
 
-        <div v-if="generator" class="flex flex-wrap items-center gap-2" role="group" :aria-label="de.create.diceGroup">
-            <span class="text-xs font-medium text-muted-foreground">{{ de.create.diceGroup }}</span>
-            <button type="button" class="btn btn-secondary btn-sm" data-testid="dice-words" @click="roll('words')"><Icon name="dice" />{{ de.create.diceWords }}</button>
-            <button type="button" class="btn btn-secondary btn-sm" data-testid="dice-chars" @click="roll('chars')"><Icon name="dice" />{{ de.create.diceChars }}</button>
+        <div v-if="generator" class="flex flex-wrap items-center gap-2" role="group" :aria-label="t('create.password.generate')">
+            <span class="text-sm font-medium text-muted-foreground">{{ t('create.password.generate') }}</span>
+            <button type="button" class="btn btn-secondary btn-sm" data-testid="dice-words" @click="roll('words')"><Icon name="dice" />{{ t('create.password.words') }}</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-testid="dice-chars" @click="roll('chars')"><Icon name="dice" />{{ t('create.password.chars') }}</button>
         </div>
 
-        <div v-if="generator" class="flex flex-col gap-1.5" data-testid="strength">
-            <div class="flex items-baseline justify-between gap-2 text-xs">
-                <span class="font-medium">{{ de.strength.label }}</span>
-                <span v-if="model.length" class="text-muted-foreground tabular-nums"><span class="font-semibold text-foreground">{{ de.strength.bits(bits) }}</span> · {{ source === 'typed' ? de.strength.estimate : de.strength.exact }}</span>
-                <span v-else class="text-muted-foreground">{{ de.strength.none }}</span>
+        <div v-if="generator" class="flex flex-col gap-2" data-testid="strength">
+            <div class="flex items-baseline justify-between gap-2 text-sm">
+                <span class="font-medium">{{ t('create.password.strength') }}</span>
+                <span v-if="model.length" class="text-muted-foreground tabular-nums"><span class="font-semibold text-foreground">{{ t('create.password.bits', { bits: Math.round(bits) }) }}</span> · {{ source === 'typed' ? t('create.password.estimate') : t('create.password.exact') }}</span>
+                <span v-else class="text-muted-foreground">{{ t('create.password.none') }}</span>
             </div>
-            <div class="h-2 overflow-hidden rounded-sm border border-caption bg-input" role="presentation">
+            <div class="h-2.5 overflow-hidden rounded-sm border border-caption bg-input" role="presentation">
                 <div class="h-full bg-foreground motion-safe:transition-[width]" :style="{ width: `${percent}%` }" />
             </div>
         </div>

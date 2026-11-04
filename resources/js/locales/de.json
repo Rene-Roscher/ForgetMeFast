@@ -1,0 +1,184 @@
+{
+    "app": {
+        "name": "ForgetMeFast"
+    },
+    "theme": {
+        "toDark": "Dunkles Design einschalten",
+        "toLight": "Helles Design einschalten"
+    },
+    "shell": {
+        "create": {
+            "headline": "Zugangsdaten teilen, ohne dass sie im Chat bleiben.",
+            "lead": "Dein Secret wird in deinem Browser verschlüsselt. Der Empfänger kann es einmal lesen, danach ist es weg."
+        },
+        "view": {
+            "headline": "Jemand hat ein Secret für dich.",
+            "lead": "Gib das Passwort ein. Entschlüsselt wird erst in deinem Browser."
+        },
+        "trustLabel": "Was dich schützt",
+        "trust": {
+            "encrypted": { "title": "Im Browser verschlüsselt", "body": "AES-256 sperrt dein Secret, bevor etwas gesendet wird." },
+            "zeroKnowledge": { "title": "Zero Knowledge", "body": "Der Server kennt weder Klartext noch Passwort noch Schlüssel." },
+            "fragment": { "title": "Schlüssel bleibt im Link", "body": "Der Teil hinter dem # geht nie an den Server." },
+            "selfDestruct": { "title": "Löscht sich selbst", "body": "Nach Ablauf, dem letzten Abruf oder zu vielen Fehlversuchen." },
+            "hardened": { "title": "Gehärtetes Passwort", "body": "Argon2id macht jeden Rateversuch langsam und teuer." }
+        },
+        "coverage": {
+            "title": "Wie weit reicht der Schutz?",
+            "protects": "Das schützt:",
+            "protectsBody": "Vor neugierigen Betreibern, Datenbank-Leaks und jedem, der nur den Link hat.",
+            "limits": "Das schützt nicht:",
+            "limitsBody": "Vor einem gehackten Server, der dir manipulierten Code schickt. Das ist das Grundproblem jeder verschlüsselten Webseite. Chat-Anbieter sehen den ganzen Link, schick das Passwort deshalb auf einem anderen Weg."
+        },
+        "secure": "Sichere Verbindung",
+        "insecure": "Verbindung nicht sicher",
+        "footer": "Keine Accounts, keine Cookies, kein Tracking."
+    },
+    "expiry": {
+        "300": "5 Minuten",
+        "3600": "1 Stunde",
+        "86400": "24 Stunden",
+        "604800": "7 Tage"
+    },
+    "expiryShort": {
+        "300": "5 Min",
+        "3600": "1 Std",
+        "86400": "24 Std",
+        "604800": "7 Tage"
+    },
+    "time": {
+        "days": "{d} Tg {h} Std",
+        "hours": "{h} Std {m} Min",
+        "minutes": "{m} Min {s} Sek",
+        "seconds": "{s} Sek"
+    },
+    "stepper": {
+        "less": "Weniger",
+        "more": "Mehr"
+    },
+    "create": {
+        "title": "Neues Secret",
+        "lead": "Schreib dein Secret auf, leg die Regeln fest und teile danach nur den Link.",
+        "secret": {
+            "title": "Dein Secret",
+            "lead": "Es wird in deinem Browser verschlüsselt, bevor irgendetwas gesendet wird.",
+            "placeholder": "Passwort, API-Key, Zugangsdaten …",
+            "counter": "{used} von {max} Byte"
+        },
+        "settings": {
+            "title": "Einstellungen",
+            "lead": "Wann soll das Secret verschwinden?",
+            "expiry": "Läuft ab nach",
+            "views": "Abrufe",
+            "viewsHint": "Wie oft es gelesen werden darf.",
+            "attempts": "Fehlversuche",
+            "attemptsHint": "Danach wird es vernichtet.",
+            "review": "Vor dem Senden prüfen",
+            "reviewHint": "Zeigt dir genau, was deinen Browser verlässt."
+        },
+        "password": {
+            "title": "Passwort",
+            "label": "Passwort",
+            "hint": "Mindestens 10 Zeichen. Schick es auf einem anderen Weg als den Link.",
+            "show": "Passwort anzeigen",
+            "hide": "Passwort verbergen",
+            "generate": "Erzeugen",
+            "words": "5 Wörter",
+            "chars": "16 Zeichen",
+            "strength": "Stärke",
+            "bits": "{bits} Bit",
+            "exact": "zufällig erzeugt",
+            "estimate": "geschätzt",
+            "none": "Noch kein Passwort"
+        },
+        "dock": {
+            "expiresAfter": "Läuft nach {time} ab",
+            "views": "{n} Abruf | {n} Abrufe",
+            "attempts": "{n} Fehlversuch | {n} Fehlversuche",
+            "submit": "Verschlüsseln & Link erstellen",
+            "submitting": "Verschlüssele …"
+        },
+        "review": {
+            "title": "Das verlässt deinen Browser",
+            "lead": "Passwort, Schlüssel und Klartext sind nicht dabei. Der Ciphertext ist hier gekürzt.",
+            "truncated": "… ({length} Zeichen)",
+            "back": "Zurück",
+            "send": "Genau das senden",
+            "sending": "Sende …"
+        }
+    },
+    "result": {
+        "title": "Fertig, dein Link ist bereit",
+        "lead": "Schick Link und Passwort auf zwei verschiedenen Wegen. Dann reicht keine einzelne Nachricht, um das Secret zu lesen.",
+        "chips": {
+            "expiry": "Läuft ab: {label}",
+            "views": "{n} Abruf | {n} Abrufe",
+            "attempts": "{n} Fehlversuch | {n} Fehlversuche",
+            "remaining": "Noch {time}",
+            "expired": "Abgelaufen"
+        },
+        "link": {
+            "title": "Link",
+            "hint": "Der Schlüssel steckt hinter dem #. Er erreicht unseren Server nie."
+        },
+        "password": {
+            "title": "Passwort",
+            "hint": "Schick es nicht im selben Chat, am besten per Anruf oder in einem anderen Messenger."
+        },
+        "copy": "Kopieren",
+        "copied": "Kopiert",
+        "copyFailed": "Kopieren ging nicht. Markiere den Text und kopiere ihn von Hand.",
+        "leaveNotice": "Link und Passwort werden nirgends gespeichert. Schließt du diese Seite, sind sie weg.",
+        "destroy": {
+            "button": "Jetzt vernichten",
+            "title": "Secret endgültig vernichten?",
+            "body": "Danach funktioniert der Link nicht mehr. Das lässt sich nicht rückgängig machen.",
+            "confirm": "Endgültig vernichten",
+            "cancel": "Abbrechen",
+            "done": "Vernichtet. Der Link funktioniert nicht mehr."
+        },
+        "newSecret": "Neues Secret"
+    },
+    "view": {
+        "title": "Geschütztes Secret",
+        "lead": "Gib das Passwort ein, das du getrennt vom Link bekommen hast.",
+        "password": "Passwort",
+        "submit": "Secret entschlüsseln",
+        "working": "Entschlüssele …",
+        "loading": "Wird geladen …",
+        "wrong": "Das Passwort stimmt nicht. Noch {n} Versuch. | Das Passwort stimmt nicht. Noch {n} Versuche.",
+        "lastFailed": "Das Passwort stimmt nicht. Das war der letzte Versuch, das Secret ist jetzt vernichtet.",
+        "revealedTitle": "Dein Secret",
+        "reveal": "Anzeigen",
+        "hide": "Verbergen",
+        "copy": "Kopieren",
+        "autoHide": "Wird nach 60 Sekunden wieder verborgen.",
+        "viewsLeft": "Noch {n} Abruf möglich. | Noch {n} Abrufe möglich.",
+        "lastView": "Das war der letzte Abruf. Das Secret ist jetzt vernichtet.",
+        "expiresIn": "Läuft ab in {time}"
+    },
+    "errors": {
+        "unavailable": {
+            "title": "Nicht mehr verfügbar",
+            "body": "Das Secret ist abgelaufen, wurde schon gelesen oder vernichtet, oder es hat nie existiert. Frag die Person, die es dir geschickt hat, nach einem neuen Link.",
+            "cta": "Eigenes Secret teilen"
+        },
+        "incomplete": {
+            "title": "Der Link ist unvollständig",
+            "body": "Es fehlt der Schlüssel hinter dem #. Öffne den Link genau so, wie du ihn bekommen hast, am besten per Kopieren und Einfügen."
+        },
+        "insecure": {
+            "title": "Verbindung nicht sicher",
+            "body": "Verschlüsseln geht nur über HTTPS (oder auf localhost). Öffne die Seite über eine sichere Adresse."
+        },
+        "network": "Keine Verbindung zum Server. Prüfe dein Netz und versuche es noch einmal. Es wurde nichts verbraucht.",
+        "throttled": "Zu viele Anfragen in kurzer Zeit. Warte einen Moment und versuche es dann erneut.",
+        "server": "Der Server hat einen Fehler gemeldet. Versuche es in einem Moment noch einmal.",
+        "conflict": "Das hat nicht geklappt. Bitte versuche es noch einmal.",
+        "invalidInput": "Die Eingabe wurde abgelehnt. Prüfe Secret, Passwort und Einstellungen.",
+        "decryptFailed": "Das Secret konnte nicht entschlüsselt werden und ist möglicherweise schon verbraucht.",
+        "passwordTooShort": "Das Passwort ist zu kurz. Es braucht mindestens 10 Zeichen.",
+        "secretEmpty": "Gib zuerst ein Secret ein.",
+        "secretTooLarge": "Das Secret ist zu groß. Erlaubt sind höchstens {max} Byte."
+    }
+}

@@ -11,7 +11,7 @@ const files: string[] = [];
         const path = join(dir, name);
         if (statSync(path).isDirectory()) {
             if (name !== 'vectors' && name !== 'crypto') walk(path);
-        } else if (/\.(vue|ts)$/.test(name) && !name.endsWith('.test.ts')) {
+        } else if (/\.(vue|ts|json)$/.test(name) && !name.endsWith('.test.ts')) {
             files.push(path);
         }
     }
@@ -23,7 +23,7 @@ const GLYPHS = /[\p{Extended_Pictographic}←-⇿⌀-⏿■-◿☀-➿−✓✔�
 describe('Oberfläche ohne Emojis und Symbolzeichen', () => {
     it('hat Quelldateien zu prüfen', () => {
         expect(files.some((f) => f.endsWith('Create.vue'))).toBe(true);
-        expect(files.some((f) => f.endsWith('de.ts'))).toBe(true);
+        expect(files.some((f) => f.endsWith('de.json'))).toBe(true);
     });
 
     it.each(files.map((f) => [f.slice(root.length + 1), f]))('%s enthält keine Emojis oder Symbolzeichen', (_name, file) => {
