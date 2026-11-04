@@ -31,6 +31,10 @@ export const INFO_AUTH = 'fmf/v1/auth';
 
 export const MIN_PASSWORD_CODEPOINTS = 10;
 
+/** Erlaubte Ablaufzeiten in Sekunden (docs/SPEC.md, Optionen): 5 Minuten, 1 Stunde, 24 Stunden, 7 Tage. */
+export const TTL_SECONDS = [300, 3600, 86400, 604800] as const;
+export const MAX_COUNT = 10;
+
 /** Passwortgenerator (docs/SPEC.md, Optionen): 5 Wörter bzw. 16 Zeichen aus 62. */
 export const PASSPHRASE_WORDS = 5;
 export const PASSWORD_CHARS = 16;
