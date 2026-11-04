@@ -94,8 +94,8 @@
   --card-foreground: #ededed;
   --accent: #1f1f1f;
   --accent-foreground: #ededed;
-  --border: #2e2e2e;
-  --border-strong: #3f3f3f;
+  --border: #454545;
+  --border-strong: #5c5c5c;
   --ring: #2dd4bf66;
   --primary-hover: #d4d4d4; /* teal-300 */
   --secondary: #1f1f1f;
@@ -107,7 +107,7 @@
   --caption: #7d7d7d;
   --badge-bg: #1f1f1f;
   --badge-foreground: #ededed;
-  --badge-border: #2e2e2e;
+  --badge-border: #454545;
   --input: #0a0a0a;
   --input-border: #7d7d7d;
   --input-placeholder: #a1a1a1;
