@@ -72,10 +72,13 @@ class SecurityHeaders
             return $none;
         }
 
-        // parse_url() keeps the brackets of an IPv6 host ("[::1]"); add them only when missing.
-        $host = str_contains($parts['host'], ':') && ! str_starts_with($parts['host'], '[')
-            ? "[{$parts['host']}]"
-            : $parts['host'];
+        // Browsers reject IPv6 literals such as [::1] as CSP sources ("contains an invalid source", seen in
+        // Chromium), so no origin can be allowed for them. vite.config.ts pins the dev server to 127.0.0.1.
+        if (str_contains($parts['host'], ':')) {
+            return $none;
+        }
+
+        $host = $parts['host'];
         $authority = $host.(isset($parts['port']) ? ":{$parts['port']}" : '');
         $wsScheme = $parts['scheme'] === 'https' ? 'wss' : 'ws';
 

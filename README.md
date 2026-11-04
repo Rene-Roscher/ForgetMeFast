@@ -25,7 +25,9 @@ php artisan migrate
 composer dev        # App, Vite und Scheduler
 ```
 
-Prüfen:
+Danach läuft die App unter http://127.0.0.1:8000 (Vite auf Port 5173).
+
+Prüfen (nicht gleichzeitig mit `composer dev`: `npm run e2e` löscht `public/hot` und `e2e:dev` braucht Port 5173):
 
 ```bash
 composer check      # Pint, Pest, composer audit

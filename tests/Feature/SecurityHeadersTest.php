@@ -85,7 +85,7 @@ it('does not record requests with Inertia DevTools, not even locally', function 
     expect(DevTools::enabled())->toBeFalse();
 });
 
-it('writes a valid CSP source for an IPv6 Vite dev server', function () {
+it('allows no origin for an IPv6 Vite host, because browsers reject it as a CSP source', function () {
     $hot = storage_path('framework/testing/vite-hot');
     Vite::useHotFile($hot);
     File::put($hot, 'http://[::1]:5173');
@@ -94,9 +94,8 @@ it('writes a valid CSP source for an IPv6 Vite dev server', function () {
         app()->detectEnvironment(fn () => 'local');
         $csp = $this->get('/')->headers->get('Content-Security-Policy');
 
-        expect(cspDirective($csp, 'script-src'))->toBe("script-src 'self' http://[::1]:5173")
-            ->and(cspDirective($csp, 'connect-src'))->toBe("connect-src 'self' http://[::1]:5173 ws://[::1]:5173")
-            ->and($csp)->not->toContain('[[');
+        expect($csp)->not->toContain('::1')
+            ->and(cspDirective($csp, 'script-src'))->toBe("script-src 'self'");
     } finally {
         File::delete($hot);
     }

@@ -19,6 +19,10 @@ export default defineConfig({
         assetsInlineLimit: 0,
     },
     server: {
+        // IPv4 on purpose: the CSP cannot name an IPv6 host (see SecurityHeaders).
+        host: '127.0.0.1',
+        port: 5173,
+        strictPort: true,
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

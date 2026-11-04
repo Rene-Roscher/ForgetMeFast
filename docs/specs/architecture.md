@@ -23,6 +23,8 @@ Eine einzige Laravel-App liefert die statische Inertia-Hülle und vier JSON-Endp
 - Inline-Styles von Inertia tragen eine Nonce pro Request (`<meta name="csp-nonce">`, `SecurityHeaders`).
 - SSR ist aus (`inertia({ ssr: false })`, `INERTIA_SSR_ENABLED=false`). Inertia DevTools ist aus, weil es Requests auf
   Platte aufzeichnet.
+- Vite-Dev-Server: `vite.config.ts` bindet ihn an `127.0.0.1:5173`. Browser lehnen IPv6-Adressen wie `[::1]` als
+  CSP-Quelle ab (in Chromium gesehen), deshalb erlaubt `SecurityHeaders` für IPv6-Hosts nichts.
 - Statische Dateien unter `public/` liefert der Webserver, nicht Laravel. Die Header aus `SecurityHeaders` müssen dort
   im Webserver nachgebaut werden (noch nicht geprüft, siehe README).
 
