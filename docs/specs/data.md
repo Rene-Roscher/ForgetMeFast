@@ -14,10 +14,13 @@ Eine Tabelle `secrets` nach `docs/SPEC.md` (Datenmodell). Kein Klartext-Feld, ke
 - Öffentliche ID ist die `id` (16 Zufallsbytes, base64url) als Primärschlüssel, kein zweiter interner Schlüssel.
 - Abruf- und Versuchszähler nur über bedingte `UPDATE`s.
 - Zeiten serverseitig berechnet, UTC.
-- Das User-Model samt `users`, `password_reset_tokens` und `sessions` entfällt (ADR 0003).
+- Das User-Model samt `users`, `password_reset_tokens` und `sessions` entfällt (ADR 0003). Ebenso die Queue-Tabellen (`jobs`, `job_batches`,
+  `failed_jobs`) und die Konfigurationen für Mail, Queue, Sessions, Dateisystem und Dienste: Es gibt keine Konten, keine Mails, keine
+  Jobs und keine Dateien. Übrig sind `secrets` und die Cache-Tabellen (`cache`, `cache_locks`): Die Zähler des Throttlings brauchen einen
+  Speicher, der Anfragen und Neustarts überlebt (`CACHE_STORE=database`; dort liegen nur gesalzene Hashes, keine Adressen).
 
 ## Tests, die es beweisen
-Schema-Test auf verbotene Spalten, Nebenläufigkeitstest der Versuchsreservierung (siehe `docs/SPEC.md`, Tests).
+Schema-Test auf verbotene Spalten und auf die Menge der Tabellen (nur `secrets`, `cache`, `cache_locks`), Nebenläufigkeitstest der Versuchsreservierung (siehe `docs/SPEC.md`, Tests).
 
 ## Offene Punkte
 Keine.

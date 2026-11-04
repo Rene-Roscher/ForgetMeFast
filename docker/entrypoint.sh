@@ -21,6 +21,8 @@ php artisan view:cache --no-interaction
 # Der Webserver läuft als Kind, diese Schleife ist der Hauptprozess und beaufsichtigt ihn:
 #  - Stirbt der Webserver, endet das Skript, und der Container startet neu (restart-Richtlinie).
 #  - Der Aufräumjob (secrets:prune über `schedule:run`) läuft zu jeder vollen Minute, mit Zeitlimit, damit nichts hängen bleibt.
+#    Bewusst nicht `schedule:work`: Laravel nennt es für die lokale Entwicklung (Produktion: Cron mit `schedule:run`). Es hat weder
+#    Zeitlimit noch Herzschlag noch Fehlerausgabe, die wir hier brauchen. Diese Schleife ist ein Cron-Ersatz im Container.
 #  - Jeder erfolgreiche Lauf aktualisiert einen Herzschlag; der HEALTHCHECK meldet "unhealthy", wenn er ausbleibt.
 #  - Fehler gehen nach stderr (und damit ins Container-Log), nicht ins Leere.
 HEARTBEAT=/tmp/scheduler.heartbeat

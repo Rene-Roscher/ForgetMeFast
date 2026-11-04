@@ -40,3 +40,9 @@ it('das Schema hat genau die Spalten der Spec: kein Klartext, keine IP', functio
 it('SQLite überschreibt gelöschte Seiten (secure_delete)', function () {
     expect(DB::selectOne('PRAGMA secure_delete')->secure_delete)->toBe(1);
 });
+
+it('die Datenbank enthält genau die Tabellen, die das Projekt braucht: keine Konten, Sessions oder Jobs', function () {
+    $tables = collect(Schema::getTables())->pluck('name')->reject(fn ($t) => $t === 'migrations')->sort()->values()->all();
+
+    expect($tables)->toBe(['cache', 'cache_locks', 'secrets']);
+});
