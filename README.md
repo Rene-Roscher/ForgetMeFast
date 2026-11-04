@@ -74,7 +74,7 @@ das Lesen soll gar nicht erst bis dorthin gehen. IPv6-Adressen zählen im Thrott
 ## Betrieb mit Docker
 
 CI baut das Image, prüft es mit einem Rauchtest und Trivy und schiebt es auf `main` und bei Versions-Tags nach
-`ghcr.io/<owner>/<repo>`. Lokal bauen: `docker build -t forgetmefast .`
+`ghcr.io/rene-roscher/forgetmefast`. Lokal bauen: `docker build -t forgetmefast .`
 
 ```bash
 export APP_KEY="$(docker run --rm forgetmefast php artisan key:generate --show)"   # einmal erzeugen und aufbewahren

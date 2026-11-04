@@ -1,11 +1,11 @@
 # Beispiel für den Betrieb des Images. HTTPS muss ein Reverse Proxy davor beenden (README, "Betrieb mit Docker"): Der Browser
 # stellt Web Crypto nur über HTTPS bereit, ohne wirft die App beim Verschlüsseln einen Fehler.
 #
-#   export APP_KEY="$(docker run --rm ghcr.io/OWNER/REPO php artisan key:generate --show)"
+#   export APP_KEY="$(docker run --rm ghcr.io/rene-roscher/forgetmefast php artisan key:generate --show)"
 #   docker compose up -d
 services:
   app:
-    image: ghcr.io/OWNER/REPO:main # OWNER/REPO durch das eigene Repository ersetzen oder lokal bauen: build: .
+    image: ghcr.io/rene-roscher/forgetmefast:main # oder lokal bauen: build: .
     restart: unless-stopped
     environment:
       APP_KEY: ${APP_KEY:?APP_KEY fehlt}
