@@ -116,11 +116,11 @@ Protokoll v1 in einem Satz je Baustein, mit Quelle. Die genauen Bytes stehen in
 
 Stand 2026-11-04, alles lokal gelaufen:
 
-- **Pest:** 110 Tests (Validierung, Zähler, Vernichtung, einheitliche Antworten, Header, Cookies, Throttling, Architekturregeln,
+- **Pest:** 168 Tests (Validierung, Zähler, Vernichtung, einheitliche Antworten, Header, Cookies, Throttling, Architekturregeln,
   Schema ohne Klartext- und IP-Spalten, Logs ohne Marker, drei Paralleltests mit je 50 Prozessen).
-- **Vitest:** 145 Tests im Krypto-Modul und in der Oberfläche, Zeilenabdeckung 99 % bei erzwungenen 95 %; RFC-5869-Vektoren,
+- **Vitest:** 206 Tests für Krypto-Modul und alle Logik-Module der Oberfläche (Verlauf, Regeln, Textdatei, Fragment, Meldungen), Zeilenabdeckung 99 % bei erzwungenen 95 %; RFC-5869-Vektoren,
   RFC-9106-Vektor, ein unabhängig erzeugter Protokollvektor, AAD-Test je Feld, statische Prüfung auf Speicher, Netzwerk und `console`; die drei i18n-Tests (Syntax, Parität, Nutzung) und ein Wächter gegen Emojis.
-- **Playwright:** 45 Tests im echten Chromium: ganzer Ablauf in zwei Browser-Kontexten, Fehlversuche, Vernichten,
+- **Playwright:** 52 Tests im echten Chromium: ganzer Ablauf in zwei Browser-Kontexten, Fehlversuche, Vernichten,
   der gesendete Request ohne Klartext, Passwort und Link-Key, gemerkte Regeln, Textdatei laden, Hell/Dunkel-Umschalter ohne Flackern, CSP ohne Verstöße, Argon2id im Worker, **Klartext-Scan** über Datenbank, Logs und
   Zugriffsprotokoll mit Positivkontrolle, gemessener Kontrast, Rahmen, Fokus und Überlauf in hell und dunkel.
 - **Gegenproben:** Jede Schutzmaßnahme wurde einmal gegen eine absichtliche Verletzung rot gesehen (Mutation), auch die
