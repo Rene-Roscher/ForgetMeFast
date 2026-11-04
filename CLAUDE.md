@@ -42,7 +42,7 @@ app/Http/            Controller (dünn), Requests (strikte Validierung), Middlew
 app/Models/Secret.php
 resources/js/crypto/ Krypto-Modul (rein, ohne Framework, ohne Netzwerk, vollständig getestet)
 resources/js/pages/  Inertia-Seiten (Ersteller, Viewer)
-resources/js/lang/   Alle UI-Texte (Deutsch)
+resources/js/locales/ Alle UI-Texte (Deutsch, vue-i18n)
 docs/                SPEC.md, adr/, CRYPTO-NOTES.md
 ```
 

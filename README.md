@@ -100,10 +100,10 @@ Stand 2026-11-04, alles lokal gelaufen:
 
 - **Pest:** 110 Tests (Validierung, Zähler, Vernichtung, einheitliche Antworten, Header, Cookies, Throttling, Architekturregeln,
   Schema ohne Klartext- und IP-Spalten, Logs ohne Marker, drei Paralleltests mit je 50 Prozessen).
-- **Vitest:** 136 Tests im Krypto-Modul und in der Oberfläche, Zeilenabdeckung 99 % bei erzwungenen 95 %; RFC-5869-Vektoren,
-  RFC-9106-Vektor, ein unabhängig erzeugter Protokollvektor, AAD-Test je Feld, statische Prüfung auf Speicher, Netzwerk und `console`.
-- **Playwright:** 27 Tests im echten Chromium: ganzer Ablauf in zwei Browser-Kontexten, Fehlversuche, Vernichten,
-  Server-Sicht gleich dem echten Request, Hell/Dunkel-Umschalter ohne Flackern, CSP ohne Verstöße, Argon2id im Worker, **Klartext-Scan** über Datenbank, Logs und
+- **Vitest:** 145 Tests im Krypto-Modul und in der Oberfläche, Zeilenabdeckung 99 % bei erzwungenen 95 %; RFC-5869-Vektoren,
+  RFC-9106-Vektor, ein unabhängig erzeugter Protokollvektor, AAD-Test je Feld, statische Prüfung auf Speicher, Netzwerk und `console`; die drei i18n-Tests (Syntax, Parität, Nutzung) und ein Wächter gegen Emojis.
+- **Playwright:** 28 Tests im echten Chromium: ganzer Ablauf in zwei Browser-Kontexten, Fehlversuche, Vernichten,
+  Prüfen-Dialog gleich dem echten Request mit Fokus und Esc, Hell/Dunkel-Umschalter ohne Flackern, CSP ohne Verstöße, Argon2id im Worker, **Klartext-Scan** über Datenbank, Logs und
   Zugriffsprotokoll mit Positivkontrolle, gemessener Kontrast, Rahmen, Fokus und Überlauf in hell und dunkel.
 - **Gegenproben:** Jede Schutzmaßnahme wurde einmal gegen eine absichtliche Verletzung rot gesehen (Mutation), auch die
   Messungen selbst.
@@ -144,7 +144,8 @@ Dazu kommen diese, die der Agent selbst gefunden hat:
 
 ## Lizenzen und Quellen
 
-- Icons: [Lucide](https://lucide.dev) (`lucide-vue-next`), ISC-Lizenz.
+- Icons: [Lucide](https://lucide.dev) (`lucide-vue-next`), ISC-Lizenz. Das Logo setzt das Lucide-Icon "handshake" in ein Schloss.
+- Oberfläche: [Reka UI](https://reka-ui.com) (MIT), [vue-i18n](https://vue-i18n.intlify.dev) (MIT), Palette Tailwind teal; Gründe und Abwägungen in [ADR 0005](docs/adr/0005-ui-components-i18n-and-palette.md).
 - Schriften Plus Jakarta Sans und Geist Mono: SIL Open Font License 1.1 (über `@fontsource-variable/*`).
 - EFF Large Wordlist (Passphrasen): © Electronic Frontier Foundation, Creative Commons Attribution 4.0 International
   (CC BY 4.0), laut https://www.eff.org/copyright; Quelle https://www.eff.org/dice. Geändert: Würfelzahlen entfernt, als
