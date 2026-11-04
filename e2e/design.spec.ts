@@ -111,8 +111,14 @@ async function focusRing(page: Page, name: string) {
         };
         let acc: number[] = [0, 0, 0, 0];
         for (let n: Element | null = el; n && acc[3]! < 254; n = n.parentElement) acc = over(acc, px(getComputedStyle(n).backgroundColor));
-        const [hi, lo] = [lum(px(s.outlineColor)), lum(acc)].sort((a, b) => b - a) as [number, number];
-        return { width: parseFloat(s.outlineWidth), style: s.outlineStyle, ratio: (hi + 0.05) / (lo + 0.05), tag: el.tagName };
+        // Der Ring ist ein Schatten ohne Unschärfe: zwei Ebenen, innen die Lücke in der Seitenfarbe, außen der Ring.
+        const layers = s.boxShadow.split(/,\s*(?![^(]*\))/);
+        const ring = layers[layers.length - 1] ?? '';
+        const color = ring.match(/rgba?\([^)]*\)/)?.[0] ?? 'rgba(0,0,0,0)';
+        const spreadOf = (layer: string) => parseFloat((layer.replace(/rgba?\([^)]*\)/, '').match(/-?[\d.]+px/g) ?? [])[3] ?? '0');
+        const ringWidth = layers.length > 1 ? spreadOf(ring) - spreadOf(layers[layers.length - 2]!) : spreadOf(ring);
+        const [hi, lo] = [lum(px(color)), lum(acc)].sort((a, b) => b - a) as [number, number];
+        return { width: ringWidth, style: s.boxShadow, ratio: (hi + 0.05) / (lo + 0.05), tag: el.tagName };
     });
     expect(r.style, `${name}: Fokus sichtbar`).not.toBe('none');
     expect(r.width, `${name}: Ringbreite`).toBeGreaterThanOrEqual(2);
@@ -121,17 +127,18 @@ async function focusRing(page: Page, name: string) {
 
 test('Gegenprobe: die Messung schlägt bei absichtlich schlechten Werten an', async ({ page }) => {
     await page.goto('/');
-    await page.getByTestId('dice-words').click();
+    await expect(page.locator('#secret')).toBeVisible(); // erst messen, wenn die App gemountet ist
     // CSSOM-Zugriff, weil die CSP Inline-Style-Elemente blockiert: Textfarbe fast wie der Hintergrund, Rahmen fast
     // unsichtbar und eine winzige Schaltfläche.
     await page.evaluate(() => {
         (document.querySelector('.hint') as HTMLElement).style.color = '#dddddd';
         (document.querySelector('#secret') as HTMLElement).style.borderColor = '#eeeeee';
-        const b = document.querySelector('[data-testid=dice-chars]') as HTMLElement;
+        const b = document.querySelector('[data-testid=pw-refresh]') as HTMLElement;
         b.style.width = '10px';
         b.style.minHeight = '10px';
         b.style.height = '10px';
     });
+    await page.waitForTimeout(400); // die Farbübergänge der Bedienelemente müssen durch sein
     const { failures } = await page.evaluate(measure);
     expect(failures.some((f) => f.startsWith('Text '))).toBe(true);
     expect(failures.some((f) => f.startsWith('Rand '))).toBe(true);
@@ -151,9 +158,9 @@ for (const scheme of ['light', 'dark'] as const) {
             await page.locator('#password').fill('kurz');
             await audit(page, 'create-hinweis');
 
-            await page.getByTestId('dice-words').click();
+            await page.getByTestId('pw-refresh').click(); // wieder ein gültiges Passwort
             await audit(page, 'create-ausgefuellt');
-            await page.getByRole('switch', { name: 'Vor dem Senden prüfen' }).click();
+            await page.getByTestId('review-toggle').click();
             await page.getByTestId('submit').click();
             await expect(page.getByTestId('server-body')).toBeVisible({ timeout: 15_000 });
             await audit(page, 'create-pruefen-dialog');
@@ -193,11 +200,127 @@ for (const scheme of ['light', 'dark'] as const) {
             await page.setViewportSize({ width: 360, height: 740 });
             await page.goto('/');
             await page.locator('#secret').fill('A'.repeat(200));
-            await page.getByTestId('dice-words').click();
             await audit(page, 'create-360');
             await page.getByTestId('submit').click();
             await expect(page.getByTestId('result')).toBeVisible({ timeout: 15_000 });
             await audit(page, 'ergebnis-360');
+        });
+    });
+}
+
+// Handy: echte Touch-Emulation mit 390 x 844. Gemessen wird, was auf dem Handy zählt: Der Inhalt steht vorn (keine riesige
+// Seitenleiste davor), Eingabefelder haben mindestens 16 px (sonst zoomt iOS beim Fokussieren), Touch-Ziele mindestens 32 px,
+// und die schwebende Leiste verdeckt am Seitenende nichts.
+const phone = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } as const;
+
+for (const scheme of ['light', 'dark'] as const) {
+    test.describe(`Handy ${scheme}`, () => {
+        test.use({ colorScheme: scheme, ...phone });
+
+        async function phoneChecks(page: Page, name: string) {
+            const r = await page.evaluate(() => {
+                const bad: string[] = [];
+                const label = (el: Element) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''} "${(el.textContent ?? '').trim().slice(0, 24)}"`;
+                for (const el of Array.from(document.querySelectorAll('input:not([type=hidden]), textarea, select'))) {
+                    const r = el.getBoundingClientRect();
+                    if (r.width === 0 || r.height === 0 || el.closest('[aria-hidden="true"]')) continue;
+                    if (parseFloat(getComputedStyle(el).fontSize) < 16) bad.push(`Schrift unter 16 px (iOS zoomt): ${label(el)}`);
+                }
+                for (const el of Array.from(document.querySelectorAll('button, a[href], input:not([type=hidden]), textarea, summary, [role=combobox]'))) {
+                    const r = el.getBoundingClientRect();
+                    if (r.width === 0 || r.height === 0 || el.closest('[aria-hidden="true"]') || el.classList.contains('sr-only')) continue;
+                    // Die Zahlfelder der Leiste sind schmal; getroffen wird die ganze Zeile mit den beiden 32-px-Knöpfen daneben.
+                    const narrowOk = el.getAttribute('role') === 'spinbutton' && r.width >= 24 && r.height >= 32;
+                    if (!narrowOk && (r.width < 32 || r.height < 32)) bad.push(`Touch-Ziel ${Math.round(r.width)}x${Math.round(r.height)} unter 32 px: ${label(el)}`);
+                }
+                return bad;
+            });
+            expect(r, `${name}`).toEqual([]);
+        }
+
+        test('Erstellen: Inhalt steht vorn, Leiste verdeckt nichts, Maße stimmen', async ({ page }) => {
+            await page.goto('/');
+            await expect(page.locator('#secret')).toBeVisible();
+            const box = (await page.locator('#secret').boundingBox())!;
+            expect(box.y, 'das Secret-Feld beginnt im oberen Drittel, nicht hinter einer Seitenleiste').toBeLessThan(300);
+            await audit(page, 'handy-create-leer');
+            await phoneChecks(page, 'handy-create');
+
+            await page.locator('#secret').fill('Handy-Test');
+            await page.getByTestId('review-toggle').click();
+            await audit(page, 'handy-create-ausgefuellt');
+
+            // Am Seitenende darf die schwebende Leiste nichts verdecken.
+            await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+            await page.waitForTimeout(400); // Layout setzen lassen (Tooltips, Animationen)
+            const gap = await page.evaluate(() => {
+                const dock = document.querySelector('[data-testid=dock] > div')!.getBoundingClientRect();
+                const last = document.querySelector('[data-testid=coverage-mobile]')!.getBoundingClientRect();
+                return dock.top - last.bottom;
+            });
+            expect(gap, 'Abstand zwischen letztem Inhalt und Leiste').toBeGreaterThanOrEqual(0);
+
+            // Die Leiste passt in die Breite und bricht nichts um.
+            const dockBox = (await page.getByTestId('dock').locator('> div').boundingBox())!;
+            expect(dockBox.x).toBeGreaterThanOrEqual(0);
+            expect(dockBox.x + dockBox.width).toBeLessThanOrEqual(390);
+            for (const name of ['Läuft ab nach', 'Abrufe', 'Fehlversuche']) {
+                const h = (await page.getByRole('group', { name: 'Regeln für dein Secret' }).locator(':scope *', { hasText: name }).first().boundingBox());
+                expect(h).not.toBeNull();
+            }
+            const select = (await page.getByRole('combobox', { name: 'Läuft ab nach' }).boundingBox())!;
+            expect(select.height, 'die Auswahl bricht nicht in zwei Zeilen um').toBeLessThan(44);
+        });
+
+        test('Ergebnis, Verlauf, Toast und Dialog auf dem Handy', async ({ page }) => {
+            await page.goto('/');
+            await page.locator('#secret').fill('Handy-Ergebnis');
+            await page.getByTestId('submit').click();
+            await expect(page.getByTestId('result')).toBeVisible({ timeout: 15_000 });
+            await audit(page, 'handy-ergebnis');
+            await phoneChecks(page, 'handy-ergebnis');
+
+            await page.getByTestId('destroy').click();
+            await expect(page.getByTestId('destroy-dialog')).toBeVisible();
+            const dialog = (await page.getByTestId('destroy-dialog').boundingBox())!;
+            expect(dialog.x).toBeGreaterThanOrEqual(0);
+            expect(dialog.x + dialog.width).toBeLessThanOrEqual(390);
+            await audit(page, 'handy-dialog');
+            await page.keyboard.press('Escape');
+
+            await page.getByTestId('new-secret').click();
+            await page.getByTestId('history-open-mobile').click();
+            await expect(page.getByTestId('history-drawer')).toBeVisible();
+            await expect(page.getByTestId('history-row')).toHaveCount(1);
+            await audit(page, 'handy-verlauf');
+            await phoneChecks(page, 'handy-verlauf');
+            await page.keyboard.press('Escape');
+            await expect(page.getByTestId('history-drawer')).toHaveCount(0);
+
+            await page.getByTestId('coverage-mobile').getByRole('button', { name: 'Wie weit reicht der Schutz?' }).click();
+            await audit(page, 'handy-schutz-offen');
+
+            await page.route('**/api/secrets', (r) => (r.request().method() === 'POST' ? r.fulfill({ status: 500, body: '{}' }) : r.continue()));
+            await page.locator('#secret').fill('Fehler');
+            await page.getByTestId('submit').click();
+            const toast = page.getByTestId('toast-error');
+            await expect(toast).toBeVisible();
+            const t = (await toast.boundingBox())!;
+            expect(t.x).toBeGreaterThanOrEqual(0);
+            expect(t.x + t.width).toBeLessThanOrEqual(390);
+            await audit(page, 'handy-toast');
+        });
+
+        test('Viewer auf dem Handy', async ({ page, browser }) => {
+            const created = await create(await (await browser.newContext()).newPage(), { secret: 'Handy-Viewer' });
+            await page.goto(created.link);
+            await expect(page.locator('#view-password')).toBeVisible();
+            await audit(page, 'handy-viewer');
+            await phoneChecks(page, 'handy-viewer');
+            await tryPassword(page, created.password);
+            await expect(page.getByTestId('revealed')).toBeVisible({ timeout: 15_000 });
+            await page.getByTestId('reveal').click();
+            await audit(page, 'handy-viewer-angezeigt');
         });
     });
 }

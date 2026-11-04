@@ -25,11 +25,8 @@ export interface Created {
 export async function create(page: Page, opts: { secret: string; password?: string; views?: number; attempts?: number }): Promise<Created> {
     await page.goto('/');
     await page.locator('#secret').fill(opts.secret);
-    if (opts.password) {
-        await page.locator('#password').fill(opts.password);
-    } else {
-        await page.getByTestId('dice-words').click();
-    }
+    // Das Passwort ist beim Laden schon erzeugt; nur wer ein eigenes will, tippt es.
+    if (opts.password) await page.locator('#password').fill(opts.password);
     const password = await page.locator('#password').inputValue();
     for (const [label, want, base] of [['Abrufe', opts.views, 1], ['Fehlversuche', opts.attempts, 3]] as const) {
         for (let i = base; want !== undefined && i < want; i++) {

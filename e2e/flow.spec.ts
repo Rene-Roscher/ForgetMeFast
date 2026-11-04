@@ -139,7 +139,7 @@ test('Prüfen vor dem Senden: der Dialog zeigt exakt den Body, der danach gesend
     await page.goto('/');
     await page.locator('#secret').fill(secret);
     await page.locator('#password').fill(password);
-    await page.getByRole('switch', { name: 'Vor dem Senden prüfen' }).click();
+    await page.getByTestId('review-toggle').click();
 
     const posted: string[] = [];
     page.on('request', (r) => r.url().endsWith('/api/secrets') && r.method() === 'POST' && posted.push(r.postData() ?? ''));
@@ -181,7 +181,7 @@ test('der Dialog zeigt exakt den gesendeten Body, wenn man ohne Esc bestätigt',
     await page.goto('/');
     await page.locator('#secret').fill('Body-Vergleich');
     await page.locator('#password').fill('mindestens-zehn-zeichen');
-    await page.getByRole('switch', { name: 'Vor dem Senden prüfen' }).click();
+    await page.getByTestId('review-toggle').click();
     await page.getByTestId('submit').click();
     await expect(page.getByTestId('server-body')).toBeVisible({ timeout: 15_000 });
     const shown = JSON.parse((await page.getByTestId('server-body').textContent())!) as Record<string, string>;
@@ -205,31 +205,162 @@ test('ohne Prüfen genügt ein Klick', async ({ page }) => {
     rememberNeedles('ein Klick', 'mindestens-zehn-zeichen');
 });
 
-test('Passwort zu kurz und leeres Secret sperren den Button; Zähler warnt bei Überlänge', async ({ page }) => {
+test('Passwort zu kurz und leeres Secret sperren den Button', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByTestId('submit')).toBeDisabled();
+    await expect(page.getByTestId('submit')).toBeDisabled(); // leeres Secret
     await page.locator('#secret').fill('x');
+    await expect(page.getByTestId('submit')).toBeEnabled(); // erzeugtes Passwort ist lang genug
     await page.locator('#password').fill('kurz');
     await expect(page.getByTestId('submit')).toBeDisabled();
-    await expect(page.getByText('mindestens 10 Zeichen', { exact: false }).first()).toBeVisible();
+    await expect(page.getByText('Das Passwort ist zu kurz')).toBeVisible();
     await page.locator('#password').fill('lang-genug-jetzt');
     await expect(page.getByTestId('submit')).toBeEnabled();
-    await page.locator('#secret').fill('a'.repeat(65533));
-    await expect(page.getByTestId('submit')).toBeDisabled();
-    await expect(page.locator('#secret')).toHaveAttribute('aria-invalid', 'true');
 });
 
-test('Würfeln erzeugt ein Passwort und zeigt die Stärke: exakt für erzeugt, Schätzung für getippt', async ({ page }) => {
+test('Limit-Hinweis: nichts bei normaler Länge, freundlich kurz vor dem Limit, deutlich darüber', async ({ page }) => {
     await page.goto('/');
-    await page.getByTestId('dice-words').click();
+    const hint = page.getByTestId('secret-limit');
+    await page.locator('#secret').fill('ein ganz normales Secret');
+    await expect(hint).toHaveText('');
+    expect(await page.getByText(/Byte/).count()).toBe(0); // keine Byte-Angaben für normale Menschen
+
+    await page.locator('#secret').fill('a'.repeat(60000));
+    await expect(hint).toContainText('Noch etwa');
+    await expect(hint).toContainText('Zeichen Platz');
+    await expect(page.getByTestId('submit')).toBeEnabled();
+
+    await page.locator('#secret').fill('a'.repeat(65533));
+    await expect(hint).toContainText('Zu lang');
+    await expect(page.locator('#secret')).toHaveAttribute('aria-invalid', 'true');
+    await expect(page.getByTestId('submit')).toBeDisabled();
+});
+
+test('beim Laden ist schon ein Passwort erzeugt, sichtbar, und bei jedem Neuladen ein neues', async ({ page }) => {
+    await page.goto('/');
+    const first = await page.locator('#password').inputValue();
+    expect(first.split('-').length).toBeGreaterThanOrEqual(5);
     await expect(page.getByTestId('strength')).toContainText('65 Bit');
     await expect(page.getByTestId('strength')).toContainText('zufällig erzeugt');
-    expect((await page.locator('#password').inputValue()).split('-').length).toBeGreaterThanOrEqual(5);
-    await page.getByTestId('dice-chars').click();
+    await page.reload();
+    const second = await page.locator('#password').inputValue();
+    expect(second).not.toBe(first);
+    expect(second.split('-').length).toBeGreaterThanOrEqual(5);
+});
+
+test('Passwort neu erzeugen, Art wechseln und selbst tippen: exakte Bits für erzeugt, Schätzung für getippt', async ({ page }) => {
+    await page.goto('/');
+    const before = await page.locator('#password').inputValue();
+    await page.getByTestId('pw-refresh').click();
+    expect(await page.locator('#password').inputValue()).not.toBe(before);
+
+    await page.getByTestId('pw-mode-chars').click();
     await expect(page.getByTestId('strength')).toContainText('95 Bit');
     expect(await page.locator('#password').inputValue()).toMatch(/^[A-Za-z0-9]{16}$/);
+    await page.getByTestId('pw-mode-words').click();
+    await expect(page.getByTestId('strength')).toContainText('65 Bit');
+
     await page.locator('#password').fill('selbst getippt 123');
     await expect(page.getByTestId('strength')).toContainText('geschätzt');
+});
+
+test('Fehler erscheinen als Toast oben mittig, mit Schließen, und blockieren nichts', async ({ page }) => {
+    await page.goto('/');
+    await page.route('**/api/secrets', (r) => (r.request().method() === 'POST' ? r.fulfill({ status: 500, body: '{}' }) : r.continue()));
+    await page.locator('#secret').fill('Fehlerfall');
+    await page.getByTestId('submit').click();
+
+    const toast = page.getByTestId('toast-error');
+    await expect(toast).toBeVisible();
+    await expect(toast).toContainText('Der Server hat einen Fehler gemeldet');
+    const box = (await toast.boundingBox())!;
+    const width = page.viewportSize()!.width;
+    expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThan(24); // mittig
+    expect(box.y).toBeLessThan(40); // oben
+    // Der Fehler steht nicht zusätzlich als Box im Formular, und die Eingabe ist unverändert.
+    await expect(page.locator('#secret')).toHaveValue('Fehlerfall');
+    await toast.getByRole('button', { name: 'Meldung schließen' }).click();
+    await expect(toast).toHaveCount(0);
+
+    // Netzwerkfehler: eigene, ehrliche Meldung.
+    await page.unroute('**/api/secrets');
+    await page.route('**/api/secrets', (r) => r.abort());
+    await page.getByTestId('submit').click();
+    await expect(page.getByTestId('toast-error')).toContainText('Keine Verbindung zum Server');
+});
+
+test('Kopieren meldet sich als Toast', async ({ browser }) => {
+    const ctx = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'] });
+    const page = await ctx.newPage();
+    const created = await create(page, { secret: 'Toast-Test' });
+    await page.getByTestId('result-link').locator('xpath=ancestor::section[1]').getByRole('button', { name: 'Kopieren' }).click();
+    await expect(page.getByTestId('toast-success')).toContainText('Link kopiert');
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(created.link);
+    await ctx.close();
+});
+
+test('Verlauf: Link und Verwaltungstoken, nie Passwort oder Klartext; Abrufe und Status vom Server', async ({ browser }) => {
+    const ctx = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'] });
+    const a = await ctx.newPage();
+    const secret = 'Verlauf-Geheimnis-98765';
+    const created = await create(a, { secret, views: 2 });
+
+    // Gespeichert ist der Link (mit Schlüssel) und das Verwaltungstoken, aber nichts vom Passwort oder vom Klartext.
+    const raw = await a.evaluate(() => localStorage.getItem('fmf-history'));
+    expect(raw).toContain(created.linkKey);
+    expect(raw).not.toContain(created.password);
+    expect(raw).not.toContain(secret);
+    expect(Object.keys(JSON.parse(raw!)[0]).sort()).toEqual(['createdAt', 'expiresAt', 'id', 'link', 'manageToken', 'maxViews', 'ttl']);
+
+    await a.goto('/');
+    await a.getByTestId('history-open').click();
+    const row = a.getByTestId('history-row').first();
+    await expect(row.getByTestId('history-state')).toHaveText('Aktiv');
+    await expect(row.getByTestId('history-views')).toContainText('0 von 2 Abrufen');
+
+    // Ein Empfänger öffnet einmal: der Verlauf zählt mit.
+    const b = await ctx.newPage();
+    await b.goto(created.link);
+    await tryPassword(b, created.password);
+    await expect(b.getByTestId('revealed')).toBeVisible({ timeout: 15_000 });
+    await a.getByTestId('history-refresh').click();
+    await expect(row.getByTestId('history-views')).toContainText('1 von 2 Abrufen');
+
+    // Link kopieren aus dem Verlauf.
+    await row.getByTestId('history-copy').click();
+    expect(await a.evaluate(() => navigator.clipboard.readText())).toBe(created.link);
+
+    // Vernichten aus dem Verlauf: Dialog, danach "Gelesen oder vernichtet".
+    await row.getByTestId('history-destroy').click();
+    await a.getByTestId('history-destroy-confirm').click();
+    await expect(row.getByTestId('history-state')).toHaveText('Gelesen oder vernichtet');
+    await expect(row.getByTestId('history-destroy')).toHaveCount(0);
+
+    // Eintrag entfernen und alles leeren.
+    await row.getByTestId('history-remove').click();
+    await expect(a.getByTestId('history-empty')).toBeVisible();
+    expect(await a.evaluate(() => JSON.parse(localStorage.getItem('fmf-history') ?? '[]'))).toEqual([]);
+    await ctx.close();
+});
+
+test('Verlauf: ein von einem Empfänger leergelesenes Secret erscheint als "Gelesen oder vernichtet"', async ({ browser }) => {
+    const ctx = await browser.newContext();
+    const a = await ctx.newPage();
+    const created = await create(a, { secret: 'einmal lesen', views: 1 });
+    const b = await ctx.newPage();
+    await b.goto(created.link);
+    await tryPassword(b, created.password);
+    await expect(b.getByTestId('revealed')).toBeVisible({ timeout: 15_000 });
+    await a.goto('/');
+    await a.getByTestId('history-open').click();
+    await expect(a.getByTestId('history-row').first().getByTestId('history-state')).toHaveText('Gelesen oder vernichtet');
+
+    // Verlauf leeren mit Rückfrage.
+    await a.getByTestId('history-clear').click();
+    await expect(a.getByRole('dialog', { name: 'Verlauf leeren?' })).toBeVisible();
+    await a.getByTestId('history-clear-confirm').click();
+    await expect(a.getByTestId('history-empty')).toBeVisible();
+    await expect(a.getByTestId('toast-info')).toContainText('Verlauf geleert');
+    await ctx.close();
 });
 
 test('Argon2id läuft in einem Worker unter der strikten CSP und die Zeit ist im Rahmen', async ({ page }) => {

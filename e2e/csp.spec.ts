@@ -73,20 +73,28 @@ test('der Umschalter wechselt das Design, merkt sich die Wahl und flackert beim 
     await page.getByTestId('theme-toggle').click();
     expect(await page.evaluate(() => localStorage.getItem('fmf-theme'))).toBe('light');
     // Es wird nur diese eine Einstellung gespeichert, und es gibt weiterhin kein Cookie.
-    expect(await page.evaluate(() => Object.keys(localStorage))).toEqual(['fmf-theme']);
+    expect(await page.evaluate(() => Object.keys(localStorage))).toEqual(['fmf-theme']); // der Verlauf schreibt erst beim ersten Eintrag
     expect(await ctx.cookies()).toEqual([]);
     await ctx.close();
     await dark.close();
 });
 
-test('die Seitenleiste zeigt die Vertrauensaussagen, die das Projekt belegt, und nennt die Grenzen', async ({ page }) => {
+test('die Seitenleiste zeigt die Vertrauensaussagen, die das Projekt belegt; die Grenzen stehen ganz unten', async ({ page }) => {
     await page.goto('/');
     const side = page.getByTestId('sidebar');
-    for (const text of ['Im Browser verschlüsselt', 'Zero Knowledge', 'Schlüssel bleibt im Link', 'Löscht sich selbst', 'Gehärtetes Passwort', 'Keine Accounts, keine Cookies, kein Tracking.']) {
+    for (const text of ['Im Browser verschlüsselt', 'Zero Knowledge', 'Schlüssel bleibt im Link', 'Löscht sich selbst', 'Gehärtetes Passwort']) {
         await expect(side).toContainText(text);
     }
-    await side.getByRole('button', { name: 'Wie weit reicht der Schutz?' }).click();
-    await expect(side).toContainText('Das schützt nicht');
-    await expect(side).toContainText('manipulierten Code');
+    // Kein Tracking-Hinweis. Die Grenzen stehen ganz unten in der Seitenleiste, eingeklappt.
+    await expect(side).not.toContainText('Tracking');
+    const coverage = side.getByTestId('coverage');
+    await expect(coverage).toBeVisible();
+    await expect(coverage).not.toContainText('Das schützt nicht');
+    await coverage.getByRole('button', { name: 'Wie weit reicht der Schutz?' }).click();
+    await expect(coverage).toContainText('Das schützt nicht');
+    await expect(coverage).toContainText('manipulierten Code');
+    const sideBox = (await side.boundingBox())!;
+    const covBox = (await coverage.boundingBox())!;
+    expect(covBox.y + covBox.height).toBeGreaterThan(sideBox.y + sideBox.height - 80); // unten in der Seitenleiste
     await expect(page.getByTestId('secure-indicator')).toContainText('Sichere Verbindung');
 });
