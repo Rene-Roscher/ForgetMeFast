@@ -1,6 +1,13 @@
-// Sets the dark class before first paint. Loaded as a blocking external script (script-src 'self'),
-// so there is no inline script and no flash of the wrong theme. Follows the system setting only;
-// nothing is stored.
-if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    document.documentElement.classList.add('dark');
-}
+// Setzt die Klasse "dark" vor dem ersten Zeichnen. Blockierendes externes Skript (script-src 'self'): kein Inline-Skript
+// und kein Aufblitzen des falschen Designs. Reihenfolge: gespeicherte Wahl, sonst die Systemeinstellung.
+// Gespeichert wird nur "light" oder "dark" in localStorage (Schlüssel fmf-theme), nichts anderes und kein Cookie.
+(function () {
+    var stored = null;
+    try {
+        stored = localStorage.getItem('fmf-theme');
+    } catch (e) {}
+    var dark = stored === 'dark' || (stored !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (dark) {
+        document.documentElement.classList.add('dark');
+    }
+})();

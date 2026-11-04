@@ -56,8 +56,8 @@ function onInput(event: Event) {
 
         <div v-if="generator" class="flex flex-wrap items-center gap-2" role="group" :aria-label="de.create.diceGroup">
             <span class="text-xs font-medium text-muted-foreground">{{ de.create.diceGroup }}</span>
-            <button type="button" class="btn btn-secondary min-h-9 px-3" data-testid="dice-words" @click="roll('words')"><Icon name="dice" />{{ de.create.diceWords }}</button>
-            <button type="button" class="btn btn-secondary min-h-9 px-3" data-testid="dice-chars" @click="roll('chars')"><Icon name="dice" />{{ de.create.diceChars }}</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-testid="dice-words" @click="roll('words')"><Icon name="dice" />{{ de.create.diceWords }}</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-testid="dice-chars" @click="roll('chars')"><Icon name="dice" />{{ de.create.diceChars }}</button>
         </div>
 
         <div v-if="generator" class="flex flex-col gap-1.5" data-testid="strength">
@@ -66,8 +66,8 @@ function onInput(event: Event) {
                 <span v-if="model.length" class="text-muted-foreground tabular-nums"><span class="font-semibold text-foreground">{{ de.strength.bits(bits) }}</span> · {{ source === 'typed' ? de.strength.estimate : de.strength.exact }}</span>
                 <span v-else class="text-muted-foreground">{{ de.strength.none }}</span>
             </div>
-            <div class="h-2 overflow-hidden rounded-full border border-caption bg-input" role="presentation">
-                <div class="h-full rounded-full bg-foreground motion-safe:transition-[width]" :style="{ width: `${percent}%` }" />
+            <div class="h-2 overflow-hidden rounded-sm border border-caption bg-input" role="presentation">
+                <div class="h-full bg-foreground motion-safe:transition-[width]" :style="{ width: `${percent}%` }" />
             </div>
         </div>
         <p v-if="hint" class="hint">{{ hint }}</p>

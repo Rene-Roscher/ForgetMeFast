@@ -11,7 +11,7 @@ const step = (d: number) => {
 <template>
     <div class="flex flex-col gap-2">
         <span :id="`${id}-label`" class="label">{{ label }}</span>
-        <div class="inline-flex w-fit items-center rounded-xl border border-caption bg-input p-1" role="group" :aria-labelledby="`${id}-label`">
+        <div class="inline-flex w-fit items-center rounded-md border border-caption bg-input p-0.5" role="group" :aria-labelledby="`${id}-label`">
             <button type="button" class="icon-btn" :disabled="model <= min" aria-label="weniger" @click="step(-1)"><Icon name="minus" /></button>
             <output :id="id" class="w-9 text-center text-base font-semibold tabular-nums" aria-live="polite">{{ model }}</output>
             <button type="button" class="icon-btn" :disabled="model >= max" aria-label="mehr" @click="step(1)"><Icon name="plus" /></button>

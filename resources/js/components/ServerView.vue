@@ -16,16 +16,16 @@ const shown = computed(() => {
 </script>
 
 <template>
-    <details class="group rounded-xl border border-border-strong bg-surface-panel" data-testid="server-view" :open="open" @toggle="open = ($event.target as HTMLDetailsElement).open">
-        <summary class="flex cursor-pointer list-none items-center gap-3 rounded-xl p-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground [&::-webkit-details-marker]:hidden">
+    <details class="group rounded-lg border border-border bg-inset" data-testid="server-view" :open="open" @toggle="open = ($event.target as HTMLDetailsElement).open">
+        <summary class="flex cursor-pointer list-none items-center gap-3 rounded-lg p-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--focus) [&::-webkit-details-marker]:hidden">
             <Icon name="chevron-right" class="transition-transform motion-reduce:transition-none group-open:rotate-90" />
             <span class="flex flex-col">
                 <span class="flex items-center gap-2 text-sm font-semibold"><Icon name="server" />{{ de.create.serverView }}</span>
                 <span class="hint">{{ de.create.serverViewHint }}</span>
             </span>
         </summary>
-        <div class="flex flex-col gap-3 border-t border-border-strong p-3">
-            <pre v-if="body" class="max-h-72 overflow-auto rounded-lg border border-border-strong bg-card p-3 font-mono text-xs leading-relaxed" data-testid="server-body">{{ shown }}</pre>
+        <div class="flex flex-col gap-3 border-t border-border p-3">
+            <pre v-if="body" class="max-h-72 overflow-auto rounded-md border border-border-strong bg-card p-3 font-mono text-xs leading-relaxed" data-testid="server-body">{{ shown }}</pre>
             <p v-else class="hint">{{ de.create.serverViewPending }}</p>
             <p class="flex items-center gap-2 text-xs font-medium"><Icon name="shield" />{{ de.create.serverViewNotIncluded }}</p>
         </div>
