@@ -89,12 +89,18 @@ test('die Seitenleiste zeigt die Vertrauensaussagen, die das Projekt belegt; die
     await expect(side).not.toContainText('Tracking');
     const coverage = side.getByTestId('coverage');
     await expect(coverage).toBeVisible();
-    await expect(coverage).not.toContainText('Das schützt nicht');
+    await expect(page.getByTestId('coverage-content')).toHaveCount(0);
     await coverage.getByRole('button', { name: 'Wie weit reicht der Schutz?' }).click();
-    await expect(coverage).toContainText('Das schützt nicht');
-    await expect(coverage).toContainText('manipulierten Code');
+    // Ein Popover rechts neben der Seitenleiste, nicht in ihr.
+    const pop = page.getByTestId('coverage-content');
+    await expect(pop).toContainText('Das schützt nicht');
+    await expect(pop).toContainText('manipulierten Code');
     const sideBox = (await side.boundingBox())!;
     const covBox = (await coverage.boundingBox())!;
-    expect(covBox.y + covBox.height).toBeGreaterThan(sideBox.y + sideBox.height - 80); // unten in der Seitenleiste
+    const popBox = (await pop.boundingBox())!;
+    expect(covBox.y + covBox.height).toBeGreaterThan(sideBox.y + sideBox.height - 80); // Auslöser unten in der Seitenleiste
+    expect(popBox.x).toBeGreaterThanOrEqual(sideBox.x + sideBox.width - 1); // Popover öffnet zur Seite
+    await page.keyboard.press('Escape');
+    await expect(pop).toHaveCount(0);
     await expect(page.getByTestId('secure-indicator')).toContainText('Sichere Verbindung');
 });

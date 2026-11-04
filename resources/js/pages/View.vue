@@ -110,7 +110,7 @@ const busy = computed(() => phase.value === 'working');
     <AppShell variant="view" center>
         <section class="card-outer max-w-lg" aria-live="polite">
             <div v-if="phase === 'loading'" class="flex items-center gap-4 p-7 text-base text-muted-foreground" data-testid="loading">
-                <span class="icon-tile"><Icon name="lock" /></span>{{ t('view.loading') }}
+                <span class="icon-tile bg-inset text-foreground"><Icon name="lock" /></span>{{ t('view.loading') }}
             </div>
 
             <div v-else-if="phase === 'insecure'" class="flex flex-col gap-5 p-7" data-testid="insecure">
@@ -127,6 +127,7 @@ const busy = computed(() => phase.value === 'working');
                     <h1 class="text-2xl font-bold tracking-tight">{{ t('errors.incomplete.title') }}</h1>
                     <p class="mt-2 text-base text-muted-foreground">{{ t('errors.incomplete.body') }}</p>
                 </div>
+                <a href="/" class="btn btn-secondary w-fit"><Icon name="plus" />{{ t('errors.unavailable.cta') }}</a>
             </div>
 
             <div v-else-if="phase === 'unavailable'" class="flex flex-col gap-5 p-7" data-testid="unavailable">
@@ -142,15 +143,13 @@ const busy = computed(() => phase.value === 'working');
             <form v-else-if="phase === 'ready' || phase === 'working'" novalidate @submit.prevent="submit">
                 <div class="flex flex-col gap-6 p-5 sm:p-7">
                     <div class="flex items-start gap-4">
-                        <span class="icon-tile"><Icon name="lock" /></span>
+                        <span class="icon-tile bg-inset text-foreground"><Icon name="lock" /></span>
                         <div>
                             <h1 class="text-2xl font-bold tracking-tight">{{ t('view.title') }}</h1>
                             <p class="mt-1 text-base text-muted-foreground">{{ t('view.lead') }}</p>
                         </div>
                     </div>
-                    <div class="card-inner">
-                        <PasswordField id="view-password" ref="passwordInput" v-model="password" :label="t('view.password')" autocomplete="current-password" :invalid="message !== null" describedby="view-status" />
-                    </div>
+                    <PasswordField id="view-password" ref="passwordInput" v-model="password" :label="t('view.password')" autocomplete="current-password" :invalid="message !== null" describedby="view-status" />
                     <div id="view-status" role="alert" data-testid="status">
                         <p v-if="message" class="notice"><Icon name="alert" class="mt-0.5" />{{ message }}</p>
                     </div>
@@ -165,10 +164,10 @@ const busy = computed(() => phase.value === 'working');
             <section v-else data-testid="revealed">
                 <div class="flex flex-col gap-5 p-5 sm:p-7">
                     <div class="flex items-center gap-4">
-                        <span class="icon-tile"><Icon name="check" /></span>
+                        <span class="icon-tile bg-inset text-foreground"><Icon name="check" /></span>
                         <h1 class="text-2xl font-bold tracking-tight">{{ t('view.revealedTitle') }}</h1>
                     </div>
-                    <pre :aria-hidden="!shown" class="card-inner max-h-80 overflow-auto font-mono text-[0.9375rem] leading-relaxed break-words whitespace-pre-wrap transition-[filter] motion-reduce:transition-none" :class="shown ? '' : 'blur-md select-none'" data-testid="secret-text">{{ secret }}</pre>
+                    <pre :aria-hidden="!shown" class="max-h-80 overflow-auto rounded-md bg-inset p-4 font-mono text-[0.9375rem] leading-relaxed break-words whitespace-pre-wrap transition-[filter] motion-reduce:transition-none" :class="shown ? '' : 'blur-md select-none'" data-testid="secret-text">{{ secret }}</pre>
                     <div class="grid grid-cols-2 gap-3">
                         <button type="button" class="btn btn-primary" :aria-pressed="shown" data-testid="reveal" @click="reveal"><Icon :name="shown ? 'eye-off' : 'eye'" />{{ shown ? t('view.hide') : t('view.reveal') }}</button>
                         <button type="button" class="btn btn-secondary" data-testid="copy" @click="copy"><Icon :name="copied ? 'check' : 'copy'" />{{ copied ? t('result.copied') : t('view.copy') }}</button>

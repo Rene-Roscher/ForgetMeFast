@@ -13,15 +13,15 @@ const { t } = useI18n();
     <DialogRoot v-model:open="historyOpen">
         <DialogPortal>
             <DialogOverlay class="modal-overlay fixed inset-0 z-40 bg-black/50" />
-            <DialogContent class="sheet-content fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-border bg-card shadow-2xl" data-testid="history-drawer">
-                <header class="flex items-start justify-between gap-3 border-b border-border p-4">
+            <DialogContent class="sheet-content fixed inset-y-3 right-3 z-50 flex w-[calc(100vw-1.5rem)] max-w-md flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl outline-none" data-testid="history-drawer">
+                <header class="flex items-start justify-between gap-3 px-5 pt-5 pb-3">
                     <div class="flex flex-col gap-1">
                         <DialogTitle class="text-base font-semibold tracking-tight">{{ t('history.title') }}</DialogTitle>
                         <DialogDescription class="text-xs text-muted-foreground">{{ t('history.lead') }}</DialogDescription>
                     </div>
                     <button type="button" class="icon-btn" :aria-label="t('history.close')" data-testid="history-close" @click="historyOpen = false"><Icon name="close" /></button>
                 </header>
-                <div class="min-h-0 flex-1 overflow-auto p-4"><SecretHistory /></div>
+                <SecretHistory class="min-h-0 flex-1" />
             </DialogContent>
         </DialogPortal>
     </DialogRoot>

@@ -166,7 +166,8 @@
         "clearBody": "Die Einträge verschwinden nur aus diesem Browser. Die Secrets selbst bleiben bestehen, bis sie ablaufen.",
         "clearConfirm": "Verlauf leeren",
         "open": "Verlauf",
-        "empty": "Noch nichts hier. Neue Secrets erscheinen nach dem Erstellen in diesem Verlauf.",
+        "emptyTitle": "Noch kein Secret",
+        "empty": "Neue Secrets erscheinen hier, sobald du einen Link erstellt hast.",
         "close": "Verlauf schließen"
     },
     "toast": {

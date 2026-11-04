@@ -101,41 +101,46 @@ function clearAll(): void {
     toast.info(t('toast.historyCleared'));
 }
 
-const stateTone: Record<HistoryState, string> = {
-    active: 'border-l-brand text-foreground',
-    expired: 'border-l-caption text-muted-foreground',
-    gone: 'border-l-caption text-muted-foreground',
-    unknown: 'border-l-caption text-muted-foreground',
+const dot: Record<HistoryState, string> = {
+    active: 'bg-brand',
+    expired: 'bg-caption',
+    gone: 'bg-caption',
+    unknown: 'bg-caption',
 };
 </script>
 
 <template>
-    <section class="flex flex-col gap-3" data-testid="history">
-        <div v-if="rows.length > 0" class="flex items-center justify-between gap-2">
-            <Tip :text="t('history.refresh')"><button type="button" class="btn btn-quiet btn-sm" :aria-label="t('history.refresh')" :disabled="busy" data-testid="history-refresh" @click="refreshAll"><Icon name="refresh" />{{ t('history.refresh') }}</button></Tip>
-            <button type="button" class="btn btn-quiet btn-sm" data-testid="history-clear" @click="clearOpen = true">{{ t('history.clear') }}</button>
+    <section class="flex min-h-0 flex-col" data-testid="history">
+        <div v-if="rows.length === 0" class="flex flex-1 flex-col items-center justify-center gap-2 px-8 py-12 text-center" data-testid="history-empty">
+            <Icon name="history" class="size-6 text-muted-foreground" />
+            <p class="text-sm font-medium">{{ t('history.emptyTitle') }}</p>
+            <p class="text-sm text-muted-foreground">{{ t('history.empty') }}</p>
         </div>
-        <p v-else class="rounded-md border border-dashed border-border-strong p-4 text-center text-sm text-muted-foreground" data-testid="history-empty">{{ t('history.empty') }}</p>
 
-        <ul class="flex flex-col gap-2">
-            <li v-for="row in rows" :key="row.entry.id" class="flex flex-col gap-2 rounded-md border border-border bg-inset p-3 sm:flex-row sm:items-center sm:justify-between" data-testid="history-row">
-                <div class="flex min-w-0 flex-col gap-1.5">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="chip border-l-[3px]" :class="stateTone[row.state]" data-testid="history-state">{{ t(`history.state.${row.state}`) }}</span>
-                        <span class="text-sm font-medium">{{ t('history.created', { when: row.created }) }}</span>
-                    </div>
-                    <p class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        <span class="flex items-center gap-1.5" data-testid="history-views"><Icon name="eye" />{{ t('history.views', { used: row.used, max: row.entry.maxViews }) }}</span>
-                        <span v-if="row.state === 'active' && row.left" class="flex items-center gap-1.5"><Icon name="clock" />{{ t('history.expiresIn', { time: row.left }) }}</span>
+        <ul v-else class="min-h-0 flex-1 divide-y divide-border overflow-auto border-y border-border">
+            <li v-for="row in rows" :key="row.entry.id" class="flex items-center gap-3 px-5 py-3.5" data-testid="history-row">
+                <span class="size-2 shrink-0 rounded-full" :class="dot[row.state]" aria-hidden="true" />
+                <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <p class="flex items-baseline gap-2 text-sm">
+                        <span class="font-medium" data-testid="history-state">{{ t(`history.state.${row.state}`) }}</span>
+                        <span class="truncate text-xs text-muted-foreground">{{ t('history.created', { when: row.created }) }}</span>
+                    </p>
+                    <p class="truncate text-xs text-muted-foreground">
+                        <span data-testid="history-views">{{ t('history.views', { used: row.used, max: row.entry.maxViews }) }}</span><template v-if="row.state === 'active' && row.left"> · {{ t('history.expiresIn', { time: row.left }) }}</template>
                     </p>
                 </div>
-                <div class="flex shrink-0 items-center gap-1">
-                    <Tip :text="t('history.copyLink')"><button type="button" class="icon-btn border border-border-strong bg-card" :aria-label="t('history.copyLink')" data-testid="history-copy" @click="copyLink(row.entry)"><Icon name="copy" /></button></Tip>
-                    <Tip v-if="row.state === 'active'" :text="t('history.destroy')"><button type="button" class="icon-btn border border-border-strong bg-card" :aria-label="t('history.destroy')" data-testid="history-destroy" @click="askDestroy(row.entry)"><Icon name="trash" /></button></Tip>
-                    <Tip :text="t('history.remove')"><button type="button" class="icon-btn" :aria-label="t('history.remove')" data-testid="history-remove" @click="history.remove(row.entry.id)"><Icon name="close" /></button></Tip>
+                <div class="flex shrink-0 items-center">
+                    <Tip :text="t('history.copyLink')"><button type="button" class="icon-btn" :aria-label="t('history.copyLink')" data-testid="history-copy" @click="copyLink(row.entry)"><Icon name="copy" /></button></Tip>
+                    <Tip v-if="row.state === 'active'" :text="t('history.destroy')"><button type="button" class="icon-btn" :aria-label="t('history.destroy')" data-testid="history-destroy" @click="askDestroy(row.entry)"><Icon name="trash" /></button></Tip>
+                    <Tip :text="t('history.remove')"><button type="button" class="icon-btn text-muted-foreground" :aria-label="t('history.remove')" data-testid="history-remove" @click="history.remove(row.entry.id)"><Icon name="close" /></button></Tip>
                 </div>
             </li>
         </ul>
+
+        <div v-if="rows.length > 0" class="flex items-center justify-between gap-2 px-3 py-3">
+            <button type="button" class="btn btn-quiet btn-sm" :disabled="busy" data-testid="history-refresh" @click="refreshAll"><Icon name="refresh" />{{ t('history.refresh') }}</button>
+            <button type="button" class="btn btn-quiet btn-sm text-muted-foreground" data-testid="history-clear" @click="clearOpen = true">{{ t('history.clear') }}</button>
+        </div>
 
         <Modal v-model:open="destroyOpen" :title="t('result.destroy.title')" :description="t('result.destroy.body')" testid="history-destroy-dialog">
             <template #footer>

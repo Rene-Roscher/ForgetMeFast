@@ -127,6 +127,28 @@ async function focusRing(page: Page, name: string) {
     expect(r.ratio, `${name}: Fokusring-Kontrast`).toBeGreaterThanOrEqual(3);
 }
 
+/** Fokus in einem Feld: der Rand der Fläche wechselt in die Markenfarbe (mindestens 3:1 gegen die Karte dahinter). */
+async function fieldFocus(page: Page, selector: string, name: string) {
+    await page.locator(selector).focus();
+    await page.waitForTimeout(250); // Übergang des Rands
+    const r = await page.evaluate((sel) => {
+        const el = document.querySelector(sel) as HTMLElement;
+        const surface = (el.closest('[data-focus-surface]') ?? el) as HTMLElement;
+        const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true })!;
+        const px = (css: string) => { ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = css; ctx.fillRect(0, 0, 1, 1); return Array.from(ctx.getImageData(0, 0, 1, 1).data); };
+        const lin = (c: number) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+        const lum = (c: number[]) => 0.2126 * lin(c[0]!) + 0.7152 * lin(c[1]!) + 0.0722 * lin(c[2]!);
+        const card = surface.closest('section') ?? surface.parentElement!;
+        const bg = px(getComputedStyle(surface.matches('section') ? surface.parentElement! : card).backgroundColor);
+        const s = getComputedStyle(surface);
+        const [hi, lo] = [lum(px(s.borderTopColor)), lum(bg[3] === 0 ? px(getComputedStyle(document.body).backgroundColor) : bg)].sort((a, b) => b - a) as [number, number];
+        return { width: parseFloat(s.borderTopWidth), ratio: (hi + 0.05) / (lo + 0.05), halo: s.boxShadow !== 'none', ring: getComputedStyle(el).boxShadow };
+    }, selector);
+    expect(r.width, `${name}: Rand vorhanden`).toBeGreaterThanOrEqual(1);
+    expect(r.ratio, `${name}: Fokusrand-Kontrast`).toBeGreaterThanOrEqual(3);
+    expect(r.halo, `${name}: weicher Hof`).toBe(true);
+}
+
 test('Gegenprobe: die Messung schlägt bei absichtlich schlechten Werten an', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('#secret')).toBeVisible(); // erst messen, wenn die App gemountet ist
@@ -134,7 +156,7 @@ test('Gegenprobe: die Messung schlägt bei absichtlich schlechten Werten an', as
     // unsichtbar und eine winzige Schaltfläche.
     await page.evaluate(() => {
         (document.querySelector('.hint') as HTMLElement).style.color = '#dddddd';
-        (document.querySelector('#secret') as HTMLElement).style.borderColor = '#eeeeee';
+        (document.querySelector('#password') as HTMLElement).style.borderColor = '#eeeeee';
         const b = document.querySelector('[data-testid=pw-refresh]') as HTMLElement;
         b.style.width = '10px';
         b.style.minHeight = '10px';
@@ -155,6 +177,8 @@ for (const scheme of ['light', 'dark'] as const) {
             await page.goto('/');
             await audit(page, 'create-leer');
             await focusRing(page, 'create');
+            await fieldFocus(page, '#secret', 'secret');
+            await fieldFocus(page, '#password', 'password');
 
             await page.locator('#secret').fill('x');
             await page.locator('#password').fill('kurz');
@@ -300,6 +324,7 @@ for (const scheme of ['light', 'dark'] as const) {
             await expect(page.getByTestId('history-drawer')).toHaveCount(0);
 
             await page.getByTestId('coverage-mobile').getByRole('button', { name: 'Wie weit reicht der Schutz?' }).click();
+            await expect(page.getByTestId('coverage-content')).toBeVisible();
             await audit(page, 'handy-schutz-offen');
 
             await page.route('**/api/secrets', (r) => (r.request().method() === 'POST' ? r.fulfill({ status: 500, body: '{}' }) : r.continue()));

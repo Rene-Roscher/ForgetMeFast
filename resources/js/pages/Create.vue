@@ -178,7 +178,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
 </script>
 
 <template>
-    <AppShell variant="create" :dock="secure && !result" :center="!secure || !!result">
+    <AppShell variant="create" :dock="secure && !result" center>
         <template #header>
             <template v-if="result">
                 <h1 class="text-xl font-bold tracking-tight sm:text-2xl">{{ t('result.title') }}</h1>
@@ -231,15 +231,12 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
         </section>
 
         <!-- Formular: Inhalt links, Passwort als eigene Karte daneben, die Regeln und die Aktion schweben unten -->
-        <form v-else class="w-full max-w-6xl" novalidate @submit.prevent="submit">
+        <form v-else class="w-full max-w-5xl" novalidate @submit.prevent="submit">
             <div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-                <section class="card-outer flex flex-col gap-3 p-4 sm:p-5" aria-labelledby="secret-title">
-                    <div class="flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-2.5">
-                            <span class="icon-tile"><Icon name="lock" /></span>
-                            <h2 id="secret-title" class="text-sm font-semibold">{{ t('create.secret.title') }}</h2>
-                        </div>
-                        <span class="chip hidden sm:inline-flex"><Icon name="shield" />{{ t('create.secret.badge') }}</span>
+                <section class="card-outer flex flex-col transition-[border-color,box-shadow] duration-150 focus-within:border-brand focus-within:shadow-[0_0_0_3px_var(--focus-halo)] hover:[&:not(:focus-within)]:border-[var(--control-hover)]" aria-labelledby="secret-title" data-focus-surface>
+                    <div class="flex items-center justify-between gap-3 px-4 pt-3.5 sm:px-5">
+                        <h2 id="secret-title" class="text-sm font-semibold">{{ t('create.secret.title') }}</h2>
+                        <span class="hint hidden items-center gap-1.5 sm:inline-flex"><Icon name="shield" />{{ t('create.secret.badge') }}</span>
                     </div>
                     <label for="secret" class="sr-only">{{ t('create.secret.title') }}</label>
                     <textarea
@@ -250,18 +247,15 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                         :placeholder="t('create.secret.placeholder')"
                         :aria-invalid="tooLarge || undefined"
                         aria-describedby="secret-limit"
-                        class="field min-h-52 resize-y rounded-lg p-4 font-mono leading-relaxed shadow-none lg:min-h-72"
+                        class="min-h-52 w-full resize-y bg-transparent px-4 py-3 font-mono text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground focus-visible:shadow-none sm:px-5 sm:text-sm lg:min-h-72"
                     />
-                    <p id="secret-limit" class="flex min-h-4 items-center justify-end gap-1.5 text-xs" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
+                    <p id="secret-limit" class="flex min-h-4 items-center justify-end gap-1.5 px-4 pb-3 text-xs sm:px-5" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
                         <template v-if="limitHint"><Icon v-if="limitHint.over" name="alert" />{{ limitHint.text }}</template>
                     </p>
                 </section>
 
-                <section class="card-outer flex flex-col gap-3 p-4 sm:p-5" aria-labelledby="password-title">
-                    <div class="flex items-center gap-2.5">
-                        <span class="icon-tile"><Icon name="key" /></span>
-                        <h2 id="password-title" class="text-sm font-semibold">{{ t('create.password.title') }}</h2>
-                    </div>
+                <section class="card-outer flex flex-col gap-4 p-4 sm:p-5" aria-labelledby="password-title">
+                    <h2 id="password-title" class="text-sm font-semibold">{{ t('create.password.title') }}</h2>
                     <PasswordField id="password" v-model="password" v-model:source="source" :label="t('create.password.label')" :hint="t('create.password.hint')" generator autocomplete="new-password" />
                     <p v-if="password.length > 0 && !passwordOk" class="notice" role="status"><Icon name="alert" class="mt-0.5" />{{ t('errors.passwordTooShort') }}</p>
                 </section>
@@ -269,7 +263,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
 
             <!-- Schwebende Leiste: Ablauf, Abrufe und Fehlversuche sind hier direkt die Auswahl -->
             <div class="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4 lg:left-[17rem] lg:px-8 xl:left-[19rem]" data-testid="dock">
-                <div class="pointer-events-auto mx-auto flex w-full max-w-6xl flex-col gap-2 rounded-lg border border-border-strong bg-card/95 p-2 shadow-[0_12px_36px_-12px_rgb(0_0_0/0.5)] backdrop-blur sm:flex-row sm:items-center sm:gap-2 sm:p-2.5" role="group" :aria-label="t('create.dock.label')">
+                <div class="pointer-events-auto mx-auto flex w-full max-w-5xl flex-col gap-2 rounded-xl border border-border bg-card/95 p-1.5 shadow-[0_12px_36px_-12px_rgb(0_0_0/0.5)] backdrop-blur sm:flex-row sm:items-center sm:gap-2 sm:p-2.5" role="group" :aria-label="t('create.dock.label')">
                     <div class="grid grid-cols-3 gap-1.5 sm:mr-auto sm:flex sm:flex-wrap sm:items-center sm:gap-2">
                         <SelectMenu id="ttl" v-model="ttl" :label="t('create.dock.expiry')" icon="clock" :options="expiryOptions" />
                         <DockStepper id="views" v-model="views" :label="t('create.dock.views')" icon="eye" :min="1" :max="MAX_COUNT" />
