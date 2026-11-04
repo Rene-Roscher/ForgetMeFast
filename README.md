@@ -98,7 +98,7 @@ Protokoll v1 in einem Satz je Baustein, mit Quelle. Die genauen Bytes stehen in
 
 Stand 2026-11-04, alles lokal gelaufen:
 
-- **Pest:** 109 Tests (Validierung, Zähler, Vernichtung, einheitliche Antworten, Header, Cookies, Throttling, Architekturregeln,
+- **Pest:** 110 Tests (Validierung, Zähler, Vernichtung, einheitliche Antworten, Header, Cookies, Throttling, Architekturregeln,
   Schema ohne Klartext- und IP-Spalten, Logs ohne Marker, drei Paralleltests mit je 50 Prozessen).
 - **Vitest:** 135 Tests im Krypto-Modul und in der Oberfläche, Zeilenabdeckung 99 % bei erzwungenen 95 %; RFC-5869-Vektoren,
   RFC-9106-Vektor, ein unabhängig erzeugter Protokollvektor, AAD-Test je Feld, statische Prüfung auf Speicher, Netzwerk und `console`.
