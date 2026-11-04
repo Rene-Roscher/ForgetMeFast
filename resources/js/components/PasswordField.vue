@@ -85,8 +85,8 @@ function submitForm(event: KeyboardEvent): void {
 
         <div v-if="generator" class="flex items-center gap-2">
             <ToggleGroupRoot type="single" :model-value="mode" :aria-label="t('create.password.modeLabel')" class="inline-flex rounded-md bg-inset p-0.5" @update:model-value="setMode">
-                <ToggleGroupItem value="words" data-testid="pw-mode-words" class="min-h-8 cursor-pointer rounded-md px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-accent focus-visible:shadow-none data-[state=on]:bg-foreground data-[state=on]:text-background">{{ t('create.password.words') }}</ToggleGroupItem>
-                <ToggleGroupItem value="chars" data-testid="pw-mode-chars" class="min-h-8 cursor-pointer rounded-md px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-accent focus-visible:shadow-none data-[state=on]:bg-foreground data-[state=on]:text-background">{{ t('create.password.chars') }}</ToggleGroupItem>
+                <ToggleGroupItem value="words" data-testid="pw-mode-words" class="no-ring min-h-8 cursor-pointer rounded-md px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-accent focus-visible:shadow-none data-[state=on]:bg-foreground data-[state=on]:text-background">{{ t('create.password.words') }}</ToggleGroupItem>
+                <ToggleGroupItem value="chars" data-testid="pw-mode-chars" class="no-ring min-h-8 cursor-pointer rounded-md px-3 text-[0.8125rem] font-semibold text-foreground transition-colors hover:bg-accent focus-visible:shadow-none data-[state=on]:bg-foreground data-[state=on]:text-background">{{ t('create.password.chars') }}</ToggleGroupItem>
             </ToggleGroupRoot>
             <Tip :text="t('create.password.refresh')">
                 <button type="button" class="btn btn-secondary btn-sm px-2" data-testid="pw-refresh" :aria-label="t('create.password.refresh')" @click="roll(mode)"><Icon name="refresh" /></button>

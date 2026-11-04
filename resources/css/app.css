@@ -90,6 +90,8 @@
 .card-inner, [data-slot='inset'] { --ring-gap: var(--inset); }
 /* Listen in Auswahl und Menüs zeigen den Fokus über die Hervorhebung, nie über einen Ring. */
 [role='listbox']:focus-visible, [role='option']:focus-visible, [role='dialog']:focus-visible { box-shadow: none; }
+/* Der globale Ring liegt außerhalb der Layer und schlägt Utilities; diese Stellen nehmen ihn ausdrücklich zurück. */
+.no-ring:focus-visible, .field:focus-visible, .flat-ctl:focus-visible, .flat-ctl .no-ring:focus-visible { box-shadow: none; }
 
 @layer components {
     .btn {
@@ -110,10 +112,10 @@
     .btn-sm {
         @apply min-h-8 px-2.5 text-[0.8125rem];
     }
-    /* Eingabefeld: ruhig im Normalzustand, beim Überfahren ein etwas stärkerer Rand, im Fokus der Rand in Markenfarbe
-       mit einem weichen Hof. Kein harter Ring wie bei Schaltflächen. */
+    /* Eingabefeld: im Normalzustand, beim Überfahren und im Fokus immer gleich. Kein Farbwechsel, kein Ring, kein Hof.
+       (Auf ausdrücklichen Wunsch des Maintainers; der Textcursor zeigt den Fokus.) */
     .field {
-        @apply min-h-10 w-full rounded-md border border-control bg-input px-3 text-base text-foreground transition-[border-color,box-shadow] duration-150 placeholder:text-muted-foreground hover:border-[var(--control-hover)] focus-visible:border-brand focus-visible:shadow-[0_0_0_3px_var(--focus-halo)] sm:text-sm;
+        @apply min-h-10 w-full rounded-md border border-control bg-input px-3 text-base text-foreground outline-none placeholder:text-muted-foreground focus-visible:shadow-none sm:text-sm;
     }
     /* Flache Bedienelemente der Aktionsleiste: kein Rand, kein Ring. Überfahren und Fokus zeigen nur eine Fläche. */
     .flat-ctl {

@@ -127,26 +127,21 @@ async function focusRing(page: Page, name: string) {
     expect(r.ratio, `${name}: Fokusring-Kontrast`).toBeGreaterThanOrEqual(3);
 }
 
-/** Fokus in einem Feld: der Rand der Fläche wechselt in die Markenfarbe (mindestens 3:1 gegen die Karte dahinter). */
-async function fieldFocus(page: Page, selector: string, name: string) {
-    await page.locator(selector).focus();
-    await page.waitForTimeout(250); // Übergang des Rands
-    const r = await page.evaluate((sel) => {
+/** Felder bleiben im Fokus ruhig: kein Randwechsel, kein Ring, kein Hof (Wunsch des Maintainers). */
+async function fieldCalm(page: Page, selector: string, name: string) {
+    const look = () => page.evaluate((sel) => {
         const el = document.querySelector(sel) as HTMLElement;
-        const surface = (el.closest('[data-focus-surface]') ?? el) as HTMLElement;
-        const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true })!;
-        const px = (css: string) => { ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = css; ctx.fillRect(0, 0, 1, 1); return Array.from(ctx.getImageData(0, 0, 1, 1).data); };
-        const lin = (c: number) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-        const lum = (c: number[]) => 0.2126 * lin(c[0]!) + 0.7152 * lin(c[1]!) + 0.0722 * lin(c[2]!);
-        const card = surface.closest('section') ?? surface.parentElement!;
-        const bg = px(getComputedStyle(surface.matches('section') ? surface.parentElement! : card).backgroundColor);
-        const s = getComputedStyle(surface);
-        const [hi, lo] = [lum(px(s.borderTopColor)), lum(bg[3] === 0 ? px(getComputedStyle(document.body).backgroundColor) : bg)].sort((a, b) => b - a) as [number, number];
-        return { width: parseFloat(s.borderTopWidth), ratio: (hi + 0.05) / (lo + 0.05), halo: s.boxShadow !== 'none', ring: getComputedStyle(el).boxShadow };
+        const surface = (el.closest('section') ?? el) as HTMLElement;
+        return [el, surface].map((n) => { const s = getComputedStyle(n); return `${s.borderTopColor}|${s.boxShadow}|${s.outlineStyle}`; }).join(' / ');
     }, selector);
-    expect(r.width, `${name}: Rand vorhanden`).toBeGreaterThanOrEqual(1);
-    expect(r.ratio, `${name}: Fokusrand-Kontrast`).toBeGreaterThanOrEqual(3);
-    expect(r.halo, `${name}: weicher Hof`).toBe(true);
+    await page.locator(selector).blur().catch(() => undefined);
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    const before = await look();
+    await page.locator(selector).focus();
+    await page.waitForTimeout(250);
+    expect(await look(), `${name}: Fokus ändert nichts am Aussehen`).toBe(before);
+    expect(before, `${name}: kein Ring`).toContain('none');
 }
 
 test('Gegenprobe: die Messung schlägt bei absichtlich schlechten Werten an', async ({ page }) => {
@@ -177,8 +172,8 @@ for (const scheme of ['light', 'dark'] as const) {
             await page.goto('/');
             await audit(page, 'create-leer');
             await focusRing(page, 'create');
-            await fieldFocus(page, '#secret', 'secret');
-            await fieldFocus(page, '#password', 'password');
+            await fieldCalm(page, '#secret', 'secret');
+            await fieldCalm(page, '#password', 'password');
 
             await page.locator('#secret').fill('x');
             await page.locator('#password').fill('kurz');

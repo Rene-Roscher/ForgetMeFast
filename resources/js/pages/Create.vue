@@ -233,7 +233,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
         <!-- Formular: Inhalt links, Passwort als eigene Karte daneben, die Regeln und die Aktion schweben unten -->
         <form v-else class="w-full max-w-5xl" novalidate @submit.prevent="submit">
             <div class="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-                <section class="card-outer flex flex-col transition-[border-color,box-shadow] duration-150 focus-within:border-brand focus-within:shadow-[0_0_0_3px_var(--focus-halo)] hover:[&:not(:focus-within)]:border-[var(--control-hover)]" aria-labelledby="secret-title" data-focus-surface>
+                <section class="card-outer flex flex-col" aria-labelledby="secret-title">
                     <div class="flex items-center justify-between gap-3 px-4 pt-3.5 sm:px-5">
                         <h2 id="secret-title" class="text-sm font-semibold">{{ t('create.secret.title') }}</h2>
                         <span class="hint hidden items-center gap-1.5 sm:inline-flex"><Icon name="shield" />{{ t('create.secret.badge') }}</span>
@@ -247,7 +247,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                         :placeholder="t('create.secret.placeholder')"
                         :aria-invalid="tooLarge || undefined"
                         aria-describedby="secret-limit"
-                        class="min-h-52 w-full resize-y bg-transparent px-4 py-3 font-mono text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground focus-visible:shadow-none sm:px-5 sm:text-sm lg:min-h-72"
+                        class="no-ring min-h-52 w-full resize-y bg-transparent px-4 py-3 font-mono text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground focus-visible:shadow-none sm:px-5 sm:text-sm lg:min-h-72"
                     />
                     <p id="secret-limit" class="flex min-h-4 items-center justify-end gap-1.5 px-4 pb-3 text-xs sm:px-5" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
                         <template v-if="limitHint"><Icon v-if="limitHint.over" name="alert" />{{ limitHint.text }}</template>
