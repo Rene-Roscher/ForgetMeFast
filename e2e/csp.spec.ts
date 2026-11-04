@@ -17,7 +17,7 @@ test('home page boots Inertia under the strict CSP without violations', async ({
     expect(response?.headers()['content-security-policy']).toContain("script-src 'self'");
 
     // The Vue app only renders this heading after Inertia mounted, so it proves the JS ran under the CSP.
-    await expect(page.getByRole('heading', { name: 'ForgetMeFast' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Secret teilen' })).toBeVisible();
     expect(await page.locator('script:not([src]):not([type="application/json"])').count()).toBe(0);
     if (process.env.E2E_DEV === '1') {
         // Proves the dev run really loads scripts from the Vite dev server and not from public/build.
@@ -40,7 +40,7 @@ test('fonts load from the same origin and the theme follows the system without a
     });
 
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'ForgetMeFast' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Secret teilen' })).toBeVisible();
 
     expect(await page.evaluate(() => document.documentElement.classList.contains('dark'))).toBe(true);
     expect(await page.evaluate(() => document.fonts.check('16px "Plus Jakarta Sans"'))).toBe(true);

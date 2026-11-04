@@ -183,7 +183,7 @@ test('Passwort zu kurz und leeres Secret sperren den Button; Zähler warnt bei �
     await expect(page.getByTestId('submit')).toBeEnabled();
     await page.locator('#secret').fill('a'.repeat(65533));
     await expect(page.getByTestId('submit')).toBeDisabled();
-    await expect(page.locator('#secret-count')).toContainText('⚠');
+    await expect(page.locator('#secret')).toHaveAttribute('aria-invalid', 'true');
 });
 
 test('Würfeln erzeugt ein Passwort und zeigt die Stärke: exakt für erzeugt, Schätzung für getippt', async ({ page }) => {
