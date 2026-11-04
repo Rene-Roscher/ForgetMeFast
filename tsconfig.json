@@ -9,6 +9,7 @@
         "jsx": "preserve",
         "skipLibCheck": true,
         "isolatedModules": true,
+        "resolveJsonModule": true,
         "noEmit": true,
         "lib": ["ESNext", "DOM", "DOM.Iterable"],
         "types": ["vite/client", "node"],
