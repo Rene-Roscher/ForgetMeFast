@@ -83,5 +83,6 @@ Dazu kommt (Stand Setup):
 
 ## Lizenzen und Quellen
 
+- EFF Large Wordlist (Passphrasen): © Electronic Frontier Foundation, Creative Commons Attribution 4.0 International (CC BY 4.0), laut https://www.eff.org/copyright; Quelle https://www.eff.org/dice. Geändert: Würfelzahlen entfernt, als TypeScript-Array übernommen (`resources/js/crypto/eff-large-wordlist.ts`).
 - Schriften Plus Jakarta Sans und Geist Mono: SIL Open Font License 1.1 (über `@fontsource-variable/*`).
 - Die Quellenliste aus [`docs/SPEC.md`](docs/SPEC.md) wird hier verlinkt, sobald die Zahlen geprüft sind.
