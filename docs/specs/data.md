@@ -3,8 +3,8 @@
 Status: Approved
 Owner: Maintainer (Rene Roscher)
 Skills: none installed, area checklist used
-Code: none yet
-Checked against code: none
+Code: database/migrations
+Checked against code: 2026-11-04
 
 ## Zweck
 Eine Tabelle `secrets` nach `docs/SPEC.md` (Datenmodell). Kein Klartext-Feld, keine IP-Spalte.

@@ -3,8 +3,8 @@
 Status: Approved
 Owner: Maintainer (Rene Roscher)
 Skills: github-actions-hardening, safe-actions
-Code: none yet
-Checked against code: none
+Code: .github, composer.json, package.json
+Checked against code: 2026-11-04
 
 ## Zweck
 CI prüft jede Änderung mit denselben Befehlen wie lokal und läuft mit minimalen Rechten.
