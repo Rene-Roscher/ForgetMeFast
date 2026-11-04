@@ -1,6 +1,6 @@
 # Tests
 
-Status: Draft
+Status: Approved
 Owner: Maintainer (Rene Roscher)
 Skills: verify-before-done, browser-verification, feature-delivery
 Code: none yet

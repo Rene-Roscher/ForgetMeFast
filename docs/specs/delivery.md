@@ -1,6 +1,6 @@
 # Auslieferung
 
-Status: Draft
+Status: Approved
 Owner: Maintainer (Rene Roscher)
 Skills: github-actions-hardening, safe-actions
 Code: none yet

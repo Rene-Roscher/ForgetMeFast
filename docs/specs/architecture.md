@@ -1,6 +1,6 @@
 # Architektur
 
-Status: Draft
+Status: Approved
 Owner: Maintainer (Rene Roscher)
 Skills: web-architecture, vue-inertia-frontend
 Code: none yet

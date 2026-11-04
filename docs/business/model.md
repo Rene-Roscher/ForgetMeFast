@@ -1,6 +1,6 @@
 # Geschäftsmodell
 
-Status: Draft
+Status: Approved
 Owner: Maintainer (Rene Roscher)
 Skills: none installed, area checklist used
 Code: none yet

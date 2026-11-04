@@ -1,7 +1,7 @@
 # Inception: ForgetMeFast
 
-Status: Draft
-Approved-by:
+Status: Approved
+Approved-by: Rene Roscher, 2026-11-04
 Mode: new
 Date: 2026-11-04
 
@@ -13,19 +13,19 @@ Protokoll v1 aus `docs/SPEC.md`; dieses Setup legt nur das Fundament ohne Featur
 ## Areas
 | Area | Document | Status | Skills | N/A reason |
 |---|---|---|---|---|
-| Product | `docs/product/brief.md` | Draft | none installed | |
-| Business | `docs/business/model.md` | Draft | none installed | |
-| Architecture | `docs/specs/architecture.md` | Draft | web-architecture, vue-inertia-frontend | |
-| Data | `docs/specs/data.md` | Draft | none installed | |
+| Product | `docs/product/brief.md` | Approved | none installed | |
+| Business | `docs/business/model.md` | Approved | none installed | |
+| Architecture | `docs/specs/architecture.md` | Approved | web-architecture, vue-inertia-frontend | |
+| Data | `docs/specs/data.md` | Approved | none installed | |
 | Tenancy | | | | N/A: Single-Tenant-Selbsthost-App, keine Mandanten, keine Accounts |
 | Access | | | | N/A: keine Rollen und kein Login; der Zugriff läuft über Link-Key, Passwort und `manage_token` aus `docs/SPEC.md` |
 | Billing | | | | N/A: kein Bezahlmodell |
-| Privacy | `docs/specs/privacy.md` | Draft | none installed | |
+| Privacy | `docs/specs/privacy.md` | Approved | none installed | |
 | Availability | | | | N/A: Selbsthost, kein Betriebsversprechen; Backups irrelevant, Secrets sind kurzlebig |
-| Delivery | `docs/specs/delivery.md` | Draft | github-actions-hardening, safe-actions | |
-| Testing | `docs/specs/testing.md` | Draft | verify-before-done, browser-verification, feature-delivery | |
-| API | `docs/specs/api.md` | Draft | api-contract | |
-| Runtime | `docs/specs/runtime.md` | Draft | laravel-architecture, laravel-production-runtime | |
+| Delivery | `docs/specs/delivery.md` | Approved | github-actions-hardening, safe-actions | |
+| Testing | `docs/specs/testing.md` | Approved | verify-before-done, browser-verification, feature-delivery | |
+| API | `docs/specs/api.md` | Approved | api-contract | |
+| Runtime | `docs/specs/runtime.md` | Approved | laravel-architecture, laravel-production-runtime | |
 
 Die Skills `product-strategy`, `pricing-and-unit-economics`, `gdpr-engineering` und `dual-key-identifiers`
 gehören zu nicht installierten Plugins (`business`, `saas`, `data`); dort galt die Bereichs-Checkliste.
@@ -59,14 +59,17 @@ Keine. Es gibt noch keinen Code.
    - Options: A, keine Zahl, nur der Test- und README-Nachweis; B, eine Zahl, die du nennst.
    - Trade-offs: A ist ehrlich für ein Lernprojekt, B misst Wirkung.
    - Recommendation: A.
+   - Answer: A
 6. Wie lautet das Fehlerformat der API?
    - Options: A, ein fester JSON-Body `{"message": "unavailable"}`; B, RFC 9457 Problem Details.
    - Trade-offs: B verrät über `type` und `title` mehr Zustand, wenn man es nicht einheitlich hält.
    - Recommendation: A, weil die Antworten bewusst identisch sind.
+   - Answer: A
 7. Welche Argon2id-Bibliothek? ADR 0002 liefert den Vergleich mit Quellen als Vorschlag.
    - Options: wird in ADR 0002 belegt.
    - Trade-offs: berührt Protokoll v1 (Paketwahl). Nichts wird eingebaut, bevor du die ADR freigibst.
    - Recommendation: offen bis zur Recherche.
+   - Decision: ADR 0002 wird recherchiert und dir als Vorschlag vorgelegt; Einbau erst nach deiner Freigabe.
 8. Commits unsigniert und ohne Push?
    - Options: A, unsigniert und ohne Push; B, du richtest SSH-Signing ein.
    - Trade-offs: A weicht vom [default] ab und wird in ADR 0003 begründet.
