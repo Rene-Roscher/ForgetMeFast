@@ -1,10 +1,10 @@
 # Datenschutz
 
-Status: Approved
+Status: Implemented
 Owner: Maintainer (Rene Roscher)
 Skills: none installed, area checklist used
-Code: none yet
-Checked against code: none
+Code: app/Actions/PruneSecrets.php, routes/console.php, config/database.php
+Checked against code: 2026-11-04
 
 ## Zweck
 Der Server hält nur Ciphertext und Metadaten. Entwurf, kein Rechtsrat.
@@ -16,7 +16,12 @@ Der Server hält nur Ciphertext und Metadaten. Entwurf, kein Rechtsrat.
 | Metadaten (Zeiten, Zähler, Größen-Bucket) | Limits | bis zum Prune |
 | IP-Hash im Throttling | Missbrauchsschutz | Cache-Lebensdauer des Limits |
 
-Keine Roh-IPs, keine Bodies, keine Secrets in Logs. Keine Auftragsverarbeiter, keine Drittlandübertragung,
+Keine Roh-IPs, keine Bodies, keine Secrets in Logs.
+Aufbewahrung: Der Aufräumjob `secrets:prune` (jede Minute) setzt abgelaufene Secrets auf vernichtet (Ciphertext `NULL`) und
+löscht alle vernichteten Zeilen sofort. SQLite läuft mit `secure_delete`. Das überschreibt gelöschte Seiten in der Datei,
+bedeutet aber kein garantiertes physisches Überschreiben auf dem Datenträger (Dateisystem, Snapshots). Harmlos, weil nur
+Ciphertext und Metadaten dort liegen.
+ Keine Auftragsverarbeiter, keine Drittlandübertragung,
 keine Analytics.
 
 ## Tests, die es beweisen

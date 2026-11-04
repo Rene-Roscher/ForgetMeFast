@@ -1,9 +1,9 @@
 # Laufzeit (Laravel)
 
-Status: Approved
+Status: Implemented
 Owner: Maintainer (Rene Roscher)
 Skills: laravel-architecture, laravel-production-runtime
-Code: app/Http, app/Providers, bootstrap/app.php, tests/Arch
+Code: app/Http, app/Providers, app/Actions, app/Console, bootstrap/app.php, tests/Arch
 Checked against code: 2026-11-04
 
 ## Zweck

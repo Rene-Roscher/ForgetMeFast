@@ -1,9 +1,9 @@
 # Tests
 
-Status: Approved
+Status: Implemented
 Owner: Maintainer (Rene Roscher)
 Skills: verify-before-done, browser-verification, feature-delivery
-Code: tests, e2e, vitest.config.ts, playwright.config.ts
+Code: tests, e2e, vitest.config.ts, playwright.config.ts, resources/js/ui-guard.test.ts
 Checked against code: 2026-11-04
 
 ## Zweck

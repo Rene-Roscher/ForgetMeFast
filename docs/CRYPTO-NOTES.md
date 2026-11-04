@@ -54,3 +54,39 @@ werden abgelehnt. Begründung: ADR 0004, Punkt 3.
 ## 3. Quellen
 - RFC 5869 (HKDF), RFC 9106 (Argon2), NIST SP 800-38D (GCM), W3C Web Cryptography API.
 - Testvektor und Erzeuger: siehe oben.
+
+## 4. Erklärt für Laien: was passiert, und warum
+
+Das Ziel: Du schickst jemandem ein Geheimnis, und **nur ihr zwei** könnt es lesen. Auch wer den Server betreibt, kann es
+nicht. Dafür sorgen mehrere kleine Bausteine, jeder mit einer klaren Aufgabe.
+
+**Zwei Dinge, die zusammen öffnen.** Das Geheimnis wird mit einem Schlüssel gesperrt, der aus zwei Teilen entsteht: dem
+**Link-Schlüssel** (steckt im Link hinter dem `#`) und dem **Passwort** (geht auf einem anderen Weg). Wer nur eines davon
+hat, kommt nicht weiter. *Quelle: `docs/SPEC.md`, Sicherheitsziele.*
+
+**Warum hinter dem `#`?** Alles, was hinter dem `#` einer Adresse steht, schickt der Browser nicht an den Server. Der
+Server sieht also den Link-Schlüssel nie. Das ist in dieser Sitzung nachgeprüft: Der Test lauscht auf alle Anfragen des
+Browsers und sucht den Link-Schlüssel danach im Server-Protokoll, in den Logs und in der Datenbank. Er findet ihn nirgends.
+*Quelle: MDN "URI fragment" ("The fragment is not sent to the server when the URI is requested"), RFC 3986 §3.5.*
+
+**Argon2id: Passwörter absichtlich teuer machen.** Wer ein Passwort rät, soll dafür viel Rechenzeit und viel Speicher
+brauchen. Argon2id verlangt 19 MiB Speicher je Versuch (m=19456, t=2, p=1). Das ist das Mindestmaß, das OWASP nennt, und
+kostet dich etwa eine Zehntelsekunde. *Quellen: RFC 9106; OWASP Password Storage Cheat Sheet, gelesen 2026-11-04.*
+
+**HKDF: aus einem Schlüssel zwei machen.** Aus Link-Schlüssel und Passwort entstehen zwei getrennte Schlüssel: einer zum
+Verschlüsseln (`K_enc`), einer als "Eintrittskarte" für den Server (`K_auth`). Der Server kennt nur einen Fingerabdruck der
+Eintrittskarte und kann daraus den Verschlüsselungs-Schlüssel nicht ableiten. *Quelle: RFC 5869.*
+
+**AES-256-GCM: sperren und Fälschungen bemerken.** Das Geheimnis wird so verschlüsselt, dass jede Änderung am Chiffretext
+auffällt. In die Prüfung fließt auch der Kopf (Version, Kennung, Parameter, Salz) ein. Ein Server, der dir schwächere
+Einstellungen unterschieben will, fliegt auf. *Quelle: NIST SP 800-38D.*
+
+**Auffüllen: die Länge verbergen.** Ob dein Geheimnis 5 oder 500 Zeichen hat, soll niemand sehen. Alles wird auf 1, 4, 16
+oder 64 KiB aufgefüllt, vor dem Verschlüsseln.
+
+**Falsche Versuche zählen, bevor verglichen wird.** Der Server zählt einen Versuch hoch und prüft erst danach, ob die
+Eintrittskarte stimmt. Würde er erst prüfen und dann zählen, könnten viele gleichzeitige Anfragen das Limit umgehen. Das ist
+mit 50 echten, gleichzeitig startenden Prozessen getestet. Eine naive Fassung ließ 50 statt 3 falsche Versuche durch.
+
+**Was das nicht kann.** Liefert ein manipulierter Server dir bösartiges JavaScript, kann es alles mitlesen. Das ist das
+Grundproblem verschlüsselter Webseiten und steht im README unter "Bekannte Grenzen".

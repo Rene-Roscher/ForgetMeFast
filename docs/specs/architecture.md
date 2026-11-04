@@ -1,9 +1,9 @@
 # Architektur
 
-Status: Approved
+Status: Implemented
 Owner: Maintainer (Rene Roscher)
 Skills: web-architecture, vue-inertia-frontend
-Code: app/Http/Middleware/SecurityHeaders.php, resources/js/app.ts, resources/views/app.blade.php, vite.config.ts, e2e/csp.spec.ts
+Code: app/Http/Middleware/SecurityHeaders.php, resources/js/app.ts, resources/js/fragment.ts, resources/js/pages, resources/js/components, resources/css, resources/views/app.blade.php, vite.config.ts
 Checked against code: 2026-11-04
 
 ## Zweck
@@ -25,6 +25,11 @@ Eine einzige Laravel-App liefert die statische Inertia-Hülle und vier JSON-Endp
   Platte aufzeichnet.
 - Vite-Dev-Server: `vite.config.ts` bindet ihn an `127.0.0.1:5173`. Browser lehnen IPv6-Adressen wie `[::1]` als
   CSP-Quelle ab (in Chromium gesehen), deshalb erlaubt `SecurityHeaders` für IPv6-Hosts nichts.
+- Statische Dateien unter- Oberfläche: nur eigene SVG-Icons (`components/Icon.vue`), keine Emojis und keine Symbolzeichen (Test `ui-guard.test.ts`).
+  Bausteine `btn`, `field`, `chip`, `notice` in `resources/css/app.css`. Der Fokusring nutzt die Vordergrundfarbe, weil der
+  Token `--ring` nur etwa 1,3:1 gegen Weiß erreicht. Kontrast, Ränder, Fokus und Überlauf werden in `e2e/design.spec.ts` gemessen.
+- `resources/js/fragment.ts` liest das URL-Fragment einmal und leert die Adresse, bevor Inertia startet. Inertia stellte das
+  Fragment sonst wieder her (im E2E-Test gesehen).
 - Statische Dateien unter `public/` liefert der Webserver, nicht Laravel. Die Header aus `SecurityHeaders` müssen dort
   im Webserver nachgebaut werden (noch nicht geprüft, siehe README).
 

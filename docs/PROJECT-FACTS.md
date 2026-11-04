@@ -25,10 +25,14 @@ Es gibt genau eine Komponente.
 - `composer dev` startet App und Scheduler lokal.
 - `composer check` führt Pint, Pest und `composer audit` aus.
 - `npm run check` führt Typecheck, Vitest, Build und `npm audit` aus.
-- `npm run e2e` führt Playwright aus.
+- `npm run e2e` baut und führt Playwright gegen das Build aus (eigene Datenbank `database/e2e.sqlite`, Server per `php -S`).
+- `npm run e2e:dev` dasselbe gegen den Vite-Dev-Server; nicht gleichzeitig mit `composer dev` (Port 5173, `public/hot`).
 
 ## Anbieter und Testmodus
 Keine. Kein Mail, keine Zahlung, keine externen Dienste.
+
+## Ports
+`composer dev`: App `127.0.0.1:8000`, Vite `127.0.0.1:5173`. `npm run e2e`: `127.0.0.1:8765`.
 
 ## Freigabeliste (Maintainer fragen)
 `git push`, Releases, alle Netzwerkzugriffe außer Paketregistern und Dokumentation, jede Änderung an Protokoll v1,

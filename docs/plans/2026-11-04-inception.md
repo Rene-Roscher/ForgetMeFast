@@ -22,6 +22,7 @@ Protokoll v1 aus `docs/SPEC.md`; dieses Setup legt nur das Fundament ohne Featur
 | Billing | | | | N/A: kein Bezahlmodell |
 | Privacy | `docs/specs/privacy.md` | Approved | none installed | |
 | Availability | | | | N/A: Selbsthost, kein Betriebsversprechen; Backups irrelevant, Secrets sind kurzlebig |
+| Crypto | `docs/specs/crypto.md` | Approved | evidence-before-claims, maintainable-code | |
 | Delivery | `docs/specs/delivery.md` | Approved | github-actions-hardening, safe-actions | |
 | Testing | `docs/specs/testing.md` | Approved | verify-before-done, browser-verification, feature-delivery | |
 | API | `docs/specs/api.md` | Approved | api-contract | |

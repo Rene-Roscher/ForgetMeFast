@@ -222,3 +222,10 @@ Adversarial review (einmal, ein Prüfer, sah nur Plan, Spec, ADR und Repo): 12 B
    - Trade-offs: A lässt sich überall tippen und kopieren und passt in jedes Passwortfeld; B bringt etwa 9,6 Bit mehr, aber manche Zielsysteme lehnen Sonderzeichen ab. Beide sind weit über der Wortvariante (rund 64,6 Bit).
    - Recommendation: A, weil Zugangsdaten oft in Systeme eingetippt werden, die Sonderzeichen nicht mögen.
    - Answer: A (62 alphanumerische Zeichen), vom Maintainer am 2026-11-04.
+
+## Nachtrag zur Umsetzung (2026-11-04)
+- Schritt 12 (Messung im Browser unter der CSP) wurde nicht als eigene Datei `e2e/crypto.spec.ts` umgesetzt, sondern im UI-Test
+  `e2e/flow.spec.ts` ("Argon2id läuft in einem Worker unter der strikten CSP"). Er belegt: Der Worker ist eine eigene Datei vom
+  eigenen Ursprung (kein `blob:`), es gibt keine CSP-Verstöße, Erstellen inklusive Argon2id, Worker und Netzwerk dauerte
+  rund 300 ms im Desktop-Chromium.
+- Der Passwort-Generator ist in `resources/js/crypto/generator.ts` umgesetzt, die EFF-Liste mit CC-BY-4.0-Lizenz an der Quelle gelesen.

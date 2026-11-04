@@ -1,10 +1,10 @@
 # API
 
-Status: Approved
+Status: Implemented
 Owner: Maintainer (Rene Roscher)
 Skills: api-contract
-Code: none yet
-Checked against code: none
+Code: app/Http/Controllers, app/Http/Requests, app/Rules, app/Actions, routes/api.php, config/secrets.php
+Checked against code: 2026-11-04
 
 ## Zweck
 Vier JSON-Endpunkte, die die Browser-App nutzt. Kein öffentliches API-Produkt.

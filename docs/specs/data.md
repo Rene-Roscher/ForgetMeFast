@@ -1,9 +1,9 @@
 # Daten
 
-Status: Approved
+Status: Implemented
 Owner: Maintainer (Rene Roscher)
 Skills: none installed, area checklist used
-Code: database/migrations
+Code: database/migrations, app/Models/Secret.php, config/secrets.php
 Checked against code: 2026-11-04
 
 ## Zweck

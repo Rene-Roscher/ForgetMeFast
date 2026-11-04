@@ -10,6 +10,7 @@ Lies das genannte Dokument, bevor du Code in dem Bereich änderst. Code schlägt
 |---|---|---|
 | Neues Feature oder Produktänderung | `docs/product/brief.md`, danach ein Plan in `docs/plans/` | `feature-planning` |
 | Protokoll v1, Krypto, Abruflogik | `docs/SPEC.md` | `evidence-before-claims` |
+| Krypto-Modul im Browser, Bytes, Vektoren | `docs/specs/crypto.md`, `docs/CRYPTO-NOTES.md` | `evidence-before-claims` |
 | Migration, Model, Tabelle | `docs/specs/data.md` | `laravel-architecture` |
 | Controller, Action, Middleware, Header | `docs/specs/runtime.md` | `laravel-architecture` |
 | Seiten, Komponenten, Rendering, CSP | `docs/specs/architecture.md` | `vue-inertia-frontend` |
