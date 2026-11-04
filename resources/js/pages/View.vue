@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { api, ApiError, errorKey } from '@/api';
+import AppHeader from '@/components/AppHeader.vue';
+import Icon from '@/components/Icon.vue';
 import PasswordField from '@/components/PasswordField.vue';
 import { useCountdown } from '@/composables/useCountdown';
 import { CryptoError, isCryptoAvailable, prepareOpen } from '@/crypto';
@@ -103,62 +105,70 @@ const busy = computed(() => phase.value === 'working');
 </script>
 
 <template>
-    <div class="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 px-4 py-8">
-        <header class="text-center">
-            <p class="text-sm font-semibold text-muted-foreground">{{ de.app.name }}</p>
-        </header>
+    <div class="mx-auto flex min-h-screen w-full max-w-md flex-col gap-8 px-4 py-6 sm:py-8">
+        <AppHeader />
 
-        <main class="rounded-2xl border border-border-strong bg-card p-6 shadow-(--elevation-raised)" aria-live="polite">
-            <div v-if="phase === 'loading'" class="text-center text-sm text-muted-foreground" data-testid="loading">{{ de.view.loading }}</div>
-
-            <div v-else-if="phase === 'insecure'" class="text-center" data-testid="insecure">
-                <h1 class="text-lg font-semibold">⚠ {{ de.errors.insecure.title }}</h1>
-                <p class="mt-2 text-sm">{{ de.errors.insecure.body }}</p>
-            </div>
-
-            <div v-else-if="phase === 'incomplete'" class="text-center" data-testid="incomplete">
-                <h1 class="text-lg font-semibold">⚠ {{ de.errors.incomplete.title }}</h1>
-                <p class="mt-2 text-sm">{{ de.errors.incomplete.body }}</p>
-            </div>
-
-            <div v-else-if="phase === 'unavailable'" class="flex flex-col items-center gap-3 text-center" data-testid="unavailable">
-                <h1 class="text-lg font-semibold">{{ de.errors.unavailable.title }}</h1>
-                <p v-if="message" role="alert" class="text-sm font-medium">⚠ {{ message }}</p>
-                <p class="text-sm text-muted-foreground">{{ de.errors.unavailable.body }}</p>
-                <a href="/" class="min-h-11 rounded-lg border border-caption px-4 py-2.5 text-sm font-semibold hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">{{ de.errors.home }}</a>
-            </div>
-
-            <form v-else-if="phase === 'ready' || phase === 'working'" class="flex flex-col gap-4" novalidate @submit.prevent="submit">
-                <div class="text-center">
-                    <p class="text-3xl" aria-hidden="true">🔒</p>
-                    <h1 class="text-lg font-semibold">{{ de.view.title }}</h1>
-                    <p class="mt-1 text-sm text-muted-foreground">{{ de.view.lead }}</p>
+        <main class="flex flex-1 flex-col justify-center" aria-live="polite">
+            <div class="rounded-2xl border border-border bg-card p-6 shadow-(--elevation-raised) sm:p-8">
+                <div v-if="phase === 'loading'" class="flex flex-col items-center gap-3 py-6 text-center text-sm text-muted-foreground" data-testid="loading">
+                    <Icon name="lock" class="text-3xl" />{{ de.view.loading }}
                 </div>
-                <PasswordField id="view-password" ref="passwordInput" v-model="password" :label="de.view.password" autocomplete="current-password" :invalid="message !== null" describedby="view-status" />
-                <p id="view-status" role="alert" class="min-h-5 rounded-lg text-sm font-medium" :class="message ? 'border-l-4 border-destructive bg-surface-sunken p-3' : ''" data-testid="status">
-                    <template v-if="message">⚠ {{ message }}</template>
-                </p>
-                <button type="submit" :disabled="busy || password.length === 0" data-testid="view-submit" class="min-h-12 rounded-xl bg-primary px-6 text-base font-semibold text-primary-foreground hover:bg-(--primary-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60">
-                    {{ busy ? de.view.working : de.view.submit }}
-                </button>
-            </form>
 
-            <section v-else class="flex flex-col gap-4" data-testid="revealed">
-                <h1 class="text-center text-lg font-semibold">{{ de.view.secretLabel }}</h1>
-                <div class="relative">
-                    <pre :aria-hidden="!shown" class="max-h-72 overflow-auto rounded-xl bg-surface-sunken p-3 font-mono text-sm break-words whitespace-pre-wrap transition-[filter]" :class="shown ? '' : 'blur-md select-none'" data-testid="secret-text">{{ secret }}</pre>
+                <div v-else-if="phase === 'insecure'" class="flex flex-col items-center gap-3 text-center" data-testid="insecure">
+                    <span class="flex size-12 items-center justify-center rounded-xl bg-surface-sunken text-2xl"><Icon name="alert" /></span>
+                    <h1 class="text-xl font-bold tracking-tight">{{ de.errors.insecure.title }}</h1>
+                    <p class="text-sm text-muted-foreground">{{ de.errors.insecure.body }}</p>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <button type="button" class="min-h-11 flex-1 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-(--primary-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" :aria-pressed="shown" data-testid="reveal" @click="reveal">{{ shown ? de.view.hideAgain : de.view.reveal }}</button>
-                    <button type="button" class="min-h-11 flex-1 rounded-lg border border-caption px-4 text-sm font-semibold hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" data-testid="copy" @click="copy">{{ copied ? '✓ ' + de.result.copied : de.view.copy }}</button>
+
+                <div v-else-if="phase === 'incomplete'" class="flex flex-col items-center gap-3 text-center" data-testid="incomplete">
+                    <span class="flex size-12 items-center justify-center rounded-xl bg-surface-sunken text-2xl"><Icon name="link" /></span>
+                    <h1 class="text-xl font-bold tracking-tight">{{ de.errors.incomplete.title }}</h1>
+                    <p class="text-sm text-muted-foreground">{{ de.errors.incomplete.body }}</p>
                 </div>
-                <p class="text-xs text-muted-foreground">{{ de.view.autoHide }}</p>
-                <p v-if="message" role="alert" class="text-sm">⚠ {{ message }}</p>
-                <ul class="flex flex-col gap-1 text-sm">
-                    <li v-if="viewsLeft !== null" data-testid="views-left">{{ de.view.viewsLeft(viewsLeft) }}</li>
-                    <li v-if="remaining" data-testid="countdown">{{ de.view.expiresIn }} {{ remaining }}</li>
-                </ul>
-            </section>
+
+                <div v-else-if="phase === 'unavailable'" class="flex flex-col items-center gap-3 text-center" data-testid="unavailable">
+                    <span class="flex size-12 items-center justify-center rounded-xl bg-surface-sunken text-2xl"><Icon name="ban" /></span>
+                    <h1 class="text-xl font-bold tracking-tight">{{ de.errors.unavailable.title }}</h1>
+                    <p v-if="message" role="alert" class="notice w-full text-left"><Icon name="alert" class="mt-0.5" />{{ message }}</p>
+                    <p class="text-sm text-muted-foreground">{{ de.errors.unavailable.body }}</p>
+                    <a href="/" class="btn btn-secondary mt-2"><Icon name="plus" />{{ de.errors.home }}</a>
+                </div>
+
+                <form v-else-if="phase === 'ready' || phase === 'working'" class="flex flex-col gap-5" novalidate @submit.prevent="submit">
+                    <div class="flex flex-col items-center gap-3 text-center">
+                        <span class="flex size-12 items-center justify-center rounded-xl bg-primary text-2xl text-primary-foreground"><Icon name="lock" /></span>
+                        <h1 class="text-xl font-bold tracking-tight">{{ de.view.title }}</h1>
+                        <p class="text-sm text-muted-foreground">{{ de.view.lead }}</p>
+                    </div>
+                    <PasswordField id="view-password" ref="passwordInput" v-model="password" :label="de.view.password" autocomplete="current-password" :invalid="message !== null" describedby="view-status" />
+                    <div id="view-status" role="alert" data-testid="status">
+                        <p v-if="message" class="notice"><Icon name="alert" class="mt-0.5" />{{ message }}</p>
+                    </div>
+                    <button type="submit" :disabled="busy || password.length === 0" data-testid="view-submit" class="btn btn-primary btn-lg w-full">
+                        {{ busy ? de.view.working : de.view.submit }}<Icon v-if="!busy" name="arrow-right" />
+                    </button>
+                </form>
+
+                <section v-else class="flex flex-col gap-5" data-testid="revealed">
+                    <div class="flex flex-col items-center gap-3 text-center">
+                        <span class="flex size-12 items-center justify-center rounded-xl bg-primary text-2xl text-primary-foreground"><Icon name="check" /></span>
+                        <h1 class="text-xl font-bold tracking-tight">{{ de.view.secretLabel }}</h1>
+                    </div>
+                    <pre :aria-hidden="!shown" class="max-h-72 overflow-auto rounded-xl border border-border-strong bg-surface-sunken p-4 font-mono text-sm leading-relaxed break-words whitespace-pre-wrap transition-[filter] motion-reduce:transition-none" :class="shown ? '' : 'blur-md select-none'" data-testid="secret-text">{{ secret }}</pre>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" class="btn btn-primary" :aria-pressed="shown" data-testid="reveal" @click="reveal"><Icon :name="shown ? 'eye-off' : 'eye'" />{{ shown ? de.view.hideAgain : de.view.reveal }}</button>
+                        <button type="button" class="btn btn-secondary" data-testid="copy" @click="copy"><Icon :name="copied ? 'check' : 'copy'" />{{ copied ? de.result.copied : de.view.copy }}</button>
+                    </div>
+                    <p v-if="message" role="alert" class="notice"><Icon name="alert" class="mt-0.5" />{{ message }}</p>
+                    <ul class="flex flex-col gap-2 border-t border-border pt-4 text-sm">
+                        <li v-if="viewsLeft !== null" class="flex items-center gap-2" data-testid="views-left"><Icon name="eye" />{{ de.view.viewsLeft(viewsLeft) }}</li>
+                        <li v-if="remaining" class="flex items-center gap-2" data-testid="countdown"><Icon name="clock" />{{ de.view.expiresIn }} {{ remaining }}</li>
+                        <li class="flex items-center gap-2 text-muted-foreground"><Icon name="shield" />{{ de.view.autoHide }}</li>
+                    </ul>
+                </section>
+            </div>
         </main>
+
+        <footer class="flex items-center justify-center gap-2 text-xs text-muted-foreground"><Icon name="shield" />{{ de.app.footer }}</footer>
     </div>
 </template>

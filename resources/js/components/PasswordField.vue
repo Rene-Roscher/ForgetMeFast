@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import Icon from '@/components/Icon.vue';
 import {
     EFF_LARGE_WORDLIST, PASSPHRASE_WORDS, PASSWORD_ALPHABET, PASSWORD_CHARS,
     estimateBits, generatedBits, randomChars, randomPassphrase,
@@ -31,39 +32,44 @@ function onInput(event: Event) {
 </script>
 
 <template>
-    <div class="flex flex-col gap-2">
-        <label :for="id" class="text-sm font-medium">{{ label }}</label>
-        <div class="flex gap-2">
-            <input
-                :id="id"
-                :value="model"
-                :type="visible ? 'text' : 'password'"
-                :autocomplete="autocomplete ?? 'off'"
-                :aria-invalid="invalid || undefined"
-                :aria-describedby="describedby"
-                spellcheck="false"
-                autocapitalize="off"
-                class="min-h-11 min-w-0 flex-1 rounded-lg border border-caption bg-input px-3 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                @input="onInput"
-            />
-            <button type="button" class="min-h-11 rounded-lg border border-caption px-3 text-sm font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" :aria-pressed="visible" @click="visible = !visible">
-                {{ visible ? de.create.hide : de.create.show }}
-            </button>
+    <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-2">
+            <label :for="id" class="label">{{ label }}</label>
+            <div class="relative">
+                <input
+                    :id="id"
+                    :value="model"
+                    :type="visible ? 'text' : 'password'"
+                    :autocomplete="autocomplete ?? 'off'"
+                    :aria-invalid="invalid || undefined"
+                    :aria-describedby="describedby"
+                    spellcheck="false"
+                    autocapitalize="off"
+                    class="field pr-12 font-mono text-[13px]"
+                    @input="onInput"
+                />
+                <button type="button" class="icon-btn absolute top-1/2 right-1 -translate-y-1/2" :aria-pressed="visible" :aria-label="visible ? de.create.hide : de.create.show" :title="visible ? de.create.hide : de.create.show" @click="visible = !visible">
+                    <Icon :name="visible ? 'eye-off' : 'eye'" />
+                </button>
+            </div>
         </div>
-        <div v-if="generator" class="flex flex-wrap gap-2">
-            <button type="button" class="min-h-10 rounded-lg border border-caption px-3 text-sm font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" data-testid="dice-words" @click="roll('words')">🎲 {{ de.create.diceWords }}</button>
-            <button type="button" class="min-h-10 rounded-lg border border-caption px-3 text-sm font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" data-testid="dice-chars" @click="roll('chars')">🎲 {{ de.create.diceChars }}</button>
+
+        <div v-if="generator" class="flex flex-wrap items-center gap-2" role="group" :aria-label="de.create.diceGroup">
+            <span class="text-xs font-medium text-muted-foreground">{{ de.create.diceGroup }}</span>
+            <button type="button" class="btn btn-secondary min-h-9 px-3" data-testid="dice-words" @click="roll('words')"><Icon name="dice" />{{ de.create.diceWords }}</button>
+            <button type="button" class="btn btn-secondary min-h-9 px-3" data-testid="dice-chars" @click="roll('chars')"><Icon name="dice" />{{ de.create.diceChars }}</button>
         </div>
-        <div v-if="generator" class="flex flex-col gap-1" data-testid="strength">
-            <div class="flex items-center justify-between text-xs">
+
+        <div v-if="generator" class="flex flex-col gap-1.5" data-testid="strength">
+            <div class="flex items-baseline justify-between gap-2 text-xs">
                 <span class="font-medium">{{ de.strength.label }}</span>
-                <span v-if="model.length" class="tabular-nums">{{ de.strength.bits(bits) }} · {{ source === 'typed' ? de.strength.estimate : de.strength.exact }}</span>
+                <span v-if="model.length" class="text-muted-foreground tabular-nums"><span class="font-semibold text-foreground">{{ de.strength.bits(bits) }}</span> · {{ source === 'typed' ? de.strength.estimate : de.strength.exact }}</span>
                 <span v-else class="text-muted-foreground">{{ de.strength.none }}</span>
             </div>
-            <div class="h-2 overflow-hidden rounded-full bg-surface-sunken" role="presentation">
-                <div class="h-full rounded-full bg-foreground transition-[width]" :style="{ width: `${percent}%` }" />
+            <div class="h-2 overflow-hidden rounded-full border border-caption bg-input" role="presentation">
+                <div class="h-full rounded-full bg-foreground motion-safe:transition-[width]" :style="{ width: `${percent}%` }" />
             </div>
         </div>
-        <p v-if="hint" class="text-xs text-muted-foreground">{{ hint }}</p>
+        <p v-if="hint" class="hint">{{ hint }}</p>
     </div>
 </template>

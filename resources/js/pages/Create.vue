@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { api, ApiError, errorKey } from '@/api';
+import AppHeader from '@/components/AppHeader.vue';
 import CopyField from '@/components/CopyField.vue';
+import Icon from '@/components/Icon.vue';
 import PasswordField from '@/components/PasswordField.vue';
 import SegmentControl from '@/components/SegmentControl.vue';
 import ServerView from '@/components/ServerView.vue';
@@ -43,7 +45,7 @@ const bytes = computed(() => new TextEncoder().encode(secret.value).length);
 const tooLarge = computed(() => bytes.value > MAX_PLAINTEXT_BYTES);
 const passwordOk = computed(() => isAcceptablePassword(password.value));
 const canSubmit = computed(() => secure && !busy.value && secret.value.length > 0 && !tooLarge.value && passwordOk.value);
-const expiryOptions = TTL_SECONDS.map((value) => ({ value: value as number, label: de.expiry[value] ?? String(value) }));
+const expiryOptions = TTL_SECONDS.map((value) => ({ value: value as number, label: de.expiryShort[value] ?? String(value), title: de.expiry[value] ?? String(value) }));
 const expiresAt = computed(() => result.value?.expiresAt ?? null);
 const remaining = useCountdown(expiresAt);
 
@@ -134,88 +136,113 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
 </script>
 
 <template>
-    <div class="mx-auto flex min-h-screen w-full max-w-[1040px] flex-col gap-6 px-4 py-8 sm:px-6">
-        <header class="flex flex-col items-center gap-1 text-center">
-            <h1 class="text-2xl font-bold tracking-tight">{{ de.app.name }}</h1>
-            <p class="text-sm text-muted-foreground">{{ de.app.tagline }}</p>
-        </header>
+    <div class="mx-auto flex min-h-screen w-full max-w-[1040px] flex-col gap-8 px-4 py-6 sm:px-6 sm:py-8">
+        <AppHeader />
 
-        <main class="rounded-2xl border border-border-strong bg-card p-4 shadow-(--elevation-raised) sm:p-6">
-            <div v-if="!secure" role="alert" class="rounded-xl border-2 border-destructive p-4" data-testid="insecure">
-                <h2 class="font-semibold">⚠ {{ de.errors.insecure.title }}</h2>
-                <p class="text-sm">{{ de.errors.insecure.body }}</p>
+        <main class="flex-1">
+            <h1 class="sr-only">{{ de.create.title }}</h1>
+            <div v-if="!secure" role="alert" class="notice" data-testid="insecure">
+                <Icon name="alert" class="mt-0.5" />
+                <div>
+                    <h2 class="font-semibold">{{ de.errors.insecure.title }}</h2>
+                    <p>{{ de.errors.insecure.body }}</p>
+                </div>
             </div>
 
             <!-- Ergebnis -->
-            <section v-else-if="result" class="mx-auto flex max-w-2xl flex-col gap-4" data-testid="result">
-                <h2 class="text-center text-xl font-semibold">{{ de.result.title }}</h2>
-                <ul class="flex flex-wrap justify-center gap-2 text-xs font-medium">
-                    <li class="rounded-full border border-caption px-3 py-1">{{ de.result.chipExpiry(de.expiry[result.ttl] ?? '') }}</li>
-                    <li class="rounded-full border border-caption px-3 py-1">{{ de.result.chipViews(result.views) }}</li>
-                    <li class="rounded-full border border-caption px-3 py-1">{{ de.result.chipAttempts(result.attempts) }}</li>
-                    <li class="rounded-full border border-caption px-3 py-1" data-testid="countdown">{{ remaining ? `${de.result.expiresIn} ${remaining}` : de.result.expired }}</li>
+            <section v-else-if="result" class="mx-auto flex max-w-3xl flex-col gap-6 rounded-2xl border border-border bg-card p-5 shadow-(--elevation-raised) sm:p-8" data-testid="result">
+                <div class="flex flex-col items-center gap-3 text-center">
+                    <span class="flex size-12 items-center justify-center rounded-full bg-primary text-2xl text-primary-foreground"><Icon name="check" /></span>
+                    <h2 class="text-2xl font-bold tracking-tight">{{ de.result.title }}</h2>
+                    <p class="max-w-md text-sm text-muted-foreground">{{ de.result.lead }}</p>
+                </div>
+
+                <ul class="flex flex-wrap justify-center gap-2">
+                    <li class="chip"><Icon name="clock" />{{ de.result.chipExpiry(de.expiry[result.ttl] ?? '') }}</li>
+                    <li class="chip"><Icon name="eye" />{{ de.result.chipViews(result.views) }}</li>
+                    <li class="chip"><Icon name="shield" />{{ de.result.chipAttempts(result.attempts) }}</li>
+                    <li class="chip" data-testid="countdown"><Icon name="clock" />{{ remaining ? `${de.result.expiresIn} ${remaining}` : de.result.expired }}</li>
                 </ul>
-                <template v-if="!destroyed">
-                    <CopyField :label="de.result.link" :value="result.link" :hint="de.result.linkHint" testid="result-link" />
-                    <CopyField :label="de.result.password" :value="result.password" :hint="de.result.passwordHint" testid="result-password" />
-                    <p class="text-center text-xs text-muted-foreground">{{ de.result.leaveNotice }}</p>
-                </template>
-                <p v-else role="status" class="rounded-xl border border-caption p-4 text-center font-medium" data-testid="destroyed">{{ de.result.destroyed }}</p>
 
-                <p v-if="error" role="alert" class="rounded-lg border-l-4 border-destructive bg-surface-sunken p-3 text-sm">⚠ {{ error }}</p>
+                <div v-if="!destroyed" class="grid gap-4 md:grid-cols-2">
+                    <CopyField :step="1" icon="link" break-anywhere :label="de.result.stepLink" :value="result.link" :hint="de.result.linkHint" testid="result-link" />
+                    <CopyField :step="2" icon="key" :label="de.result.stepPassword" :value="result.password" :hint="de.result.passwordHint" testid="result-password" />
+                </div>
+                <p v-else role="status" class="notice" data-testid="destroyed"><Icon name="check-circle" class="mt-0.5" />{{ de.result.destroyed }}</p>
 
-                <div class="flex flex-wrap items-center justify-center gap-3">
+                <p v-if="!destroyed" class="flex items-center justify-center gap-2 text-center text-xs text-muted-foreground"><Icon name="lock" />{{ de.result.leaveNotice }}</p>
+                <p v-if="error" role="alert" class="notice"><Icon name="alert" class="mt-0.5" />{{ error }}</p>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
                     <template v-if="!destroyed">
-                        <button v-if="!destroyAsk" type="button" class="min-h-11 rounded-lg border-2 border-destructive px-4 text-sm font-semibold hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" data-testid="destroy" @click="destroyAsk = true">{{ de.result.destroy }}</button>
-                        <div v-else role="alertdialog" aria-labelledby="destroy-text" class="flex flex-col items-center gap-2 rounded-xl border-2 border-destructive p-3">
-                            <p id="destroy-text" class="text-sm">{{ de.result.destroyConfirm }}</p>
+                        <button v-if="!destroyAsk" type="button" class="btn btn-quiet" data-testid="destroy" @click="destroyAsk = true"><Icon name="trash" />{{ de.result.destroy }}</button>
+                        <div v-else role="alertdialog" aria-labelledby="destroy-text" class="flex w-full flex-col gap-3 rounded-xl border-2 border-destructive bg-surface-sunken p-4 sm:w-auto sm:max-w-sm">
+                            <p id="destroy-text" class="flex items-start gap-2 text-sm"><Icon name="alert" class="mt-0.5" />{{ de.result.destroyConfirm }}</p>
                             <div class="flex gap-2">
-                                <button type="button" class="min-h-10 rounded-lg bg-foreground px-4 text-sm font-semibold text-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" data-testid="destroy-confirm" @click="destroy">{{ de.result.destroyYes }}</button>
-                                <button type="button" class="min-h-10 rounded-lg border border-caption px-4 text-sm font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" @click="destroyAsk = false">{{ de.result.destroyNo }}</button>
+                                <button type="button" class="btn bg-foreground text-background hover:opacity-90" data-testid="destroy-confirm" @click="destroy"><Icon name="trash" />{{ de.result.destroyYes }}</button>
+                                <button type="button" class="btn btn-secondary" @click="destroyAsk = false">{{ de.result.destroyNo }}</button>
                             </div>
                         </div>
                     </template>
-                    <button type="button" class="min-h-11 rounded-lg border border-caption px-4 text-sm font-semibold hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" data-testid="new-secret" @click="reset">{{ de.result.newSecret }}</button>
+                    <span v-else />
+                    <button type="button" class="btn btn-secondary" data-testid="new-secret" @click="reset"><Icon name="plus" />{{ de.result.newSecret }}</button>
                 </div>
             </section>
 
             <!-- Formular -->
-            <form v-else class="grid gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]" novalidate @submit.prevent="submit">
-                <section class="order-2 flex flex-col gap-5 md:order-1" :aria-label="de.create.settings">
-                    <SegmentControl id="ttl" v-model="ttl" :label="de.create.expiry" :options="expiryOptions" />
-                    <Stepper id="views" v-model="views" :label="de.create.views" :min="1" :max="MAX_COUNT" />
-                    <Stepper id="attempts" v-model="attempts" :label="de.create.attempts" :min="1" :max="MAX_COUNT" :hint="de.create.attemptsHint" />
-                    <PasswordField id="password" v-model="password" v-model:source="source" :label="de.create.password" :hint="de.create.passwordHint" generator autocomplete="new-password" />
-                </section>
+            <form v-else class="overflow-hidden rounded-2xl border border-border bg-card shadow-(--elevation-raised)" novalidate @submit.prevent="submit">
+                <div class="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+                    <section class="order-2 flex flex-col gap-6 border-t border-border bg-surface-panel p-5 sm:p-6 lg:order-1 lg:border-t-0 lg:border-r" :aria-label="de.create.settings">
+                        <div>
+                            <h2 class="text-base font-semibold">{{ de.create.settings }}</h2>
+                            <p class="hint mt-0.5">{{ de.create.settingsLead }}</p>
+                        </div>
+                        <SegmentControl id="ttl" v-model="ttl" :label="de.create.expiry" :options="expiryOptions" />
+                        <div class="grid grid-cols-2 gap-4">
+                            <Stepper id="views" v-model="views" :label="de.create.views" :min="1" :max="MAX_COUNT" />
+                            <Stepper id="attempts" v-model="attempts" :label="de.create.attempts" :min="1" :max="MAX_COUNT" />
+                        </div>
+                        <p class="hint -mt-3">{{ de.create.attemptsHint }}</p>
+                        <PasswordField id="password" v-model="password" v-model:source="source" :label="de.create.password" :hint="de.create.passwordHint" generator autocomplete="new-password" />
+                    </section>
 
-                <section class="order-1 flex flex-col gap-2 md:order-2">
-                    <label for="secret" class="text-sm font-medium">{{ de.create.secretLabel }}</label>
-                    <textarea
-                        id="secret"
-                        v-model="secret"
-                        rows="12"
-                        spellcheck="false"
-                        autocomplete="off"
-                        :placeholder="de.create.secretPlaceholder"
-                        :aria-invalid="tooLarge || undefined"
-                        aria-describedby="secret-hint secret-count"
-                        class="min-h-60 w-full resize-y rounded-xl border border-caption bg-input p-3 font-mono text-sm placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                    />
-                    <div class="flex items-center justify-between gap-2 text-xs">
-                        <span id="secret-hint" class="text-muted-foreground">🔒 {{ de.create.secretHint }}</span>
-                        <span id="secret-count" class="tabular-nums" :class="tooLarge ? 'font-semibold' : 'text-muted-foreground'">{{ tooLarge ? '⚠ ' : '' }}{{ de.create.counter(bytes, MAX_PLAINTEXT_BYTES) }}</span>
-                    </div>
-                </section>
+                    <section class="order-1 flex flex-col gap-3 p-5 sm:p-6 lg:order-2">
+                        <div>
+                            <label for="secret" class="text-base font-semibold">{{ de.create.secretLabel }}</label>
+                            <p class="hint mt-0.5">{{ de.create.secretLead }}</p>
+                        </div>
+                        <textarea
+                            id="secret"
+                            v-model="secret"
+                            spellcheck="false"
+                            autocomplete="off"
+                            :placeholder="de.create.secretPlaceholder"
+                            :aria-invalid="tooLarge || undefined"
+                            aria-describedby="secret-hint secret-count"
+                            class="field min-h-56 flex-1 resize-y p-4 font-mono leading-relaxed lg:min-h-[22rem]"
+                        />
+                        <div class="flex items-center justify-between gap-3 text-xs">
+                            <span id="secret-hint" class="flex items-center gap-1.5 text-muted-foreground"><Icon name="lock" />{{ de.create.secretHint }}</span>
+                            <span id="secret-count" class="flex items-center gap-1.5 whitespace-nowrap tabular-nums" :class="tooLarge ? 'font-semibold text-foreground' : 'text-muted-foreground'">
+                                <Icon v-if="tooLarge" name="alert" />{{ de.create.counter(bytes, MAX_PLAINTEXT_BYTES) }}
+                            </span>
+                        </div>
+                    </section>
+                </div>
 
-                <div class="order-3 flex flex-col gap-3 md:col-span-2">
+                <div class="flex flex-col gap-3 border-t border-border p-5 sm:p-6">
                     <ServerView v-model:open="serverViewOpen" :body="prepared?.body ?? null" />
-                    <p v-if="password.length > 0 && !passwordOk" class="text-sm" role="status">⚠ {{ de.errors.passwordTooShort }}</p>
-                    <p v-if="error" role="alert" class="rounded-lg border-l-4 border-destructive bg-surface-sunken p-3 text-sm" data-testid="error">⚠ {{ error }}</p>
-                    <button type="submit" :disabled="!canSubmit" data-testid="submit" class="min-h-12 rounded-xl bg-primary px-6 text-base font-semibold text-primary-foreground hover:bg-(--primary-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60">
-                        {{ buttonLabel }}
-                    </button>
+                    <p v-if="password.length > 0 && !passwordOk" class="notice" role="status"><Icon name="alert" class="mt-0.5" />{{ de.errors.passwordTooShort }}</p>
+                    <p v-if="error" role="alert" class="notice" data-testid="error"><Icon name="alert" class="mt-0.5" />{{ error }}</p>
+                    <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end">
+                        <button type="submit" :disabled="!canSubmit" data-testid="submit" class="btn btn-primary btn-lg sm:min-w-80">
+                            {{ buttonLabel }}<Icon v-if="!busy" name="arrow-right" />
+                        </button>
+                    </div>
                 </div>
             </form>
         </main>
+
+        <footer class="flex items-center justify-center gap-2 text-xs text-muted-foreground"><Icon name="shield" />{{ de.app.footer }}</footer>
     </div>
 </template>

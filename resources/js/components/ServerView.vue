@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import Icon from '@/components/Icon.vue';
 import type { CreateBody } from '@/crypto';
 import { de } from '@/lang/de';
 
@@ -15,11 +16,18 @@ const shown = computed(() => {
 </script>
 
 <template>
-    <details class="rounded-xl border border-caption bg-surface-panel p-3" data-testid="server-view" :open="open" @toggle="open = ($event.target as HTMLDetailsElement).open">
-        <summary class="cursor-pointer text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">{{ de.create.serverView }}</summary>
-        <p class="mt-2 text-xs text-muted-foreground">{{ de.create.serverViewHint }}</p>
-        <pre v-if="body" class="mt-2 max-h-72 overflow-auto rounded-lg bg-surface-sunken p-3 font-mono text-xs" data-testid="server-body">{{ shown }}</pre>
-        <p v-else class="mt-2 text-xs text-muted-foreground">{{ de.create.serverViewPending }}</p>
-        <p class="mt-2 text-xs font-medium">{{ de.create.serverViewNotIncluded }}</p>
+    <details class="group rounded-xl border border-border-strong bg-surface-panel" data-testid="server-view" :open="open" @toggle="open = ($event.target as HTMLDetailsElement).open">
+        <summary class="flex cursor-pointer list-none items-center gap-3 rounded-xl p-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground [&::-webkit-details-marker]:hidden">
+            <Icon name="chevron-right" class="transition-transform motion-reduce:transition-none group-open:rotate-90" />
+            <span class="flex flex-col">
+                <span class="flex items-center gap-2 text-sm font-semibold"><Icon name="server" />{{ de.create.serverView }}</span>
+                <span class="hint">{{ de.create.serverViewHint }}</span>
+            </span>
+        </summary>
+        <div class="flex flex-col gap-3 border-t border-border-strong p-3">
+            <pre v-if="body" class="max-h-72 overflow-auto rounded-lg border border-border-strong bg-card p-3 font-mono text-xs leading-relaxed" data-testid="server-body">{{ shown }}</pre>
+            <p v-else class="hint">{{ de.create.serverViewPending }}</p>
+            <p class="flex items-center gap-2 text-xs font-medium"><Icon name="shield" />{{ de.create.serverViewNotIncluded }}</p>
+        </div>
     </details>
 </template>
