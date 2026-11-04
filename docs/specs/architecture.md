@@ -32,6 +32,9 @@ Eine einzige Laravel-App liefert die statische Inertia-Hülle und vier JSON-Endp
 - Bausteine: Reka UI 2 (ToggleGroup, NumberField, Switch, Dialog, Tooltip, Collapsible) in `components/ui/`, siehe ADR 0005.
   Nativ bleiben nur Eingabefelder. Dialoge: Titel als Name, Beschreibung verknüpft, Fokus hinein und mit Esc zurück (E2E-Test).
 - Texte: vue-i18n mit `resources/js/locales/de.json`, nur Deutsch, vorkompiliert. Tests: Syntax, Parität, Nutzung.
+- Verlauf: Link "Verlauf" unten links in der Seitenleiste (am Handy Icon in der Kopfzeile) öffnet ein Fach von rechts
+  (`HistoryDrawer.vue`, `SecretHistory.vue`); "Wie weit reicht der Schutz?" steht ganz unten in der Seitenleiste (am Handy am Seitenende).
+  Ergebnis und Viewer sind waagerecht und senkrecht zentriert. Fehler erscheinen als Toast oben mittig (`Toaster.vue`).
 - Design umschalten: Icon-Button oben rechts (`ThemeToggle.vue`). Die Wahl `light` oder `dark` steht in `localStorage`
   (Schlüssel `fmf-theme`), sonst nichts, kein Cookie. `public/theme-init.js` setzt die Klasse vor dem ersten Zeichnen.
 - Icons: `lucide-vue-next` (ISC) über `components/Icon.vue`; Logo `components/LogoMark.vue` (Schloss mit Handschlag) und

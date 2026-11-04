@@ -15,6 +15,7 @@ Der Server hält nur Ciphertext und Metadaten. Entwurf, kein Rechtsrat.
 | Ciphertext, Header, Verifier | Auslieferung des Secrets | bis Ablauf oder Vernichtung, Ciphertext danach `NULL` |
 | Metadaten (Zeiten, Zähler, Größen-Bucket) | Limits | bis zum Prune |
 | IP-Hash im Throttling | Missbrauchsschutz | Cache-Lebensdauer des Limits |
+| Verlauf im Browser des Erstellers (`localStorage` `fmf-history`: Link mit Schlüssel, Verwaltungstoken, Zeiten) | eigene Secrets wiederfinden | nur auf dem Gerät, höchstens 20 Einträge, 24 Stunden nach Ablauf entfernt, per "Verlauf leeren" löschbar; nie Passwort oder Klartext, erreicht den Server nie (ADR 0006) |
 
 Keine Roh-IPs, keine Bodies, keine Secrets in Logs.
 Aufbewahrung: Der Aufräumjob `secrets:prune` (jede Minute) setzt abgelaufene Secrets auf vernichtet (Ciphertext `NULL`) und

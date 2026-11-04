@@ -139,7 +139,7 @@ Dazu kommen diese, die der Agent selbst gefunden hat:
   Secret; das erste läuft ab.
 - **Gemeinsame IP.** Das Throttling zählt je gesalzenem IP-Hash. Viele Nutzer hinter derselben Adresse teilen sich das Limit.
 - **Browser-Verlauf und Erweiterungen** sehen das Fragment, bevor die Seite es entfernt.
-- **Gespeichert wird genau eine Einstellung:** die Wahl Hell oder Dunkel in `localStorage` (`fmf-theme`). Kein Cookie, nichts über dich oder deine Secrets.
+- **Im Browser gespeichert wird:** die Wahl Hell oder Dunkel (`fmf-theme`) und dein Verlauf (`fmf-history`) mit Link, Verwaltungstoken und Ablauf deiner eigenen Secrets, **nie** Passwort oder Klartext (ADR 0006). "Verlauf leeren" löscht ihn. Kein Cookie, nichts davon erreicht den Server.
 - **Zwischenablage.** Kopiert der Nutzer das Secret, liegt es dort, bis er es ersetzt.
 
 ## Lizenzen und Quellen
