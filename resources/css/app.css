@@ -26,6 +26,17 @@
     --color-primary-foreground: var(--primary-foreground);
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+    --color-border-strong: var(--border-strong);
+    --color-caption: var(--caption);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-surface-sunken: var(--surface-sunken);
+    --color-surface-raised: var(--surface-raised);
+    --color-surface-panel: var(--surface-panel);
+    --color-text-link: var(--text-link);
+    --radius-lg: var(--radius-lg);
+    --radius-xl: var(--radius-xl);
+    --radius-2xl: var(--radius-2xl);
 }
 
 @layer base {
