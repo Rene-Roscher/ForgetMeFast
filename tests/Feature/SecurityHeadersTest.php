@@ -111,3 +111,9 @@ it('keeps DevTools and SSR off even when the environment says otherwise', functi
     expect(config('inertia.devtools.enabled'))->toBeFalse()
         ->and(config('inertia.ssr.enabled'))->toBeFalse();
 });
+
+it('benutzt in der Testumgebung nie die Hot-Datei des Dev-Servers', function () {
+    expect(app()->environment())->toBe('testing')
+        ->and(Vite::hotFile())->not->toBe(public_path('hot'))
+        ->and(Vite::hotFile())->toContain('no-vite-hot');
+});

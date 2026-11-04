@@ -6,6 +6,7 @@ use App\Http\Throttling\RateLimits;
 use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +25,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         RateLimits::register();
+
+        // In der Testumgebung (Pest, Playwright gegen das Build) nie den Vite-Dev-Server benutzen. So stört ein Testlauf
+        // einen parallel laufenden `composer dev` nicht, und er muss public/hot weder lesen noch löschen.
+        if ($this->app->environment('testing')) {
+            Vite::useHotFile(storage_path('framework/testing/no-vite-hot'));
+        }
 
         // Gelöschte Seiten werden überschrieben (docs/SPEC.md: SQLite mit secure_delete). Löschen heißt nicht
         // physisches Überschreiben auf dem Datenträger; harmlos, weil nur Ciphertext (steht im README).
