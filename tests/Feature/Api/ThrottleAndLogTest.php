@@ -21,6 +21,7 @@ it('drosselt jeden Endpunkt je IP-Hash (429)', function (string $method, string 
         'params 60/min' => ['GET', "/api/secrets/{$id}/params", 60],
         'open 30/min' => ['POST', "/api/secrets/{$id}/open", 30],
         'destroy 30/min' => ['DELETE', "/api/secrets/{$id}", 30],
+        'status 60/min' => ['GET', "/api/secrets/{$id}/status", 60],
     ];
 });
 

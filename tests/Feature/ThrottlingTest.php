@@ -17,6 +17,7 @@ it('limits each endpoint class as the spec says', function (string $limiter, int
     'params 60/min' => [RateLimits::PARAMS, 60],
     'open 30/min' => [RateLimits::OPEN, 30],
     'destroy 30/min' => [RateLimits::DESTROY, 30],
+    'status 60/min' => [RateLimits::STATUS, 60],
 ]);
 
 it('keys the limiter by a salted hash and never by the raw IP', function () {

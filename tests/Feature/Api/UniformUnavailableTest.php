@@ -29,17 +29,20 @@ it('liefert für unbekannt, abgelaufen, vernichtet, verbraucht, falsches Token u
 
     $victims = ['unknown' => $unknown['id'], 'expired' => $expired['id'], 'destroyed' => $destroyed['id'], 'consumed' => $consumed['id'], 'manual' => $manual['id'], 'malformed' => 'kurz'];
 
-    $params = $open = $destroy = [];
+    $params = $open = $destroy = $status = [];
     foreach ($victims as $name => $id) {
         $params[$name] = shape($this->getJson("/api/secrets/{$id}/params"));
         $open[$name] = shape($this->postJson("/api/secrets/{$id}/open", ['proof' => wrongProof()]));
         $destroy[$name] = shape($this->deleteJson("/api/secrets/{$id}", [], ['X-Manage-Token' => wrongProof()]));
+        $status[$name] = shape($this->getJson("/api/secrets/{$id}/status", ['X-Manage-Token' => wrongProof()]));
     }
     // Ein lebendes Secret mit falschem Verwaltungstoken muss dasselbe zeigen wie ein unbekanntes.
     $alive = storeSecret();
     $destroy['alive-wrong-token'] = shape($this->deleteJson("/api/secrets/{$alive['id']}", [], ['X-Manage-Token' => wrongProof()]));
 
-    foreach ([$params, $open, $destroy] as $set) {
+    $status['alive-wrong-token'] = shape($this->getJson("/api/secrets/{$alive['id']}/status", ['X-Manage-Token' => wrongProof()]));
+
+    foreach ([$params, $open, $destroy, $status] as $set) {
         expect(count(array_unique(array_map('serialize', $set))))->toBe(1, json_encode(array_map(fn ($v) => $v[0].' '.$v[1], $set)));
     }
     expect($params['unknown'][0])->toBe(404)->and($params['unknown'][1])->toBe('{"message":"unavailable"}');

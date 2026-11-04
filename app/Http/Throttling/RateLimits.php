@@ -22,12 +22,15 @@ final class RateLimits
 
     public const DESTROY = 'secrets-destroy';
 
+    public const STATUS = 'secrets-status';
+
     public static function register(): void
     {
         RateLimiter::for(self::CREATE, fn (Request $r) => Limit::perHour(20)->by(self::key($r, self::CREATE)));
         RateLimiter::for(self::PARAMS, fn (Request $r) => Limit::perMinute(60)->by(self::key($r, self::PARAMS)));
         RateLimiter::for(self::OPEN, fn (Request $r) => Limit::perMinute(30)->by(self::key($r, self::OPEN)));
         RateLimiter::for(self::DESTROY, fn (Request $r) => Limit::perMinute(30)->by(self::key($r, self::DESTROY)));
+        RateLimiter::for(self::STATUS, fn (Request $r) => Limit::perMinute(60)->by(self::key($r, self::STATUS)));
     }
 
     public static function key(Request $request, string $limiter): string
