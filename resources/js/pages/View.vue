@@ -103,12 +103,15 @@ async function copy(): Promise<void> {
     setTimeout(() => (copied.value = false), 2500);
 }
 
+const number = new Intl.NumberFormat('de-DE');
 const busy = computed(() => phase.value === 'working');
+// Viel Inhalt bekommt die Bühne: links das Secret in voller Höhe, rechts die Übersicht. Wenig Inhalt bleibt eine schmale Karte.
+const large = computed(() => secret.value.length > 360 || secret.value.split('\n').length > 9);
 </script>
 
 <template>
     <AppShell variant="view" center>
-        <section class="card-flat max-w-lg" aria-live="polite">
+        <section v-if="phase !== 'revealed'" class="card-flat max-w-lg" aria-live="polite">
             <div v-if="phase === 'loading'" class="flex items-center gap-4 p-7 text-base text-muted-foreground" data-testid="loading">
                 <span class="icon-tile bg-inset text-foreground"><Icon name="lock" /></span>{{ t('view.loading') }}
             </div>
@@ -161,27 +164,30 @@ const busy = computed(() => phase.value === 'working');
                 </footer>
             </form>
 
-            <section v-else data-testid="revealed">
-                <div class="flex flex-col gap-5 p-5 sm:p-7">
-                    <div class="flex items-center gap-4">
-                        <span class="icon-tile bg-inset text-foreground"><Icon name="check" /></span>
-                        <h1 class="text-2xl font-bold tracking-tight">{{ t('view.revealedTitle') }}</h1>
-                    </div>
-                    <pre :aria-hidden="!shown" class="max-h-80 overflow-auto rounded-md bg-inset p-4 font-mono text-[0.9375rem] leading-relaxed break-words whitespace-pre-wrap transition-[filter] motion-reduce:transition-none" :class="shown ? '' : 'blur-md select-none'" data-testid="secret-text">{{ secret }}</pre>
-                    <div class="grid grid-cols-2 gap-3">
+        </section>
+
+        <!-- Angezeigt: Inhalt und Übersicht als zwei verschachtelte Karten, bei viel Inhalt nebeneinander -->
+        <div v-else data-testid="revealed" class="grid w-full items-start gap-3" :class="large ? 'max-w-5xl lg:grid-cols-[minmax(0,1fr)_19rem]' : 'max-w-lg'">
+            <section class="card-outer">
+                <div class="card-head"><h1 class="text-sm font-semibold">{{ t('view.revealedTitle') }}</h1></div>
+                <pre :aria-hidden="!shown" class="card-inner overflow-auto font-mono text-[0.9375rem] leading-relaxed break-words whitespace-pre-wrap transition-[filter] motion-reduce:transition-none" :class="[shown ? '' : 'blur-md select-none', large ? 'max-h-[68vh] min-h-64' : 'max-h-80']" data-testid="secret-text">{{ secret }}</pre>
+            </section>
+            <aside class="card-outer" :aria-label="t('view.overview')">
+                <div class="card-head"><h2 class="text-sm font-semibold">{{ t('view.overview') }}</h2></div>
+                <div class="card-inner flex flex-col gap-4">
+                    <div class="grid grid-cols-2 gap-2">
                         <button type="button" class="btn btn-primary" :aria-pressed="shown" data-testid="reveal" @click="reveal"><Icon :name="shown ? 'eye-off' : 'eye'" />{{ shown ? t('view.hide') : t('view.reveal') }}</button>
                         <button type="button" class="btn btn-secondary" data-testid="copy" @click="copy"><Icon :name="copied ? 'check' : 'copy'" />{{ copied ? t('result.copied') : t('view.copy') }}</button>
                     </div>
+                    <ul class="flex flex-col gap-3 border-t border-border pt-4 text-sm">
+                        <li v-if="viewsLeft !== null" class="flex items-center gap-3" data-testid="views-left"><Icon name="eye" class="text-muted-foreground" />{{ viewsLeft === 0 ? t('view.lastView') : t('view.viewsLeft', viewsLeft) }}</li>
+                        <li v-if="remaining" class="flex items-center gap-3" data-testid="countdown"><Icon name="clock" class="text-muted-foreground" />{{ t('view.expiresIn', { time: remaining }) }}</li>
+                        <li class="flex items-center gap-3 text-muted-foreground"><Icon name="shield" />{{ t('view.autoHide') }}</li>
+                        <li class="flex items-center gap-3 text-muted-foreground"><Icon name="file-text" />{{ t('view.size', { n: number.format(secret.length) }) }}</li>
+                    </ul>
                     <p v-if="message" role="alert" class="notice"><Icon name="alert" class="mt-0.5" />{{ message }}</p>
                 </div>
-                <footer class="rounded-b-2xl border-t border-border bg-inset px-5 py-4 sm:px-7">
-                    <ul class="flex flex-col gap-2.5 text-base">
-                        <li v-if="viewsLeft !== null" class="flex items-center gap-3" data-testid="views-left"><Icon name="eye" />{{ viewsLeft === 0 ? t('view.lastView') : t('view.viewsLeft', viewsLeft) }}</li>
-                        <li v-if="remaining" class="flex items-center gap-3" data-testid="countdown"><Icon name="clock" />{{ t('view.expiresIn', { time: remaining }) }}</li>
-                        <li class="flex items-center gap-3 text-muted-foreground"><Icon name="shield" />{{ t('view.autoHide') }}</li>
-                    </ul>
-                </footer>
-            </section>
-        </section>
+            </aside>
+        </div>
     </AppShell>
 </template>

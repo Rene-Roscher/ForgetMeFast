@@ -11,9 +11,11 @@ import Icon from '@/components/Icon.vue';
 import PasswordField from '@/components/PasswordField.vue';
 import DockStepper from '@/components/ui/DockStepper.vue';
 import Modal from '@/components/ui/Modal.vue';
+import Tip from '@/components/ui/Tip.vue';
 import SelectMenu from '@/components/ui/SelectMenu.vue';
 import ToggleButton from '@/components/ui/ToggleButton.vue';
 import { useCountdown } from '@/composables/useCountdown';
+import { useRotatingPlaceholder } from '@/composables/useRotatingPlaceholder';
 import {
     createSecret, CryptoError, EFF_LARGE_WORDLIST, isAcceptablePassword, isCryptoAvailable, MAX_COUNT, MAX_PLAINTEXT_BYTES, randomChars, randomPassphrase,
     TTL_SECONDS, type CreatedSecret,
@@ -56,6 +58,9 @@ const result = ref<Result | null>(null);
 const destroyOpen = ref(false);
 const destroyed = ref(false);
 const dragging = ref(false);
+const secretFocused = ref(false);
+const placeholderActive = computed(() => secret.value === '' && !secretFocused.value);
+const placeholder = useRotatingPlaceholder(placeholderActive, '');
 const secretInput = ref<HTMLTextAreaElement | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
@@ -84,6 +89,16 @@ function autosize(): void {
 }
 watch(secret, () => nextTick(autosize));
 onMounted(autosize);
+
+// Strg+S (am Mac Cmd+S) erstellt das Secret, statt dass der Browser die Seite speichern will.
+function onKeydown(event: KeyboardEvent): void {
+    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 's' || event.altKey || result.value) return;
+    event.preventDefault();
+    if (secret.value === '') secretInput.value?.focus();
+    void submit();
+}
+onMounted(() => window.addEventListener('keydown', onKeydown));
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
 
 // Textdatei laden: nur reiner Text, nur bis zum Limit, nur im Browser (nichts wird hochgeladen).
 async function loadFile(file: File | undefined): Promise<void> {
@@ -222,23 +237,28 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                     <li class="chip"><Icon name="clock" />{{ t('result.chips.expiry', { label: t(`expiry.${result.ttl}`) }) }}</li>
                     <li class="chip"><Icon name="eye" />{{ t('result.chips.views', result.views) }}</li>
                     <li class="chip"><Icon name="shield" />{{ t('result.chips.attempts', result.attempts) }}</li>
-                    <li class="chip" data-testid="countdown"><Icon name="clock" />{{ remaining ? t('result.chips.remaining', { time: remaining }) : t('result.chips.expired') }}</li>
+                    <li class="chip" data-testid="countdown"><Icon name="clock" />{{ destroyed ? t('result.chips.destroyed') : remaining ? t('result.chips.remaining', { time: remaining }) : t('result.chips.expired') }}</li>
                 </ul>
             </div>
 
-            <div class="card-inner flex flex-col gap-4">
+            <div class="card-inner flex flex-col gap-4" :class="destroyed ? 'items-center py-10 text-center' : ''">
                 <template v-if="!destroyed">
                     <CopyField :step="1" icon="link" break-anywhere :label="t('result.link.title')" :value="result.link" :hint="t('result.link.hint')" :copied-message="t('toast.linkCopied')" testid="result-link" />
                     <CopyField :step="2" icon="key" :label="t('result.password.title')" :value="result.password" :hint="t('result.password.hint')" :copied-message="t('toast.passwordCopied')" testid="result-password" />
                     <p class="hint flex items-center gap-2"><Icon name="lock" />{{ t('result.leaveNotice') }}</p>
                 </template>
-                <p v-else role="status" class="notice" data-testid="destroyed"><Icon name="check-circle" class="mt-0.5" />{{ t('result.destroy.done') }}</p>
+                <div v-else role="status" class="destroyed-in flex flex-col items-center gap-3" data-testid="destroyed">
+                    <span class="flex size-12 items-center justify-center rounded-full bg-inset text-foreground"><Icon name="trash" class="size-5" /></span>
+                    <div class="flex flex-col gap-1">
+                        <h2 class="text-base font-semibold tracking-tight">{{ t('result.destroy.doneTitle') }}</h2>
+                        <p class="max-w-xs text-sm text-muted-foreground">{{ t('result.destroy.doneBody') }}</p>
+                    </div>
+                </div>
             </div>
 
-            <footer class="card-foot">
+            <footer class="card-foot" :class="destroyed ? 'justify-end' : ''">
                 <button v-if="!destroyed" type="button" class="btn btn-quiet" data-testid="destroy" @click="destroyOpen = true"><Icon name="trash" />{{ t('result.destroy.button') }}</button>
-                <span v-else />
-                <button type="button" class="btn btn-secondary" data-testid="new-secret" @click="reset"><Icon name="plus" />{{ t('result.newSecret') }}</button>
+                <button type="button" class="btn" :class="destroyed ? 'btn-primary w-full' : 'btn-secondary'" data-testid="new-secret" @click="reset"><Icon name="plus" />{{ t('result.newSecret') }}</button>
             </footer>
 
             <Modal v-model:open="destroyOpen" :title="t('result.destroy.title')" :description="t('result.destroy.body')" testid="destroy-dialog">
@@ -257,7 +277,7 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                         <h2 id="secret-title" class="text-sm font-semibold">{{ t('create.secret.title') }}</h2>
                         <div class="flex items-center gap-1">
                             <span class="hidden items-center gap-1.5 pr-1 text-xs font-medium text-positive sm:inline-flex"><Icon name="shield" />{{ t('create.secret.badge') }}</span>
-                            <button type="button" class="btn btn-quiet btn-sm" data-testid="file-pick" @click="fileInput?.click()"><Icon name="upload" />{{ t('create.secret.pick') }}</button>
+                            <Tip :text="t('create.secret.pickHint')"><button type="button" class="btn btn-quiet btn-sm" data-testid="file-pick" @click="fileInput?.click()"><Icon name="upload" />{{ t('create.secret.pick') }}</button></Tip>
                             <input ref="fileInput" type="file" accept="text/*,.txt,.md,.json,.env,.yml,.yaml,.pem,.key,.conf,.ini,.csv" class="sr-only" tabindex="-1" aria-hidden="true" data-testid="file-input" @change="onPick" />
                         </div>
                     </div>
@@ -270,11 +290,13 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                             data-card-field
                             spellcheck="false"
                             autocomplete="off"
-                            :placeholder="t('create.secret.placeholder')"
+                            :placeholder="placeholder || t('create.secret.placeholder')"
                             :aria-invalid="tooLarge || undefined"
                             aria-describedby="secret-limit"
                             class="card-inner no-ring block min-h-52 w-full resize-none p-3.5 pb-9 font-mono text-base leading-relaxed text-foreground outline-none placeholder:text-muted-foreground sm:text-sm lg:min-h-72"
                             @input="autosize"
+                            @focus="secretFocused = true"
+                            @blur="secretFocused = false"
                         />
                         <p id="secret-limit" class="pointer-events-none absolute right-3.5 bottom-2.5 flex items-center gap-1.5 rounded-md bg-card px-1.5 text-xs" :class="limitHint?.over ? 'font-semibold text-foreground' : 'text-muted-foreground'" data-testid="secret-limit">
                             <template v-if="limitHint"><Icon v-if="limitHint.over" name="alert" />{{ limitHint.text }}</template>
@@ -302,14 +324,16 @@ onBeforeUnmount(() => window.removeEventListener('beforeunload', warn));
                 <div class="pointer-events-auto mx-auto flex w-full max-w-5xl flex-col gap-2 rounded-xl border border-border bg-card/95 p-1.5 shadow-[0_12px_36px_-12px_rgb(0_0_0/0.5)] backdrop-blur sm:flex-row sm:items-center sm:gap-2 sm:p-2.5" role="group" :aria-label="t('create.dock.label')">
                     <div class="grid grid-cols-3 gap-1.5 sm:mr-auto sm:flex sm:flex-wrap sm:items-center sm:gap-2">
                         <SelectMenu id="ttl" v-model="ttl" :label="t('create.dock.expiry')" icon="clock" :options="expiryOptions" />
-                        <ToggleButton v-model="oneTime" icon="flame" :label="t('create.dock.oneTime')" :hint="t('create.dock.oneTimeHint')" testid="onetime-toggle" />
+                        <ToggleButton v-model="oneTime" icon="flame" :label="t('create.dock.oneTime')" :hint="t('create.dock.oneTimeHint')" testid="onetime-toggle" tone="danger" />
                         <DockStepper v-if="!oneTime" id="views" v-model="views" :label="t('create.dock.views')" icon="eye" :min="1" :max="MAX_COUNT" />
                         <DockStepper id="attempts" v-model="attempts" :label="t('create.dock.attempts')" icon="shield" :min="1" :max="MAX_COUNT" />
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="submit" :disabled="!canSubmit" data-testid="submit" class="btn btn-primary btn-lg flex-1 sm:min-w-60 sm:flex-none">
-                            {{ busy ? t('create.dock.submitting') : t('create.dock.submit') }}<Icon v-if="!busy" name="arrow-right" />
-                        </button>
+                        <Tip :text="t('create.dock.shortcut')" side="top">
+                            <button type="submit" :disabled="!canSubmit" data-testid="submit" aria-keyshortcuts="Control+S Meta+S" class="btn btn-primary btn-lg flex-1 sm:min-w-60 sm:flex-none">
+                                {{ busy ? t('create.dock.submitting') : t('create.dock.submit') }}<Icon v-if="!busy" name="arrow-right" />
+                            </button>
+                        </Tip>
                     </div>
                 </div>
             </div>

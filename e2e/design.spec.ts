@@ -322,7 +322,7 @@ for (const scheme of ['light', 'dark'] as const) {
             await page.route('**/api/secrets', (r) => (r.request().method() === 'POST' ? r.fulfill({ status: 500, body: '{}' }) : r.continue()));
             await page.locator('#secret').fill('Fehler');
             await page.getByTestId('submit').click();
-            const toast = page.locator('[data-sonner-toast][data-type="error"]');
+            const toast = page.getByTestId('toast-error');
             await expect(toast).toBeVisible();
             const t = (await toast.boundingBox())!;
             expect(t.x).toBeGreaterThanOrEqual(0);

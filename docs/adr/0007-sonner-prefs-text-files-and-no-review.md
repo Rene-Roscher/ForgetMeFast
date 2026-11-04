@@ -20,9 +20,11 @@ einen Schalter "Einmalig", das Laden einer Textdatei und hält "Vor dem Senden p
    Protokoll bleibt unberührt (`CLAUDE.md`: keine Dateien als Anhang, hier nur Text im Feld).
 5. **"Vor dem Senden prüfen" entfällt** samt Dialog. Die Aussage "kein Klartext, kein Passwort, kein Link-Key im Request"
    belegt weiter der E2E-Test am echten Request.
-6. **Stärke** in vier Stufen (Schwellen 40, 60, 80 Bit) mit Wort und Farbe; die Farbe ist nur Zugabe.
+6. **Stärke** in vier Stufen (Schwellen 36, 50, 64 Bit; ein erzeugtes Passwort mit 64 Bit oder mehr gilt als stark) mit Wort und Farbe; die Farbe ist nur Zugabe.
 
 ## Consequences
 - Eine neue Abhängigkeit (`npm audit`: 0 Funde). Bei Updates ist die Verträglichkeit mit der CSP erneut zu prüfen (E2E).
 - `localStorage` enthält `fmf-theme`, `fmf-prefs`, `fmf-history`.
 - Die Stärke eines getippten Passworts ist weiterhin nur eine obere Schätzung (Länge mal Zeichenvorrat) und so beschriftet.
+- Weitere Ergänzungen am selben Tag: laufende Beispiel-Platzhalter (`examples.ts`, offensichtlich unechte Werte), Strg+S
+  erstellt das Secret, eigene Scrollleisten, der Viewer zeigt viel Inhalt links und die Übersicht rechts.

@@ -228,7 +228,7 @@ test('Fehler erscheinen als Toast oben mittig, mit Schließen, und blockieren ni
     await page.locator('#secret').fill('Fehlerfall');
     await page.getByTestId('submit').click();
 
-    const toast = page.locator('[data-sonner-toast][data-type="error"]');
+    const toast = page.getByTestId('toast-error');
     await expect(toast).toBeVisible();
     await expect(toast).toContainText('Der Server hat einen Fehler gemeldet');
     const box = (await toast.boundingBox())!;
@@ -245,7 +245,7 @@ test('Fehler erscheinen als Toast oben mittig, mit Schließen, und blockieren ni
     await page.unroute('**/api/secrets');
     await page.route('**/api/secrets', (r) => r.abort());
     await page.getByTestId('submit').click();
-    await expect(page.locator('[data-sonner-toast][data-type="error"]')).toContainText('Keine Verbindung zum Server');
+    await expect(page.getByTestId('toast-error')).toContainText('Keine Verbindung zum Server');
 });
 
 test('Kopieren meldet sich als Toast', async ({ browser }) => {
@@ -253,7 +253,7 @@ test('Kopieren meldet sich als Toast', async ({ browser }) => {
     const page = await ctx.newPage();
     const created = await create(page, { secret: 'Toast-Test' });
     await page.getByTestId('result-link').locator('xpath=ancestor::section[1]').getByRole('button', { name: 'Kopieren' }).click();
-    await expect(page.locator('[data-sonner-toast][data-type="success"]')).toContainText('Link kopiert');
+    await expect(page.getByTestId('toast-success')).toContainText('Link kopiert');
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(created.link);
     await ctx.close();
 });
@@ -319,7 +319,7 @@ test('Verlauf: ein von einem Empfänger leergelesenes Secret erscheint als "Gele
     await expect(a.getByRole('dialog', { name: 'Verlauf leeren?' })).toBeVisible();
     await a.getByTestId('history-clear-confirm').click();
     await expect(a.getByTestId('history-empty')).toBeVisible();
-    await expect(a.locator('[data-sonner-toast][data-type="info"]')).toContainText('Verlauf geleert');
+    await expect(a.getByTestId('toast-info')).toContainText('Verlauf geleert');
     await ctx.close();
 });
 
@@ -397,12 +397,12 @@ test('Textdatei: laden per Auswahl und per Ablegen, nur Text und nur bis zum Lim
 
     // Binärdaten werden abgelehnt, das Feld bleibt unverändert.
     await input.setInputFiles({ name: 'bild.png', mimeType: 'image/png', buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0, 1, 2, 0xff, 0xfe]) });
-    await expect(page.locator('[data-sonner-toast][data-type="error"]')).toContainText('keine Textdatei');
+    await expect(page.getByTestId('toast-error')).toContainText('keine Textdatei');
     await expect(page.locator('#secret')).toHaveValue('DB_HOST=db.example.test\nDB_PASS=äöü-123');
 
     // Zu groß.
     await input.setInputFiles({ name: 'gross.txt', mimeType: 'text/plain', buffer: Buffer.alloc(70_000, 'a') });
-    await expect(page.locator('[data-sonner-toast][data-type="error"]').filter({ hasText: 'zu groß' })).toBeVisible();
+    await expect(page.getByTestId('toast-error').filter({ hasText: 'zu groß' })).toBeVisible();
 
     // Ablegen: Überlagerung beim Ziehen, Inhalt beim Loslassen.
     const section = page.locator('section[aria-labelledby="secret-title"]');
@@ -431,7 +431,7 @@ test('das Feld wächst mit langem Inhalt, bleibt aber im Fenster', async ({ page
 test('Stärke: vier Stufen mit Wort, Passwort in einer Zeile', async ({ page }) => {
     await page.goto('/');
     const level = page.getByTestId('strength-level');
-    await expect(level).toHaveText('Gut'); // Wörter, 65 Bit
+    await expect(level).toHaveText('Stark'); // Wörter, 65 Bit, sofort richtig (nicht erst nach einer Eingabe)
     await page.getByTestId('pw-mode-chars').click();
     await expect(level).toHaveText('Stark');
     await page.locator('#password').fill('1234567890');
@@ -453,4 +453,95 @@ test('Popover "So funktioniert es" erklärt Link, # und Passwort', async ({ page
     await expect(pop).toContainText('Beides zusammen');
     await page.keyboard.press('Escape');
     await expect(pop).toHaveCount(0);
+});
+
+test('Strg+S erstellt das Secret; ohne Inhalt springt der Cursor ins Feld', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByTestId('submit')).toBeVisible();
+    await page.waitForTimeout(300);
+    await page.keyboard.press('Control+s');
+    await expect(page.locator('#secret')).toBeFocused();
+    await expect(page.getByTestId('result')).toHaveCount(0);
+    await page.locator('#secret').fill('per Tastenkürzel');
+    await page.locator('#secret').blur();
+    await page.keyboard.press('Control+s');
+    await expect(page.getByTestId('result')).toBeVisible({ timeout: 15_000 });
+    rememberNeedles('per Tastenkürzel');
+});
+
+test('Platzhalter: laufende Beispiele, still im Fokus, weg beim Tippen', async ({ page }) => {
+    await page.goto('/');
+    const ph = () => page.locator('#secret').getAttribute('placeholder');
+    await expect.poll(async () => ((await ph()) ?? '').startsWith('Passwort, API-Key') || ((await ph()) ?? '').length < 4, { timeout: 5000 }).toBe(false);
+    const first = await ph();
+    await page.waitForTimeout(500);
+    expect(await ph()).not.toBe(first); // es läuft
+    await page.locator('#secret').focus();
+    const frozen = await ph();
+    await page.waitForTimeout(500);
+    expect(await ph()).toBe(frozen); // im Fokus steht es still
+    await page.locator('#secret').fill('eigener Text');
+    await expect(page.locator('#secret')).toHaveValue('eigener Text');
+});
+
+test('Einmalig ist rot, wenn aktiv; "Sichere Verbindung" ist grün', async ({ page }) => {
+    await page.goto('/');
+    const icon = page.getByTestId('onetime-toggle').locator('svg');
+    const on = await icon.evaluate((el) => getComputedStyle(el).color);
+    await page.getByTestId('onetime-toggle').click();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(300);
+    const off = await icon.evaluate((el) => getComputedStyle(el).color);
+    expect(on).not.toBe(off);
+    const [r, g, b] = on.match(/\d+/g)!.map(Number) as [number, number, number];
+    expect(r, 'aktiv: rötlich').toBeGreaterThan(Math.max(g, b) + 40);
+    const [pr, pg, pb] = (await page.getByTestId('secure-indicator').evaluate((el) => getComputedStyle(el).color)).match(/\d+/g)!.map(Number) as [number, number, number];
+    expect(pg, 'sicher: grünlich').toBeGreaterThan(Math.max(pr, pb) + 20);
+});
+
+test('Scrollleisten sind eigen gestaltet, schmal und abgerundet', async ({ page }) => {
+    await page.goto('/');
+    const w = await page.locator('#secret').evaluate((el) => getComputedStyle(el, '::-webkit-scrollbar').width);
+    expect(w).toBe('14px');
+    const radius = await page.locator('#secret').evaluate((el) => getComputedStyle(el, '::-webkit-scrollbar-thumb').borderTopLeftRadius);
+    expect(parseFloat(radius)).toBeGreaterThan(100);
+});
+
+test('Vernichten zeigt einen klaren Endzustand und führt zum nächsten Secret', async ({ page }) => {
+    await create(page, { secret: 'gleich weg' });
+    await page.getByTestId('destroy').click();
+    await page.getByTestId('destroy-confirm').click();
+    const done = page.getByTestId('destroyed');
+    await expect(done).toBeVisible();
+    await expect(done).toContainText('Secret vernichtet');
+    await expect(done).toContainText('Nicht verfügbar');
+    await expect(page.getByTestId('result-link')).toHaveCount(0);
+    await expect(page.getByTestId('destroy')).toHaveCount(0);
+    await expect(page.getByTestId('countdown')).toContainText('Vernichtet');
+    await page.getByTestId('new-secret').click();
+    await expect(page.locator('#secret')).toBeVisible();
+});
+
+test('Viewer: viel Inhalt links, Übersicht rechts; wenig Inhalt bleibt eine schmale Karte', async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const long = Array.from({ length: 30 }, (_, i) => `KEY_${i}=wert-${i}-${'x'.repeat(30)}`).join('\n');
+    const big = await create(await ctx.newPage(), { secret: long });
+    const b = await ctx.newPage();
+    await b.goto(big.link);
+    await tryPassword(b, big.password);
+    await expect(b.getByTestId('revealed')).toBeVisible({ timeout: 15_000 });
+    const content = (await b.getByTestId('secret-text').boundingBox())!;
+    const aside = (await b.getByRole('complementary', { name: 'Übersicht' }).boundingBox())!;
+    expect(aside.x, 'Übersicht rechts neben dem Inhalt').toBeGreaterThan(content.x + content.width - 1);
+    expect(content.width).toBeGreaterThan(aside.width * 2);
+
+    const small = await create(await ctx.newPage(), { secret: 'kurz' });
+    const c = await ctx.newPage();
+    await c.goto(small.link);
+    await tryPassword(c, small.password);
+    await expect(c.getByTestId('revealed')).toBeVisible({ timeout: 15_000 });
+    const sc = (await c.getByTestId('secret-text').boundingBox())!;
+    const sa = (await c.getByRole('complementary', { name: 'Übersicht' }).boundingBox())!;
+    expect(sa.y, 'Übersicht unter dem Inhalt').toBeGreaterThan(sc.y + sc.height - 1);
+    await ctx.close();
 });

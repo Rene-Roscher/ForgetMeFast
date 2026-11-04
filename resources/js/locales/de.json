@@ -101,9 +101,10 @@
             "overLimit": "Zu lang. Bitte um etwa {n} Zeichen kürzen.",
             "pick": "Textdatei laden",
             "drop": "Textdatei hier ablegen",
-            "dropSub": "Nur Text. Der Inhalt landet im Feld, die Datei wird nicht hochgeladen.",
+            "dropSub": "Nur Text, bis etwa 64 KB. Der Inhalt landet im Feld, die Datei wird nicht hochgeladen.",
             "fileTooBig": "Die Datei ist zu groß. Erlaubt sind etwa {n} Zeichen.",
-            "fileNotText": "Das ist keine Textdatei. Es geht nur reiner Text."
+            "fileNotText": "Das ist keine Textdatei. Es geht nur reiner Text.",
+            "pickHint": "Reiner Text, bis etwa 64 KB (rund 65.000 Zeichen)"
         },
         "password": {
             "title": "Passwort",
@@ -134,7 +135,8 @@
             "submit": "Verschlüsseln & Link erstellen",
             "submitting": "Verschlüssele …",
             "oneTime": "Einmalig",
-            "oneTimeHint": "Nach dem ersten Abruf vernichten"
+            "oneTimeHint": "Nach dem ersten Abruf vernichten",
+            "shortcut": "Tastenkürzel: Strg + S"
         }
     },
     "result": {
@@ -145,7 +147,8 @@
             "views": "{n} Abruf | {n} Abrufe",
             "attempts": "{n} Fehlversuch | {n} Fehlversuche",
             "remaining": "Noch {time}",
-            "expired": "Abgelaufen"
+            "expired": "Abgelaufen",
+            "destroyed": "Vernichtet"
         },
         "link": {
             "title": "Link",
@@ -153,7 +156,7 @@
         },
         "password": {
             "title": "Passwort",
-            "hint": "Schick es nicht im selben Chat, am besten per Anruf oder in einem anderen Messenger."
+            "hint": "Schick Link und Passwort auf zwei getrennten Wegen, nicht beides im selben Chat."
         },
         "copy": "Kopieren",
         "copied": "Kopiert",
@@ -165,7 +168,8 @@
             "body": "Danach funktioniert der Link nicht mehr. Das lässt sich nicht rückgängig machen.",
             "confirm": "Endgültig vernichten",
             "cancel": "Abbrechen",
-            "done": "Vernichtet. Der Link funktioniert nicht mehr."
+            "doneTitle": "Secret vernichtet",
+            "doneBody": "Der Link funktioniert nicht mehr. Wer ihn öffnet, sieht nur \"Nicht verfügbar\"."
         },
         "newSecret": "Neues Secret"
     },
@@ -223,7 +227,9 @@
         "autoHide": "Wird nach 60 Sekunden wieder verborgen.",
         "viewsLeft": "Noch {n} Abruf möglich. | Noch {n} Abrufe möglich.",
         "lastView": "Das war der letzte Abruf. Das Secret ist jetzt vernichtet.",
-        "expiresIn": "Läuft ab in {time}"
+        "expiresIn": "Läuft ab in {time}",
+        "overview": "Übersicht",
+        "size": "{n} Zeichen"
     },
     "errors": {
         "unavailable": {

@@ -69,7 +69,7 @@ const secure = typeof window !== 'undefined' && window.isSecureContext;
                     </a>
                     <div class="flex min-w-0 flex-col gap-0.5 [grid-area:title]"><slot name="header" /></div>
                     <div class="flex items-center gap-3 justify-self-end [grid-area:tools]">
-                        <p class="hidden items-center gap-1.5 text-xs font-medium lg:flex" :class="secure ? 'text-muted-foreground' : 'text-foreground'" data-testid="secure-indicator">
+                        <p class="hidden items-center gap-1.5 text-xs font-medium lg:flex" :class="secure ? 'text-positive' : 'text-foreground'" data-testid="secure-indicator">
                             <Icon :name="secure ? 'shield' : 'alert'" />{{ secure ? t('shell.secure') : t('shell.insecure') }}
                         </p>
                         <Tip :text="t('history.open')"><button type="button" class="icon-btn border border-border-strong bg-card lg:hidden" :aria-label="t('history.open')" data-testid="history-open-mobile" @click="historyOpen = true"><Icon name="history" /></button></Tip>
