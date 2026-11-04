@@ -18,6 +18,7 @@ const appEnv = {
     DB_CONNECTION: 'sqlite',
     DB_DATABASE: e2eDb,
     CACHE_STORE: 'database',
+    SECRETS_CREATE_PER_HOUR: '1000', // ein e2e-Lauf legt mehr als 20 Secrets an; das Limit selbst prüfen die Pest-Tests
     SESSION_DRIVER: 'array',
     LOG_LEVEL: 'debug', // so streng wie möglich: alles, was überhaupt geloggt wird, landet im Log und wird gescannt
     INERTIA_DEVTOOLS_ENABLED: 'false',

@@ -9,4 +9,6 @@ return [
     'kdf' => ['name' => 'argon2id', 'm_min' => 19456, 'm_max' => 65536, 't_min' => 2, 't_max' => 6, 'p' => 1],
     'buckets' => [1024, 4096, 16384, 65536],
     'tag_bytes' => 16,
+    // Anlegevorgänge je IP-Hash und Stunde (SPEC: 20). Nur die e2e-Läufe setzen mehr, weil sie in einer Stunde mehr als 20 Secrets anlegen.
+    'create_per_hour' => (int) env('SECRETS_CREATE_PER_HOUR', 20),
 ];

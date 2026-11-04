@@ -26,4 +26,11 @@ export default function globalSetup(): void {
         env: { ...process.env, APP_ENV: 'testing', DB_CONNECTION: 'sqlite', DB_DATABASE: db, CACHE_STORE: 'array' },
         stdio: 'pipe',
     });
+    // Die Zähler der Ratenbegrenzung liegen im Datenbank-Cache und überleben sonst den Lauf: ein zweiter Lauf
+    // innerhalb einer Stunde liefe in das Limit von 20 Anlegevorgängen.
+    execFileSync('php', ['artisan', 'cache:clear'], {
+        cwd: root,
+        env: { ...process.env, APP_ENV: 'testing', DB_CONNECTION: 'sqlite', DB_DATABASE: db, CACHE_STORE: 'database' },
+        stdio: 'pipe',
+    });
 }

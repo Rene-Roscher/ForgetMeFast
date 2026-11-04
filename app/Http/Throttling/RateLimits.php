@@ -26,7 +26,7 @@ final class RateLimits
 
     public static function register(): void
     {
-        RateLimiter::for(self::CREATE, fn (Request $r) => Limit::perHour(20)->by(self::key($r, self::CREATE)));
+        RateLimiter::for(self::CREATE, fn (Request $r) => Limit::perHour((int) config('secrets.create_per_hour', 20))->by(self::key($r, self::CREATE)));
         RateLimiter::for(self::PARAMS, fn (Request $r) => Limit::perMinute(60)->by(self::key($r, self::PARAMS)));
         RateLimiter::for(self::OPEN, fn (Request $r) => Limit::perMinute(30)->by(self::key($r, self::OPEN)));
         RateLimiter::for(self::DESTROY, fn (Request $r) => Limit::perMinute(30)->by(self::key($r, self::DESTROY)));
