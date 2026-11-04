@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { useHistory } from '@/history';
 import { usePrefs } from '@/prefs';
+import { readTextFile } from '@/textfile';
 import { toast } from '@/toast';
 import { api, ApiError, errorKey } from '@/api';
 import AppShell from '@/components/AppShell.vue';
@@ -103,11 +104,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
 // Textdatei laden: nur reiner Text, nur bis zum Limit, nur im Browser (nichts wird hochgeladen).
 async function loadFile(file: File | undefined): Promise<void> {
     if (!file) return;
-    if (file.size > MAX_PLAINTEXT_BYTES) return void toast.error(t('create.secret.fileTooBig', { n: number.format(Math.floor(MAX_PLAINTEXT_BYTES / 100) * 100) }));
-    const text = await file.text();
-    // Binärdaten enthalten Nullbytes oder werden beim Dekodieren zu U+FFFD.
-    if (text.includes('\u0000') || text.includes('\uFFFD')) return void toast.error(t('create.secret.fileNotText'));
-    secret.value = text;
+    const read = await readTextFile(file);
+    if (!read.ok) {
+        return void toast.error(read.reason === 'tooBig' ? t('create.secret.fileTooBig', { n: number.format(Math.floor(MAX_PLAINTEXT_BYTES / 100) * 100) }) : t('create.secret.fileNotText'));
+    }
+    secret.value = read.text;
 }
 function onDrop(event: DragEvent): void {
     dragging.value = false;

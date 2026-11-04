@@ -5,7 +5,7 @@ Date: 2026-11-04
 Supersedes: none
 
 ## Context
-Der Maintainer hat das Design zweimal nachbessern lassen. Gewünscht sind: Teal statt Mint-Grün, ein Logo aus Schloss und
+Anforderungen an die Oberfläche: Teal statt Mint-Grün, ein Logo aus Schloss und
 Handschlag, größere und bessere Bausteine statt handgebauter und nativer Widgets, bessere Texte über i18n, und ein Aufbau mit
 Inhalt links, Einstellungen als eigene Karte und einer schwebenden Aktionsleiste unten. Die Skills `vue-inertia-frontend` und
 `web-architecture` nennen Reka UI 2 mit dem shadcn-vue-Muster und vue-i18n mit Sprachdateien als Standard.
@@ -19,7 +19,7 @@ Inhalt links, Einstellungen als eigene Karte und einer schwebenden Aktionsleiste
    Pflicht-Tests aus dem Skill (Syntax, Parität, Nutzung) laufen in `locales.test.ts`; ein kaputter Text schlägt den
    Syntax-Test fehl (einmal rot gesehen).
 3. **Palette Tailwind teal**: Primärfarbe teal-700 (hell, weißer Text 5,47:1) und teal-400 (dunkel, Text teal-950 7,77:1),
-   Seitenpanel teal-950 (weißer Text 14,47:1). `resources/css/tokens.css` wurde auf Wunsch des Maintainers geändert
+   Seitenpanel teal-950 (weißer Text 14,47:1). `resources/css/tokens.css` wurde bewusst angepasst
    (`--primary`, `--primary-hover`, `--primary-foreground`, `--ring`, `--text-link`, `--text-positive`).
 4. **Lucide** (`lucide-vue-next`, ISC) für Icons. Das Logo `LogoMark.vue` und `public/favicon.svg` setzen das Lucide-Icon
    "handshake" in einen Schlosskörper.

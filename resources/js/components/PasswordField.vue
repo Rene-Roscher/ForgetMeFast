@@ -4,6 +4,7 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Icon from '@/components/Icon.vue';
 import Tip from '@/components/ui/Tip.vue';
+import { strengthLevel } from '@/strength';
 import {
     EFF_LARGE_WORDLIST, PASSPHRASE_WORDS, PASSWORD_ALPHABET, PASSWORD_CHARS,
     estimateBits, generatedBits, randomChars, randomPassphrase,
@@ -24,7 +25,7 @@ const bits = computed(() => {
     return estimateBits(model.value);
 });
 // Vier Stufen nach Bit (Schwellen 36, 50, 64; ein erzeugtes Passwort mit 64 Bit oder mehr gilt als stark). Die Farbe ist nur Zugabe, die Stufe steht immer auch als Wort daneben.
-const level = computed(() => (model.value.length === 0 ? 0 : bits.value < 36 ? 1 : bits.value < 50 ? 2 : bits.value < 64 ? 3 : 4));
+const level = computed(() => strengthLevel(bits.value, model.value.length === 0));
 const levelColors = ['', 'bg-red-500', 'bg-amber-400', 'bg-lime-500', 'bg-emerald-500'];
 const spins = ref(0);
 

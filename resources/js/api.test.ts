@@ -22,6 +22,17 @@ describe('api', () => {
         expect((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].headers).toMatchObject({ 'X-Manage-Token': 'tok' });
     });
 
+    it('fragt den Status mit dem Verwaltungstoken ab, ohne Body, und kodiert die id im Pfad', async () => {
+        const fetchMock = respond(200, { views_used: 1 });
+        vi.stubGlobal('fetch', fetchMock);
+        await expect(api.status('a/b?c', 'tok')).resolves.toEqual({ views_used: 1 });
+        const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+        expect(url).toBe('/api/secrets/a%2Fb%3Fc/status');
+        expect(init.method ?? 'GET').toBe('GET');
+        expect(init.headers).toMatchObject({ 'X-Manage-Token': 'tok' });
+        expect(init.body).toBeUndefined();
+    });
+
     it('übersetzt Statuscodes in Fehler mit Restversuchen', async () => {
         vi.stubGlobal('fetch', respond(403, { message: 'invalid', attempts_left: 2 }));
         await expect(api.open('id', 'p')).rejects.toMatchObject({ status: 403, attemptsLeft: 2 });

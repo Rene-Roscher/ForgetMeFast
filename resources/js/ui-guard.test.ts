@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-// Design-Regel des Maintainers: keine Emojis und keine Sonderzeichen als Symbole in der Oberfläche. Symbole sind
+// Designregel des Projekts: keine Emojis und keine Sonderzeichen als Symbole in der Oberfläche. Symbole sind
 // SVG-Icons (components/Icon.vue). Dieser Test hält die Regel fest.
 const root = join(__dirname);
 const files: string[] = [];

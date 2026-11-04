@@ -5,7 +5,7 @@ Date: 2026-11-04
 Supersedes: Punkt 3 (Palette) und Punkt 6 (nur eine Einstellung im Speicher) von ADR 0005
 
 ## Context
-Der Maintainer möchte unter "Verlauf" seine eigenen Secrets mit Abrufen und Ablauf sehen, ohne Konto. Außerdem soll das
+Der Ersteller soll unter "Verlauf" seine eigenen Secrets mit Abrufen und Ablauf sehen, ohne Konto. Außerdem soll das
 Design näher an Vercel (Geist) liegen: neutrale Flächen, Teal nur als Akzent, weiche Fokusringe statt Browser-Outline.
 
 ## Decision
@@ -13,7 +13,7 @@ Design näher an Vercel (Geist) liegen: neutrale Flächen, Teal nur als Akzent, 
    `id`, `link` (mit Link-Key), `manageToken`, `createdAt`, `expiresAt`, `ttl`, `maxViews`. **Nie** Passwort oder Klartext;
    ein E2E-Test prüft den Speicherinhalt auf beide. Höchstens 20 Einträge, abgelaufene fallen 24 Stunden nach Ablauf heraus,
    unlesbare Einträge werden verworfen.
-2. **Abweichung von einer Invariante, auf ausdrücklichen Wunsch des Maintainers:** `CLAUDE.md` sagt, das Fragment werde
+2. **Bewusste Abweichung von einer Invariante (Produktentscheidung des Maintainers):** `CLAUDE.md` sagt, das Fragment werde
    "nie gespeichert". Der Verlauf speichert den Link samt Fragment lokal. Das ist nur auf dem Gerät des Erstellers lesbar
    (gleiche Reichweite wie der Browser-Verlauf, den die Doku ohnehin als Grenze nennt), erreicht den Server nie und lässt sich
    per "Verlauf leeren" löschen. Der Server erhält weiterhin nie Link-Key, Passwort oder Klartext.
@@ -22,7 +22,7 @@ Design näher an Vercel (Geist) liegen: neutrale Flächen, Teal nur als Akzent, 
    Der Aufruf verändert nichts.
 4. **Palette:** neutrale Grautöne wie bei Geist (hell Hintergrund `#fff`, Text `#171717`; dunkel `#0a0a0a` mit `#111`-Karten,
    Rand `#2e2e2e`), Primärschaltfläche neutral, Teal (`#0f766e` hell, `#2dd4bf` dunkel) als Marken- und Fokusfarbe.
-   `tokens.css` wurde auf Wunsch angepasst. Kontraste sind im Design-Test gemessen (Text 4,5:1, Eingaberänder 3:1).
+   `tokens.css` wurde angepasst. Kontraste sind im Design-Test gemessen (Text 4,5:1, Eingaberänder 3:1).
 5. **Fokus:** ein globaler weicher Ring aus `box-shadow` (2 px Lücke, 2 px Ring). Der Design-Test misst Breite und Kontrast.
 
 ## Consequences

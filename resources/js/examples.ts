@@ -8,7 +8,7 @@ export const EXAMPLES: readonly string[] = [
     'Karte: 4242 4242 4242 4242\nGültig bis 12/34, Prüfziffer 123',
     'Server: ssh.example.test\nBenutzer: deploy\nPasswort: EXAMPLE-hunter2-EXAMPLE',
     'WLAN: Gaestenetz\nSchlüssel: EXAMPLE-8f3k-q2m9-x7vd',
-    'Recovery-Codes:\nEXAMP-LE001  EXAMP-LE002\nEXAMP-LE003  EXAMP-LE004',
+    'Recovery-Codes:\nEXAMPLE-0001  EXAMPLE-0002\nEXAMPLE-0003  EXAMPLE-0004',
     'API_TOKEN=ghp_EXAMPLEEXAMPLEEXAMPLEEXAMPLE0000',
     'SMTP: smtp.example.test:587\nBenutzer: mailer\nPasswort: EXAMPLE-smtp-pass',
     '-----BEGIN EXAMPLE PRIVATE KEY-----\nRXhhbXBsZSwgbm90IGEgcmVhbCBrZXk=\n-----END EXAMPLE PRIVATE KEY-----',

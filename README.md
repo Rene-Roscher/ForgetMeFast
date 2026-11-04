@@ -10,6 +10,18 @@ Metadaten und vernichtet das Secret nach Ablauf, zu vielen Abrufen oder zu viele
 Empfänger über einen Kanal, das Passwort über einen anderen. Das Protokoll steht in [`docs/SPEC.md`](docs/SPEC.md), die
 Bytes in [`docs/CRYPTO-NOTES.md`](docs/CRYPTO-NOTES.md).
 
+## So sieht es aus
+
+![Ablauf: Secret eingeben, Link und Passwort erhalten, im Browser öffnen, lesen, danach ist es weg](docs/media/ablauf.gif)
+
+| Erstellen (hell) | Erstellen (dunkel) |
+|---|---|
+| ![Secret eingeben, Regeln wählen](docs/media/erstellen-hell.png) | ![Dieselbe Seite im dunklen Design](docs/media/erstellen-dunkel.png) |
+| **Link und Passwort** | **Empfänger** |
+| ![Link und Passwort getrennt kopieren](docs/media/ergebnis.png) | ![Passwort eingeben](docs/media/empfaenger.png) |
+
+Die Bilder entstehen aus der echten Anwendung mit erfundenen Beispielwerten (`npm run docs:media`, braucht `ffmpeg` für die GIF).
+
 ## Start
 
 Voraussetzungen: PHP 8.3 mit `sqlite3`, `pdo_sqlite`, `mbstring`, `intl`; Composer; Node (Version in `.nvmrc`).
@@ -57,15 +69,15 @@ Plan, mit Test vor Code und mit einer Gegenprobe pro Schutzmaßnahme.
 Was der Maintainer entschieden und geprüft hat: den Stack und das Protokoll (`docs/SPEC.md`), die Setup-Entscheidungen
 ([ADR 0003](docs/adr/0003-setup-decisions.md): keine Accounts, keine Cookies, nativer Dev-Stack), die Argon2id-Bibliothek
 ([ADR 0002](docs/adr/0002-argon2id-library.md)), alle Protokolldetails, die die Spec offenließ
-([ADR 0004](docs/adr/0004-crypto-module-protocol-details.md)), und er hat das Design bemängelt, bis es stimmte (keine Emojis,
-gemessene Kontraste).
+([ADR 0004](docs/adr/0004-crypto-module-protocol-details.md)), die Oberfläche (Gestaltung mit gemessenen Kontrasten,
+[ADR 0005](docs/adr/0005-ui-components-i18n-and-palette.md) bis [0007](docs/adr/0007-sonner-prefs-text-files-and-no-review.md)).
 
 Ehrliche Einschränkungen beim Vorgehen:
 - Der Plan fürs Krypto-Modul bekam eine unabhängige gegnerische Prüfung (ein Prüfer sah nur Plan, Spec und Code). Sie fand
   zwölf Punkte, die der Agent einzeln nachprüfte und einarbeitete, darunter einen Fehler im Agenten-Plan.
-- Die Pläne für API und Oberfläche gab der Maintainer pauschal frei ("mache alles autonom fertig"); eine eigene gegnerische
-  Prüfung gab es dort nicht. Stattdessen stehen ein Paralleltest mit echten Prozessen und die E2E-Tests dahinter.
-- Die Krypto-Entscheidungen wurden einzeln vom Maintainer beantwortet. Eine externe Prüfung der Krypto gab es nicht.
+- Für die Pläne zu API und Oberfläche gab es keine eigene gegnerische Prüfung. Stattdessen stehen ein Paralleltest mit echten
+  Prozessen und die E2E-Tests dahinter.
+- Die Krypto-Entscheidungen wurden einzeln vom Maintainer beantwortet und stehen in ADR 0004. Eine externe Prüfung der Krypto gab es nicht.
 
 ## Architekturentscheidungen
 

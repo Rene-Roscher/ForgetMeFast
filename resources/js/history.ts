@@ -2,7 +2,7 @@ import { ref } from 'vue';
 
 // Verlauf der eigenen Secrets, nur in diesem Browser (localStorage). Gespeichert wird der Link (er enthält den Schlüssel
 // hinter dem #) und das Verwaltungstoken (für Status und Vernichten), aber NIE das Passwort und NIE der Klartext.
-// Das weicht von der Invariante "Fragment nie speichern" ab und ist auf Wunsch des Maintainers entschieden: ADR 0006.
+// Das weicht von der Invariante "Fragment nie speichern" ab und ist als Produktentscheidung in ADR 0006 begründet.
 export interface HistoryEntry {
     id: string;
     link: string;

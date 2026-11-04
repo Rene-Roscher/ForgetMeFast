@@ -17,6 +17,8 @@ export function format(ms: number, t: Translate): string | null {
     return t('time.seconds', { s });
 }
 
+/* Der Hook ist nur Timer und Vue-Verdrahtung; `format` oben ist getestet, der Ablauf im E2E-Test (Countdown im Ergebnis). */
+/* v8 ignore start */
 export function useCountdown(until: Ref<Date | null>) {
     const { t } = useI18n();
     const now = ref(Date.now());
@@ -25,3 +27,4 @@ export function useCountdown(until: Ref<Date | null>) {
     onBeforeUnmount(() => clearInterval(timer));
     return computed(() => (until.value ? format(until.value.getTime() - now.value, t as Translate) : null));
 }
+/* v8 ignore stop */

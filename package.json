@@ -9,7 +9,8 @@
         "test": "vitest run --coverage",
         "check": "npm run typecheck && npm run test && npm run build && npm audit",
         "e2e": "npm run build && playwright test",
-        "e2e:dev": "E2E_DEV=1 playwright test"
+        "e2e:dev": "E2E_DEV=1 playwright test",
+        "docs:media": "MEDIA=1 playwright test e2e/media.spec.ts"
     },
     "devDependencies": {
         "@intlify/message-compiler": "^11.4.18",

@@ -67,7 +67,7 @@ const measure = () => {
     //    sichtbarer Beschriftung werden an ihrem Text erkannt, ihr Rand ist nicht die einzige Information; für sie gilt 1. oben.
     for (const el of Array.from(document.querySelectorAll('input:not([type=hidden]), textarea, [role=radiogroup] > div, [role=group].inline-flex'))) {
         if (!visible(el) || (el as HTMLButtonElement).disabled) continue;
-        // Das Secret-Feld ist selbst die innere Karte (Wunsch des Maintainers): Rand wie bei Karten, nicht wie bei Feldern.
+        // Das Secret-Feld ist selbst die innere Karte (Gestaltungsentscheidung, ADR 0006): Rand wie bei Karten, nicht wie bei Feldern.
         if (el.hasAttribute('data-card-field')) continue;
         const s = getComputedStyle(el);
         if (parseFloat(s.borderTopWidth) === 0) continue;
@@ -129,7 +129,7 @@ async function focusRing(page: Page, name: string) {
     expect(r.ratio, `${name}: Fokusring-Kontrast`).toBeGreaterThanOrEqual(3);
 }
 
-/** Felder bleiben im Fokus ruhig: kein Randwechsel, kein Ring, kein Hof (Wunsch des Maintainers). */
+/** Felder bleiben im Fokus ruhig: kein Randwechsel, kein Ring, kein Hof (Gestaltungsentscheidung, ADR 0006). */
 async function fieldCalm(page: Page, selector: string, name: string) {
     const look = () => page.evaluate((sel) => {
         const el = document.querySelector(sel) as HTMLElement;

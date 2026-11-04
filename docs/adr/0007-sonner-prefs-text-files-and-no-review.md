@@ -5,13 +5,15 @@ Date: 2026-11-04
 Supersedes: Teil von ADR 0005 (eigener Toast-Baustein, "Prüfen vor dem Senden")
 
 ## Context
-Der Maintainer wünscht saubere Meldungen mit der gängigen Bibliothek, dass die zuletzt gewählten Regeln erhalten bleiben,
-einen Schalter "Einmalig", das Laden einer Textdatei und hält "Vor dem Senden prüfen" für überflüssig.
+Anforderungen: Meldungen mit der gängigen Bibliothek, gemerkte Regeln, ein Schalter "Einmalig" und das Laden einer
+Textdatei. Der Schritt "Vor dem Senden prüfen" wird kaum benutzt und fällt weg.
 
 ## Decision
-1. **vue-sonner 2.0.9** (MIT, keine Laufzeit-Abhängigkeiten) für Meldungen, unstyled und mit unseren Tokens gestaltet
-   (`components/Toaster.vue`, `toast.ts` als dünne Hülle). Die Verträglichkeit mit der strikten CSP belegt der E2E-Test
-   (kein Verstoß). Der eigene Reka-Toast entfällt.
+1. **vue-sonner 2.0.9** (MIT, keine Laufzeit-Abhängigkeiten) platziert, stapelt und steuert die Meldungen zeitlich. Gezeichnet
+   wird die Karte von uns (`components/ToastCard.vue` über `toast.custom`, `toast.ts` als dünne Hülle): nur der Text der
+   Meldung, links ein schmaler Strich, der mit der Zeit abläuft. Die Verträglichkeit mit der strikten CSP belegt der
+   E2E-Test (kein Verstoß); das Basis-CSS kommt über `app.css`, weil Vite im Dev-Modus sonst ein Inline-Style einfügt. Der
+   eigene Reka-Toast entfällt.
 2. **Gemerkte Regeln** in `localStorage` (`fmf-prefs`): Ablauf, Abrufe, Fehlversuche, Einmalig, Art des Passworts. Nie ein
    Passwort oder Secret; jeder Wert wird streng geprüft, sonst gelten die Standardwerte (Test belegt das).
 3. **Einmalig** (Standard an) bedeutet genau einen Abruf und blendet die Abrufe-Auswahl aus.

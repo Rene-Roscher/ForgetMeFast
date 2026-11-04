@@ -204,12 +204,7 @@
         "destroyed": "Secret vernichtet",
         "historyCleared": "Verlauf geleert",
         "close": "Meldung schließen",
-        "label": "Meldungen",
-        "titles": {
-            "error": "Das hat nicht geklappt",
-            "success": "Erledigt",
-            "info": "Hinweis"
-        }
+        "label": "Meldungen"
     },
     "view": {
         "title": "Geschütztes Secret",

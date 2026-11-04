@@ -1,5 +1,6 @@
+import { nextTick } from 'vue';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULT_PREFS, loadPrefs, parsePrefs, savePrefs } from '@/prefs';
+import { DEFAULT_PREFS, loadPrefs, parsePrefs, savePrefs, usePrefs } from '@/prefs';
 
 describe('prefs', () => {
     const store = new Map<string, string>();
@@ -40,5 +41,24 @@ describe('prefs', () => {
     it('stores nothing but the five rules', () => {
         savePrefs({ ttl: 300, views: 1, attempts: 3, oneTime: true, mode: 'words' });
         expect(Object.keys(JSON.parse(localStorage.getItem('fmf-prefs')!)).sort()).toEqual(['attempts', 'mode', 'oneTime', 'ttl', 'views']);
+    });
+
+    it('usePrefs speichert jede Änderung', async () => {
+        const prefs = usePrefs();
+        expect(prefs.value).toEqual(DEFAULT_PREFS);
+        prefs.value.attempts = 7;
+        prefs.value.oneTime = false;
+        await nextTick();
+        expect(JSON.parse(localStorage.getItem('fmf-prefs')!)).toMatchObject({ attempts: 7, oneTime: false });
+        expect(usePrefs().value).toMatchObject({ attempts: 7, oneTime: false }); // beim nächsten Laden wieder da
+    });
+
+    it('gesperrter Speicher führt zu Standardwerten und wirft nicht beim Speichern', () => {
+        (globalThis as unknown as { localStorage: Storage }).localStorage = {
+            getItem: () => { throw new Error('gesperrt'); },
+            setItem: () => { throw new Error('voll'); },
+        } as unknown as Storage;
+        expect(loadPrefs()).toEqual(DEFAULT_PREFS);
+        expect(() => savePrefs(DEFAULT_PREFS)).not.toThrow();
     });
 });

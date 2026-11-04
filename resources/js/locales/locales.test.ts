@@ -68,7 +68,6 @@ describe('Sprachdateien', () => {
         'expiry.${value}': ['expiry.300', 'expiry.3600', 'expiry.86400', 'expiry.604800'],
         'expiryShort.${value}': ['expiryShort.300', 'expiryShort.3600', 'expiryShort.86400', 'expiryShort.604800'],
         'expiry.${result.ttl}': ['expiry.300', 'expiry.3600', 'expiry.86400', 'expiry.604800'],
-        'toast.titles.${kind}': ['error', 'success', 'info'].map((k) => `toast.titles.${k}`),
         'history.state.${row.state}': ['active', 'expired', 'gone', 'unknown'].map((k) => `history.state.${k}`),
         '${copy}.headline': ['shell.create.headline', 'shell.view.headline'],
         '${copy}.lead': ['shell.create.lead', 'shell.view.lead'],
