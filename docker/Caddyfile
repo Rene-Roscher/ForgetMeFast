@@ -1,0 +1,35 @@
+# Webserver im Container (FrankenPHP = Caddy mit PHP). Er spricht nur HTTP auf einem Port ohne Sonderrechte. HTTPS beendet
+# ein Reverse Proxy davor (siehe README): Web Crypto steht im Browser nur über HTTPS zur Verfügung.
+{
+	frankenphp
+	admin off
+	auto_https off
+}
+
+:{$PORT:8080} {
+	# Kein `log`: Caddy schreibt kein Zugriffsprotokoll mit Adressen (docs/specs/privacy.md).
+	root * /app/public
+	encode zstd gzip
+	header -Server
+
+	# Statische Dateien beantwortet Caddy selbst, nicht Laravel. Deshalb setzt er hier dieselben Schutz-Header, die die App für
+	# ihre eigenen Antworten setzt (app/Http/Middleware/SecurityHeaders.php).
+	@static path /build/* /favicon.ico /favicon.svg /theme-init.js /robots.txt
+	header @static {
+		Content-Security-Policy "default-src 'none'"
+		Cache-Control "no-store"
+		Referrer-Policy "no-referrer"
+		X-Content-Type-Options "nosniff"
+		X-Robots-Tag "noindex"
+		Cross-Origin-Resource-Policy "same-origin"
+		-Server
+	}
+
+	# Nie ausliefern: alles außer index.php und den statischen Dateien (PHP-Dateien, Dotfiles, Quellen).
+	@blocked path /.* /composer.* /package* /artisan /storage/* /vendor/* /database/* /app/* /bootstrap/* /config/* /resources/* /routes/* /tests/*
+	respond @blocked 404
+
+	php_server {
+		try_files {path} index.php
+	}
+}

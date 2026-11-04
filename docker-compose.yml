@@ -1,0 +1,33 @@
+# Beispiel für den Betrieb des Images. HTTPS muss ein Reverse Proxy davor beenden (README, "Betrieb mit Docker"): Der Browser
+# stellt Web Crypto nur über HTTPS bereit, ohne wirft die App beim Verschlüsseln einen Fehler.
+#
+#   export APP_KEY="$(docker run --rm ghcr.io/OWNER/REPO php artisan key:generate --show)"
+#   docker compose up -d
+services:
+  app:
+    image: ghcr.io/OWNER/REPO:main # OWNER/REPO durch das eigene Repository ersetzen oder lokal bauen: build: .
+    restart: unless-stopped
+    environment:
+      APP_KEY: ${APP_KEY:?APP_KEY fehlt}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      # Adresse(n) des Reverse Proxys, damit das Throttling die echten Besucher sieht (README). Leer = keinem vertrauen.
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-}
+    ports:
+      - "127.0.0.1:8080:8080" # nur lokal erreichbar; der Reverse Proxy leitet weiter
+    volumes:
+      - fmf-data:/data
+    read_only: true
+    tmpfs: # beschreibbar nur für den Benutzer www-data (uid 82), nichts davon bleibt bestehen
+      - /tmp:uid=82,gid=82,mode=0755
+      - /config:uid=82,gid=82,mode=0755
+      - /app/storage/framework/views:uid=82,gid=82,mode=0755
+      - /app/storage/framework/cache:uid=82,gid=82,mode=0755
+      - /app/storage/framework/sessions:uid=82,gid=82,mode=0755
+      - /app/storage/logs:uid=82,gid=82,mode=0755
+      - /app/bootstrap/cache:uid=82,gid=82,mode=0755
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  fmf-data:

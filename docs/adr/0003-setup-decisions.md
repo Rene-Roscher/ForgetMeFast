@@ -20,7 +20,7 @@ eingerichtet. Entschieden vom Maintainer am 2026-11-04.
 3. `secrets.id` (128 Bit Zufall) ist Primär- und öffentlicher Schlüssel. Abweichung von der Regel „öffentliche ID
    neben bigint-Schlüssel“ in `laravel:laravel-architecture`, weil die ID nicht erratbar ist und es keine
    Mandanten gibt.
-4. Lokale Entwicklung nativ mit `composer dev`, Docker Compose bleibt Stretch.
+4. Lokale Entwicklung nativ mit `composer dev`. (Ein Container-Image für den Betrieb kam später: ADR 0008.)
 5. Commits bleiben vorerst unsigniert und werden nicht gepusht, bis der Maintainer Signing einrichtet.
    Abweichung vom [default] in `commit-hygiene`.
 6. `laravel-boost` bleibt als Plugin aktiv, weil `laravel` es voraussetzt. Das Composer-Paket wird nicht installiert.
