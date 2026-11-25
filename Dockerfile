@@ -3,7 +3,7 @@
 # Basis-Images sind auf einen Digest festgenagelt; Dependabot hebt sie an (.github/dependabot.yml).
 
 # --- 1. Oberfläche bauen (Node nur hier, nicht im fertigen Image) ------------------------------------------------------
-FROM node:24.11.1-alpine@sha256:682368d8253e0c3364b803956085c456a612d738bd635926d73fa24db3ce53d7 AS assets
+FROM node:26.13.1-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS assets
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
